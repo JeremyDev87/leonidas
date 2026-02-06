@@ -13,7 +13,7 @@ export function buildExecutePrompt(
   issueLabels: string[] = [],
   issueAuthor = "",
   subIssueMetadata?: SubIssueMetadata,
-  language: SupportedLanguage = "en",
+  _language: SupportedLanguage = "en",
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
   const reservedTurns = 5;
