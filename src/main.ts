@@ -110,6 +110,7 @@ async function run(): Promise<void> {
         config.branch_prefix,
         config.base_branch,
         systemPrompt,
+        config.max_turns,
         context.issue_labels,
         context.issue_author,
       );
@@ -127,6 +128,8 @@ async function run(): Promise<void> {
     core.setOutput("model", config.model);
     core.setOutput("max_turns", maxTurns.toString());
     core.setOutput("allowed_tools", allowedTools);
+    core.setOutput("branch_prefix", config.branch_prefix);
+    core.setOutput("base_branch", config.base_branch);
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);

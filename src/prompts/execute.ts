@@ -6,10 +6,13 @@ export function buildExecutePrompt(
   branchPrefix: string,
   baseBranch: string,
   systemPrompt: string,
+  maxTurns: number,
   issueLabels: string[] = [],
   issueAuthor: string = "",
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
+  const reservedTurns = 5;
+  const pushDeadline = maxTurns - reservedTurns;
 
   const prLabels = issueLabels.filter((l) => l !== "leonidas");
   const labelCmd = prLabels.length > 0
@@ -33,6 +36,16 @@ ${issueBody}
 
 ${planComment}
 
+## Turn Budget
+
+You have **${maxTurns} turns** total. Reserve the last ${reservedTurns} turns for push + PR creation.
+
+- **Push deadline:** By turn ${pushDeadline}, you MUST have pushed your branch.
+- **Strategy:** Push early and create a draft PR after completing 2-3 implementation steps.
+  Then continue pushing incremental commits. Convert to ready PR when done.
+- **If running low on turns:** Push whatever you have, create a draft PR, and leave a comment
+  explaining what's done and what remains.
+
 ## Instructions
 
 1. Create a new branch for this implementation:
@@ -44,12 +57,14 @@ ${planComment}
    - Implement the changes described
    - Make an atomic commit with a clear message: \`step N: <description>\`
    - Verify the changes work before moving to the next step
+   - Push after every 2-3 commits
 4. After all steps are complete:
    - Run any relevant tests or build commands if a test framework and dependencies are available
    - Ensure all changes are committed
-5. Push the branch and create a pull request:
-   - Push: \`git push origin ${branchName}\`
-   - Create PR: \`gh pr create --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`${labelCmd}${assigneeCmd}
+5. If you haven't already, create or update the pull request:
+   - If no PR exists yet, create as draft: \`gh pr create --draft --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`${labelCmd}${assigneeCmd}
+   - Continue pushing commits as you complete more work
+   - When all steps complete, convert draft to ready: \`gh pr ready\`
 
 ## Important Rules
 - Do NOT run \`npm install\` or install dependencies unless the plan explicitly requires adding new packages
