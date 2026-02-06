@@ -272,7 +272,7 @@ Order of comments shouldn't matter`;
       expect(result).toBeUndefined();
     });
 
-    it("should handle malformed HTML comments", () => {
+    it("should return undefined for malformed HTML comments with non-numeric values", () => {
       const issueBody = `# Test Issue
 <!-- leonidas-parent: #abc -->
 <!-- leonidas-order: x/y -->
@@ -281,12 +281,8 @@ Malformed numbers`;
 
       const result = parseSubIssueMetadata(issueBody);
 
-      // Should still parse but with NaN values converted to numbers
-      expect(result).toEqual({
-        parent_issue_number: NaN,
-        order: NaN,
-        total: NaN,
-      });
+      // Regex won't match non-numeric values, so returns undefined
+      expect(result).toBeUndefined();
     });
 
     it("should use first match when multiple parent comments exist", () => {
