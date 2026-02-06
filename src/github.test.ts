@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
 import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
-import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
+import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER, formatPlanComment } from "./templates/plan_comment";
 
 vi.mock("@actions/github");
 
@@ -106,6 +106,111 @@ describe("github", () => {
       const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(`Some text before\n${PLAN_HEADER}\nSome text after`);
+    });
+
+    it("should find plan comment with PLAN_MARKER", async () => {
+      const comments = [{ id: 1, body: `${PLAN_MARKER}\n${PLAN_HEADER}\n\nPlan content` }];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n${PLAN_HEADER}\n\nPlan content`);
+    });
+
+    it("should find plan comment with PLAN_MARKER in Korean", async () => {
+      const koreanPlan = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "ko");
+      const comments = [{ id: 1, body: koreanPlan }];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(koreanPlan);
+      expect(result).toContain(PLAN_MARKER);
+      expect(result).toContain("## 🏛️ 레오니다스 구현 계획");
+    });
+
+    it("should find plan comment with PLAN_MARKER in Japanese", async () => {
+      const japanesePlan = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "ja");
+      const comments = [{ id: 1, body: japanesePlan }];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(japanesePlan);
+      expect(result).toContain(PLAN_MARKER);
+      expect(result).toContain("## 🏛️ レオニダス実装計画");
+    });
+
+    it("should find plan comment with PLAN_MARKER in Chinese", async () => {
+      const chinesePlan = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "zh");
+      const comments = [{ id: 1, body: chinesePlan }];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(chinesePlan);
+      expect(result).toContain(PLAN_MARKER);
+      expect(result).toContain("## 🏛️ 列奥尼达实施计划");
+    });
+
+    it("should find plan comment with PLAN_MARKER in Spanish", async () => {
+      const spanishPlan = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "es");
+      const comments = [{ id: 1, body: spanishPlan }];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(spanishPlan);
+      expect(result).toContain(PLAN_MARKER);
+      expect(result).toContain("## 🏛️ Plan de Implementación de Leonidas");
+    });
+
+    it("should prioritize PLAN_MARKER over PLAN_HEADER when both exist", async () => {
+      const comments = [
+        { id: 1, body: `${PLAN_HEADER}\n\nOld English plan without marker` },
+        { id: 2, body: `${PLAN_MARKER}\n## 🏛️ 레오니다스 구현 계획\n\nNew Korean plan with marker` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toContain(PLAN_MARKER);
+      expect(result).toContain("레오니다스 구현 계획");
+    });
+
+    it("should fallback to PLAN_HEADER when no PLAN_MARKER exists (backward compatibility)", async () => {
+      const comments = [
+        { id: 1, body: "Regular comment" },
+        { id: 2, body: `${PLAN_HEADER}\n\nOld plan without marker` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_HEADER}\n\nOld plan without marker`);
+      expect(result).not.toContain(PLAN_MARKER);
+    });
+
+    it("should handle mixed comments with and without markers", async () => {
+      const comments = [
+        { id: 1, body: "Regular comment" },
+        { id: 2, body: `${PLAN_HEADER}\n\nFirst plan without marker` },
+        { id: 3, body: "Another comment" },
+        { id: 4, body: `${PLAN_MARKER}\n${PLAN_HEADER}\n\nLatest plan with marker` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n${PLAN_HEADER}\n\nLatest plan with marker`);
     });
   });
 

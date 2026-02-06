@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLAN_HEADER,
   PLAN_FOOTER,
+  PLAN_MARKER,
   formatPlanComment,
   getPlanHeader,
   getPlanFooter,
@@ -219,6 +220,54 @@ describe("templates/plan_comment", () => {
 
       expect(result).toContain("## 🏛️ Plan de Implementación de Leonidas");
       expect(result).toContain("Para aprobar este plan e iniciar la implementación");
+    });
+
+    it("should include PLAN_MARKER at the beginning for English", () => {
+      const result = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "en");
+
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_MARKER);
+    });
+
+    it("should include PLAN_MARKER at the beginning for Korean", () => {
+      const result = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "ko");
+
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_MARKER);
+    });
+
+    it("should include PLAN_MARKER at the beginning for Japanese", () => {
+      const result = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "ja");
+
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_MARKER);
+    });
+
+    it("should include PLAN_MARKER at the beginning for Chinese", () => {
+      const result = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "zh");
+
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_MARKER);
+    });
+
+    it("should include PLAN_MARKER at the beginning for Spanish", () => {
+      const result = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "es");
+
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_MARKER);
+    });
+
+    it("should include PLAN_MARKER before language-specific header", () => {
+      const resultEn = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "en");
+      const resultKo = formatPlanComment("Summary", ["Step"], "Considerations", "Verification", "ko");
+
+      const markerIndexEn = resultEn.indexOf(PLAN_MARKER);
+      const headerIndexEn = resultEn.indexOf("## 🏛️ Leonidas Implementation Plan");
+      expect(markerIndexEn).toBeLessThan(headerIndexEn);
+
+      const markerIndexKo = resultKo.indexOf(PLAN_MARKER);
+      const headerIndexKo = resultKo.indexOf("## 🏛️ 레오니다스 구현 계획");
+      expect(markerIndexKo).toBeLessThan(headerIndexKo);
     });
   });
 
