@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { ActionInputs, GitHubContext, LeonidasMode } from "./types";
-import { resolveConfig } from "./config";
+import { resolveConfig, loadRules } from "./config";
 import { buildSystemPrompt } from "./prompts/system";
 import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
@@ -36,6 +36,7 @@ function readInputs(): ActionInputs {
     language: core.getInput("language") || undefined,
     config_path: core.getInput("config_path") || "leonidas.config.yml",
     system_prompt_path: core.getInput("system_prompt_path") || ".github/leonidas.md",
+    rules_path: core.getInput("rules_path") || undefined,
   };
 }
 
@@ -79,7 +80,8 @@ async function run(): Promise<void> {
     const context = readGitHubContext();
     const repoFullName = `${context.owner}/${context.repo}`;
 
-    const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language);
+    const rules = loadRules(config.rules_path);
+    const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language, rules);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
 
     let prompt: string;
