@@ -230,7 +230,7 @@ describe("main", () => {
         }),
       );
 
-      const { resolveConfig } = await import("./config");
+      const { resolveConfig, loadRules } = await import("./config");
       vi.mocked(resolveConfig).mockReturnValue({
         label: "leonidas",
         model: "claude-sonnet-4-5-20250929",
@@ -242,6 +242,7 @@ describe("main", () => {
         rules_path: ".github/leonidas-rules",
         authorized_approvers: [],
       });
+      vi.mocked(loadRules).mockReturnValue({});
 
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
@@ -702,7 +703,7 @@ describe("main", () => {
         }),
       );
 
-      const { resolveConfig } = await import("./config");
+      const { resolveConfig, loadRules } = await import("./config");
       vi.mocked(resolveConfig).mockReturnValue({
         label: "leonidas",
         model: "claude-opus-4",
@@ -714,6 +715,7 @@ describe("main", () => {
         rules_path: ".github/leonidas-rules",
         authorized_approvers: [],
       });
+      vi.mocked(loadRules).mockReturnValue({});
 
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
@@ -739,6 +741,7 @@ describe("main", () => {
         ["bug", "urgent"],
         "reporter",
         undefined,
+        false,
         "ja",
       );
 
@@ -957,7 +960,7 @@ describe("main", () => {
         }),
       );
 
-      const { resolveConfig } = await import("./config");
+      const { resolveConfig, loadRules } = await import("./config");
       vi.mocked(resolveConfig).mockReturnValue({
         label: "leonidas",
         model: "claude-sonnet-4-5-20250929",
@@ -969,6 +972,7 @@ describe("main", () => {
         rules_path: ".github/leonidas-rules",
         authorized_approvers: [],
       });
+      vi.mocked(loadRules).mockReturnValue({});
 
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
@@ -982,7 +986,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es", undefined);
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es", {});
       expect(buildExecutePrompt).toHaveBeenCalledWith(
         "Test Issue",
         "Test body",
@@ -995,6 +999,7 @@ describe("main", () => {
         [],
         "testuser",
         undefined,
+        false,
         "es",
       );
       expect(core.setOutput).toHaveBeenCalledWith("language", "es");
