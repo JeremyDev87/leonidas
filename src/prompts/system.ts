@@ -41,6 +41,7 @@ This is a critical requirement for this execution.`;
 export function buildSystemPrompt(
   userOverridePath?: string,
   language: SupportedLanguage = "en",
+  rules?: Record<string, string>,
 ): string {
   const actionRoot = process.env.GITHUB_ACTION_PATH ?? path.join(__dirname, "..");
   const defaultPromptPath = path.join(actionRoot, "prompts/system.md");
@@ -58,6 +59,14 @@ export function buildSystemPrompt(
       systemPrompt += `\n\n## Repository-Specific Instructions\n\n${userPrompt}`;
     } catch {
       // User override file not found, skip silently
+    }
+  }
+
+  // Inject project rules after repository-specific instructions
+  if (rules && Object.keys(rules).length > 0) {
+    systemPrompt += "\n\n## Project Rules\n";
+    for (const [ruleName, ruleContent] of Object.entries(rules)) {
+      systemPrompt += `\n### Rule: ${ruleName}\n\n${ruleContent}\n`;
     }
   }
 
