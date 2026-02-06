@@ -1,19 +1,21 @@
-name: 'Setup Node.js Environment'
-description: 'Checkout code, setup Node.js with npm caching, and install dependencies'
+name: "Setup"
+description: "Setup Node.js and restore npm cache"
+
+inputs:
+  node-version:
+    description: "Node.js version"
+    default: "20"
 
 runs:
-  using: composite
+  using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ inputs.node-version }}
         cache: npm
         cache-dependency-path: package-lock.json
 
     - name: Install dependencies
-      run: npm ci
       shell: bash
+      run: npm ci
