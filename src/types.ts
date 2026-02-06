@@ -24,6 +24,13 @@ export interface ActionInputs {
   system_prompt_path: string;
 }
 
+export interface SubIssueMetadata {
+  parent_issue_number: number;
+  order: number;
+  total: number;
+  depends_on?: number;
+}
+
 export interface GitHubContext {
   owner: string;
   repo: string;
