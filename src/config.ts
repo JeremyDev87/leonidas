@@ -69,6 +69,40 @@ export function mergeConfig(
   return merged;
 }
 
+export function loadRules(rulesPath: string): Record<string, string> {
+  try {
+    // Check if directory exists
+    if (!fs.existsSync(rulesPath)) {
+      return {};
+    }
+
+    const stat = fs.statSync(rulesPath);
+    if (!stat.isDirectory()) {
+      return {};
+    }
+
+    // Read all .md files from the directory
+    const files = fs.readdirSync(rulesPath);
+    const mdFiles = files.filter((file) => file.endsWith(".md")).sort();
+
+    const rules: Record<string, string> = {};
+    for (const file of mdFiles) {
+      const filePath = `${rulesPath}/${file}`;
+      const ruleName = file.replace(/\.md$/, "");
+      try {
+        const content = fs.readFileSync(filePath, "utf-8");
+        rules[ruleName] = content;
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+
+    return rules;
+  } catch {
+    return {};
+  }
+}
+
 export function resolveConfig(inputs: ActionInputs): LeonidasConfig {
   const fileConfig = loadConfigFile(inputs.config_path);
   return mergeConfig(fileConfig, inputs);
