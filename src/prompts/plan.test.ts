@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildPlanPrompt } from "./plan";
-import { PLAN_HEADER, PLAN_FOOTER } from "../templates/plan_comment";
+import { getPlanHeader, getPlanFooter } from "../templates/plan_comment";
 
 describe("prompts/plan", () => {
   describe("buildPlanPrompt", () => {
@@ -42,14 +42,16 @@ describe("prompts/plan", () => {
       expect(result).toContain("myorg/myrepo");
     });
 
-    it("should include PLAN_HEADER and PLAN_FOOTER", () => {
+    it("should include plan header and footer", () => {
       const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
 
+      const header = getPlanHeader();
+      const footer = getPlanFooter();
       const headerCount = (
-        result.match(new RegExp(PLAN_HEADER.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []
+        result.match(new RegExp(header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []
       ).length;
       expect(headerCount).toBeGreaterThanOrEqual(2);
-      expect(result).toContain(PLAN_FOOTER);
+      expect(result).toContain(footer);
     });
 
     it("should include format template for plan comment", () => {
@@ -136,6 +138,73 @@ Line 3`;
       const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
 
       expect(result).toContain(`${systemPrompt}\n\n---\n\nYou are analyzing a GitHub issue`);
+    });
+
+    it("should use English header and footer by default", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
+
+      expect(result).toContain("## 🏛️ Leonidas Implementation Plan");
+      expect(result).toContain("To approve this plan and start implementation, comment `/approve`");
+    });
+
+    it("should use Korean header and footer when language is ko", () => {
+      const result = buildPlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        "leonidas",
+        "ko",
+      );
+
+      expect(result).toContain("## 🏛️ 레오니다스 구현 계획");
+      expect(result).toContain("이 계획을 승인하고 구현을 시작하려면");
+    });
+
+    it("should use Japanese header and footer when language is ja", () => {
+      const result = buildPlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        "leonidas",
+        "ja",
+      );
+
+      expect(result).toContain("## 🏛️ レオニダス実装計画");
+      expect(result).toContain("この計画を承認して実装を開始するには");
+    });
+
+    it("should use Chinese header and footer when language is zh", () => {
+      const result = buildPlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        "leonidas",
+        "zh",
+      );
+
+      expect(result).toContain("## 🏛️ 列奥尼达实施计划");
+      expect(result).toContain("要批准此计划并开始实施");
+    });
+
+    it("should use Spanish header and footer when language is es", () => {
+      const result = buildPlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        "leonidas",
+        "es",
+      );
+
+      expect(result).toContain("## 🏛️ Plan de Implementación de Leonidas");
+      expect(result).toContain("Para aprobar este plan e iniciar la implementación");
     });
   });
 });
