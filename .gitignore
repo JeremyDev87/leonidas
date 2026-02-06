@@ -2,6 +2,9 @@ node_modules/
 .env
 *.js.map
 
+# Build output
+dist/
+
 # Local config
 .mcp.json
 .claude/
