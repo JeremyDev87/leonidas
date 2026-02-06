@@ -1,10 +1,11 @@
 import {
-  PLAN_HEADER,
-  PLAN_FOOTER,
+  getPlanHeader,
+  getPlanFooter,
+  getDecomposedPlanFooter,
   DECOMPOSED_MARKER,
-  DECOMPOSED_PLAN_FOOTER,
 } from "../templates/plan_comment";
 import { SubIssueMetadata } from "../types";
+import { SupportedLanguage } from "../i18n";
 
 export function buildPlanPrompt(
   issueTitle: string,
@@ -13,7 +14,11 @@ export function buildPlanPrompt(
   repoName: string,
   systemPrompt: string,
   label = "leonidas",
+  language: SupportedLanguage = "en",
 ): string {
+  const planHeader = getPlanHeader(language);
+  const planFooter = getPlanFooter(language);
+  const decomposedPlanFooter = getDecomposedPlanFooter(language);
   return `${systemPrompt}
 
 ---
@@ -89,7 +94,7 @@ ${DECOMPOSED_MARKER}
 ### Considerations
 <Dependencies between sub-issues, integration notes>
 
-${DECOMPOSED_PLAN_FOOTER}
+${decomposedPlanFooter}
 
 ### If you decide NOT to decompose:
 
@@ -114,11 +119,11 @@ Follow the standard plan format below.
 
 **IMPORTANT:** The comment MUST start with this exact header:
 
-${PLAN_HEADER}
+${planHeader}
 
 Use this exact format for the comment:
 
-${PLAN_HEADER}
+${planHeader}
 
 ### Summary
 <Brief description of the approach>
@@ -134,7 +139,7 @@ ${PLAN_HEADER}
 ### Verification
 <How to verify the implementation>
 
-${PLAN_FOOTER}
+${planFooter}
 
 3. Post the plan using: \`gh issue comment ${issueNumber} --body "<plan>"\`
 `;
@@ -147,7 +152,11 @@ export function buildSubIssuePlanPrompt(
   repoName: string,
   systemPrompt: string,
   metadata: SubIssueMetadata,
+  language: SupportedLanguage = "en",
 ): string {
+  const planHeader = getPlanHeader(language);
+  const planFooter = getPlanFooter(language);
+
   return `${systemPrompt}
 
 ---
@@ -182,11 +191,11 @@ ${metadata.depends_on ? `- This sub-issue depends on #${metadata.depends_on} whi
 
 **IMPORTANT:** The comment MUST start with this exact header:
 
-${PLAN_HEADER}
+${planHeader}
 
 Use this exact format for the comment:
 
-${PLAN_HEADER}
+${planHeader}
 
 ### Summary
 <Brief description of the approach>
@@ -202,7 +211,7 @@ ${PLAN_HEADER}
 ### Verification
 <How to verify the implementation>
 
-${PLAN_FOOTER}
+${planFooter}
 
 3. Post the plan using: \`gh issue comment ${issueNumber} --body "<plan>"\`
 `;
