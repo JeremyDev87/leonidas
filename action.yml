@@ -77,9 +77,8 @@ runs:
       with:
         prompt_file: ${{ steps.prepare.outputs.prompt_file }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
-        model: ${{ steps.prepare.outputs.model }}
-        max_turns: ${{ steps.prepare.outputs.max_turns }}
-        allowed_tools: ${{ steps.prepare.outputs.allowed_tools }}
+        claude_args: ${{ steps.prepare.outputs.claude_args }}
+        settings: ${{ steps.prepare.outputs.settings_file }}
 
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()

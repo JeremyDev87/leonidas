@@ -34325,11 +34325,18 @@ async function run() {
         const tmpDir = os.tmpdir();
         const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
         fs.writeFileSync(promptFile, prompt, "utf-8");
+        // Write settings file with allowed tools permissions
+        const settingsFile = path.join(tmpDir, `leonidas-settings-${Date.now()}.json`);
+        const settings = {
+            permissions: {
+                allow: allowedTools.split(",").map((t) => t.trim()),
+            },
+        };
+        fs.writeFileSync(settingsFile, JSON.stringify(settings), "utf-8");
         // Set outputs for composite action
         core.setOutput("prompt_file", promptFile);
-        core.setOutput("model", config.model);
-        core.setOutput("max_turns", maxTurns.toString());
-        core.setOutput("allowed_tools", allowedTools);
+        core.setOutput("claude_args", `--model ${config.model} --max-turns ${maxTurns}`);
+        core.setOutput("settings_file", settingsFile);
     }
     catch (error) {
         if (error instanceof Error) {
