@@ -1,5 +1,9 @@
 # Leonidas
 
+[![CI](https://github.com/JeremyDev87/leonidas/actions/workflows/ci.yml/badge.svg)](https://github.com/JeremyDev87/leonidas/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/JeremyDev87/leonidas/branch/main/graph/badge.svg)](https://codecov.io/gh/JeremyDev87/leonidas)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Automated issue-to-PR pipeline powered by Claude Code
 
 Leonidas watches for GitHub issues labeled `leonidas`, generates an implementation plan, and upon approval, implements the code and creates a pull request - all automatically.
