@@ -8,12 +8,7 @@ jobs:
   execute:
     if: |
       github.event.comment.body == '/approve' &&
-      contains(github.event.issue.labels.*.name, 'leonidas') &&
-      (
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'COLLABORATOR'
-      )
+      contains(github.event.issue.labels.*.name, 'leonidas')
     runs-on: ubuntu-latest
     permissions:
       actions: write
