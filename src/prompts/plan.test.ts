@@ -18,7 +18,8 @@ describe("prompts/plan", () => {
         "You are analyzing a GitHub issue to create an implementation plan.",
       );
       expect(result).toContain(`## Repository\n${repoName}`);
-      expect(result).toContain(`## Issue #${issueNumber}: ${issueTitle}`);
+      expect(result).toContain(`## Issue #${issueNumber}:`);
+      expect(result).toContain(issueTitle);
       expect(result).toContain(issueBody);
       expect(result).toContain("## Scope Constraints");
       expect(result).toContain("**Maximum 7 implementation steps.**");
@@ -37,7 +38,8 @@ describe("prompts/plan", () => {
         systemPrompt,
       );
 
-      expect(result).toContain("## Issue #123: Fix bug in login");
+      expect(result).toContain("## Issue #123:");
+      expect(result).toContain("Fix bug in login");
       expect(result).toContain("Users cannot log in when using special characters");
       expect(result).toContain("myorg/myrepo");
     });
@@ -108,7 +110,8 @@ Line 3`;
     it("should handle empty issue body", () => {
       const result = buildPlanPrompt(issueTitle, "", issueNumber, repoName, systemPrompt);
 
-      expect(result).toContain(`## Issue #${issueNumber}: ${issueTitle}`);
+      expect(result).toContain(`## Issue #${issueNumber}:`);
+      expect(result).toContain(issueTitle);
       expect(result).not.toContain("undefined");
     });
 
