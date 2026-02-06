@@ -1,3 +1,5 @@
+import { SubIssueMetadata } from "../types";
+
 export function buildExecutePrompt(
   issueTitle: string,
   issueBody: string,
@@ -9,6 +11,7 @@ export function buildExecutePrompt(
   maxTurns: number,
   issueLabels: string[] = [],
   issueAuthor: string = "",
+  subIssueMetadata?: SubIssueMetadata,
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
   const reservedTurns = 5;
@@ -22,6 +25,25 @@ export function buildExecutePrompt(
     ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
     : "";
 
+  const prTitle = subIssueMetadata
+    ? `#${subIssueMetadata.parent_issue_number} [${subIssueMetadata.order}/${subIssueMetadata.total}]: ${issueTitle}`
+    : `#${issueNumber}: ${issueTitle}`;
+
+  const prBody = subIssueMetadata
+    ? `Part of #${subIssueMetadata.parent_issue_number}\\n\\nCloses #${issueNumber}`
+    : `Closes #${issueNumber}`;
+
+  const subIssueContext = subIssueMetadata
+    ? `
+## Sub-Issue Context
+
+This is sub-issue **[${subIssueMetadata.order}/${subIssueMetadata.total}]** of parent issue #${subIssueMetadata.parent_issue_number}.
+${subIssueMetadata.depends_on ? `- Dependency: #${subIssueMetadata.depends_on} should already be merged. Build on its changes.` : ""}
+- Focus ONLY on the scope defined in this sub-issue.
+- Do not make changes outside the scope of this sub-issue.
+`
+    : "";
+
   return `${systemPrompt}
 
 ---
@@ -31,7 +53,7 @@ You are implementing code changes based on an approved plan.
 ## Issue #${issueNumber}: ${issueTitle}
 
 ${issueBody}
-
+${subIssueContext}
 ## Approved Plan
 
 ${planComment}
@@ -62,7 +84,7 @@ You have **${maxTurns} turns** total. Reserve the last ${reservedTurns} turns fo
    - Run any relevant tests or build commands if a test framework and dependencies are available
    - Ensure all changes are committed
 5. If you haven't already, create or update the pull request:
-   - If no PR exists yet, create as draft: \`gh pr create --draft --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`${labelCmd}${assigneeCmd}
+   - If no PR exists yet, create as draft: \`gh pr create --draft --base ${baseBranch} --title "${prTitle}" --body "${prBody}"\`${labelCmd}${assigneeCmd}
    - Continue pushing commits as you complete more work
    - When all steps complete, convert draft to ready: \`gh pr ready\`
 
