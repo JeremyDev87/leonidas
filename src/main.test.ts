@@ -86,7 +86,7 @@ describe("main", () => {
       expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
       expect(core.setOutput).toHaveBeenCalledWith(
         "allowed_tools",
-        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
       );
     });
 
@@ -476,7 +476,7 @@ describe("main", () => {
       expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
       expect(core.setOutput).toHaveBeenCalledWith(
         "allowed_tools",
-        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
       );
       expect(core.setOutput).toHaveBeenCalledWith("branch_prefix", "bot/issue-");
       expect(core.setOutput).toHaveBeenCalledWith("base_branch", "develop");
