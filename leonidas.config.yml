@@ -20,9 +20,12 @@ allowed_tools:
   - "Edit"
   - "Bash(npm:*)"
   - "Bash(git:*)"
-  - "Bash(gh pr:*)"
+  - "Bash(gh:*)"
   - "Bash(npx:*)"
   - "Bash(node:*)"
+  - "Bash(mkdir:*)"
+  - "Bash(ls:*)"
+  - "Bash(cat:*)"
 
 # Maximum number of Claude Code turns
 max_turns: 30
