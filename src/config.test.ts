@@ -100,6 +100,7 @@ describe("config", () => {
         ...defaultConfig,
         model: "claude-opus-4",
         max_turns: 100,
+        rules_path: ".github/leonidas-rules",
       });
     });
 

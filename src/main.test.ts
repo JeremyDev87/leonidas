@@ -69,6 +69,7 @@ describe("main", () => {
         allowed_tools: ["Read", "Write"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -123,6 +124,7 @@ describe("main", () => {
         allowed_tools: ["Read", "Write", "Edit"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -202,6 +204,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -253,6 +256,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -304,6 +308,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -390,6 +395,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -446,6 +452,7 @@ describe("main", () => {
         allowed_tools: ["Read", "Write"],
         max_turns: 100,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -524,6 +531,7 @@ describe("main", () => {
         allowed_tools: ["Read", "Write", "Edit", "Bash(git:*)"],
         max_turns: 60,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -581,6 +589,7 @@ describe("main", () => {
         allowed_tools: ["Read", "Write", "Edit", "Bash(npm:*)", "Bash(git:*)"],
         max_turns: 75,
         language: "ja",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -654,6 +663,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -724,6 +734,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
