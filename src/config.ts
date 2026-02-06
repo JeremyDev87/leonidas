@@ -58,6 +58,11 @@ export function mergeConfig(
     merged.language = inputs.language;
   }
 
+  // Validate label format: alphanumeric, hyphens, underscores only
+  if (!/^[a-zA-Z0-9_-]+$/.test(merged.label)) {
+    throw new Error(`Invalid label format: "${merged.label}". Labels must contain only alphanumeric characters, hyphens, and underscores.`);
+  }
+
   return merged;
 }
 
