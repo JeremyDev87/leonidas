@@ -290,6 +290,9 @@ describe("prompts/execute", () => {
         maxTurns,
       );
 
+      expect(result).toContain(
+        "use the Write tool directly — it auto-creates parent directories. Do NOT use mkdir",
+      );
       expect(result).toContain("Do NOT run `npm install` or install dependencies");
       expect(result).toContain(
         "Do NOT run typecheck or build commands unless the project already has dependencies installed",

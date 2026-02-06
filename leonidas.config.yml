@@ -23,7 +23,6 @@ allowed_tools:
   - "Bash(gh:*)"
   - "Bash(npx:*)"
   - "Bash(node:*)"
-  - "Bash(mkdir:*)"
   - "Bash(ls:*)"
   - "Bash(cat:*)"
   # File management utilities
