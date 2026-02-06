@@ -84,6 +84,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -133,6 +134,7 @@ describe("main", () => {
         max_turns: 100,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -182,6 +184,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -237,6 +240,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -317,6 +321,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -369,6 +374,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -421,6 +427,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -508,6 +515,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -565,6 +573,7 @@ describe("main", () => {
         max_turns: 100,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -644,6 +653,7 @@ describe("main", () => {
         max_turns: 60,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -702,6 +712,7 @@ describe("main", () => {
         max_turns: 75,
         language: "ja",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -776,6 +787,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -847,6 +859,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -896,6 +909,7 @@ describe("main", () => {
         max_turns: 50,
         language: "ko",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -953,6 +967,7 @@ describe("main", () => {
         max_turns: 50,
         language: "es",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -1019,6 +1034,7 @@ describe("main", () => {
         max_turns: 50,
         language: "en",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -1076,6 +1092,7 @@ describe("main", () => {
         max_turns: 50,
         language: "zh",
         rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
