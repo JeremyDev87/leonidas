@@ -244,6 +244,98 @@ describe("config", () => {
 
       expect(result.max_turns).toBe(0);
     });
+
+    describe("label validation", () => {
+      it("should accept valid label with alphanumeric characters", () => {
+        const fileConfig = { label: "leonidas" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("leonidas");
+      });
+
+      it("should accept valid label with hyphens", () => {
+        const fileConfig = { label: "my-label" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("my-label");
+      });
+
+      it("should accept valid label with underscores", () => {
+        const fileConfig = { label: "test_label" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("test_label");
+      });
+
+      it("should accept valid label with mixed alphanumeric, hyphens, and underscores", () => {
+        const fileConfig = { label: "my_label-v2_test" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("my_label-v2_test");
+      });
+
+      it("should accept valid label with numbers", () => {
+        const fileConfig = { label: "v2024" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("v2024");
+      });
+
+      it("should accept single character label", () => {
+        const fileConfig = { label: "a" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.label).toBe("a");
+      });
+    });
   });
 
   describe("resolveConfig", () => {
