@@ -42,6 +42,10 @@ inputs:
     description: "Path to custom system prompt file"
     required: false
     default: ".github/leonidas.md"
+  rules_path:
+    description: "Path to rules directory containing .md files"
+    required: false
+    default: ".github/leonidas-rules"
 
 outputs:
   conclusion:
@@ -91,6 +95,7 @@ runs:
         INPUT_LANGUAGE: ${{ inputs.language }}
         INPUT_CONFIG_PATH: ${{ inputs.config_path }}
         INPUT_SYSTEM_PROMPT_PATH: ${{ inputs.system_prompt_path }}
+        INPUT_RULES_PATH: ${{ inputs.rules_path }}
       run: node ${{ github.action_path }}/dist/index.js
 
     - name: Run Claude Code
