@@ -198,9 +198,49 @@ runs:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
         BASE_BRANCH: ${{ steps.prepare.outputs.base_branch }}
+        LANGUAGE: ${{ steps.prepare.outputs.language }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
         BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
+
+        # Set localized messages based on language
+        case "$LANGUAGE" in
+          ko)
+            MSG_HEADER_PARTIAL="## ⚠️ 레오니다스 부분 진행"
+            MSG_PR_EXISTS_BODY="구현이 중단되었습니다 (최대 턴 수에 도달했을 가능성이 있음). 하지만 PR이 존재합니다.\n\n**풀 리퀘스트:** #${EXISTING_PR}\n**상태:** 부분 구현 — 완료된 작업을 확인하려면 PR을 검토하세요.\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**계속하려면:** 깨끗한 브랜치에서 다시 시도하려면 \`/approve\`를 다시 댓글로 달거나, PR을 수동으로 완료하세요."
+            MSG_DRAFT_CREATED_BODY="구현이 중단되었지만, 진행 상황을 보존하기 위해 초안 PR이 생성되었습니다.\n\n**초안 PR:** ${PR_URL}\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**계속하려면:** 다시 시도하려면 \`/approve\`를 댓글로 달거나, 초안 PR을 수동으로 완료하세요."
+            MSG_PR_BODY_HEADER="## 부분 구현"
+            MSG_PR_BODY_CONTENT="이 PR은 실행이 중단된 후 (최대 턴 수에 도달했을 가능성이 있음) 부분 진행 상황을 보존하기 위해 레오니다스에 의해 자동으로 생성되었습니다.\n\n**상태:** 불완전 — 수동으로 검토하고 계속하거나 다시 시도하세요.\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\nCloses #${ISSUE_NUMBER}"
+            ;;
+          ja)
+            MSG_HEADER_PARTIAL="## ⚠️ Leonidas 部分的な進行"
+            MSG_PR_EXISTS_BODY="実装が中断されました（最大ターン数に達した可能性があります）が、PRが存在します。\n\n**プルリクエスト:** #${EXISTING_PR}\n**ステータス:** 部分的な実装 — 完了した作業を確認するにはPRをレビューしてください。\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**続行するには:** クリーンなブランチから再試行するには \`/approve\` を再度コメントするか、PRを手動で完了してください。"
+            MSG_DRAFT_CREATED_BODY="実装が中断されましたが、進行状況を保存するためにドラフトPRが作成されました。\n\n**ドラフトPR:** ${PR_URL}\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**続行するには:** 再試行するには \`/approve\` をコメントするか、ドラフトPRを手動で完了してください。"
+            MSG_PR_BODY_HEADER="## 部分的な実装"
+            MSG_PR_BODY_CONTENT="このPRは、実行が中断された後（最大ターン数に達した可能性があります）、部分的な進行状況を保存するためにLeonidasによって自動作成されました。\n\n**ステータス:** 不完全 — 手動でレビューして続行するか、再試行してください。\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\nCloses #${ISSUE_NUMBER}"
+            ;;
+          zh)
+            MSG_HEADER_PARTIAL="## ⚠️ Leonidas 部分进展"
+            MSG_PR_EXISTS_BODY="实现已中断（可能达到最大轮数），但存在PR。\n\n**拉取请求:** #${EXISTING_PR}\n**状态:** 部分实现 — 查看PR以了解已完成的工作。\n**工作流运行:** [查看日志]($RUN_URL)\n\n**继续:** 再次评论 \`/approve\` 以从干净分支重试，或手动完成PR。"
+            MSG_DRAFT_CREATED_BODY="实现已中断，但创建了草稿PR以保留进度。\n\n**草稿PR:** ${PR_URL}\n**工作流运行:** [查看日志]($RUN_URL)\n\n**继续:** 评论 \`/approve\` 重试，或手动完成草稿PR。"
+            MSG_PR_BODY_HEADER="## 部分实现"
+            MSG_PR_BODY_CONTENT="此PR由Leonidas自动创建，用于在执行中断后（可能达到最大轮数）保留部分进度。\n\n**状态:** 不完整 — 手动审查并继续或重试。\n**工作流运行:** [查看日志]($RUN_URL)\n\nCloses #${ISSUE_NUMBER}"
+            ;;
+          es)
+            MSG_HEADER_PARTIAL="## ⚠️ Progreso Parcial de Leonidas"
+            MSG_PR_EXISTS_BODY="La implementación se interrumpió (probablemente alcanzó el máximo de turnos), pero existe un PR.\n\n**Pull Request:** #${EXISTING_PR}\n**Estado:** Implementación parcial — revisa el PR para ver el trabajo completado.\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para continuar:** Comenta \`/approve\` nuevamente para reintentar desde una rama limpia, o completa el PR manualmente."
+            MSG_DRAFT_CREATED_BODY="La implementación se interrumpió, pero se creó un PR borrador para preservar el progreso.\n\n**PR Borrador:** ${PR_URL}\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para continuar:** Comenta \`/approve\` para reintentar, o completa el PR borrador manualmente."
+            MSG_PR_BODY_HEADER="## Implementación Parcial"
+            MSG_PR_BODY_CONTENT="Este PR fue creado automáticamente por Leonidas para preservar el progreso parcial después de que la ejecución fue interrumpida (probablemente alcanzó el máximo de turnos).\n\n**Estado:** Incompleto — revisa y continúa manualmente o reintenta.\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\nCloses #${ISSUE_NUMBER}"
+            ;;
+          *)
+            MSG_HEADER_PARTIAL="## ⚠️ Leonidas Partial Progress"
+            MSG_PR_EXISTS_BODY="Implementation was interrupted (likely hit max turns), but a PR exists.\n\n**Pull Request:** #${EXISTING_PR}\n**Status:** Partial implementation — review the PR for completed work.\n**Workflow run:** [View logs]($RUN_URL)\n\n**To continue:** Comment \`/approve\` again to retry from a clean branch, or manually complete the PR."
+            MSG_DRAFT_CREATED_BODY="Implementation was interrupted, but a draft PR was created to preserve progress.\n\n**Draft PR:** ${PR_URL}\n**Workflow run:** [View logs]($RUN_URL)\n\n**To continue:** Comment \`/approve\` again to retry, or manually complete the draft PR."
+            MSG_PR_BODY_HEADER="## Partial Implementation"
+            MSG_PR_BODY_CONTENT="This PR was auto-created by Leonidas to preserve partial progress after the execution was interrupted (likely hit max turns).\n\n**Status:** Incomplete — review and continue manually or retry.\n**Workflow run:** [View logs]($RUN_URL)\n\nCloses #${ISSUE_NUMBER}"
+            ;;
+        esac
 
         # Check if the branch was pushed to remote
         if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
@@ -212,15 +252,9 @@ runs:
           if [ -n "$EXISTING_PR" ]; then
             echo "pr_exists=true" >> "$GITHUB_OUTPUT"
             echo "pr_number=$EXISTING_PR" >> "$GITHUB_OUTPUT"
-            gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Partial Progress
+            gh issue comment "$ISSUE_NUMBER" --body "${MSG_HEADER_PARTIAL}
 
-        Implementation was interrupted (likely hit max turns), but a PR exists.
-
-        **Pull Request:** #${EXISTING_PR}
-        **Status:** Partial implementation — review the PR for completed work.
-        **Workflow run:** [View logs]($RUN_URL)
-
-        **To continue:** Comment \`/approve\` again to retry from a clean branch, or manually complete the PR."
+        ${MSG_PR_EXISTS_BODY}"
           else
             # Create a draft PR to preserve the work
             PR_URL=$(gh pr create \
@@ -228,25 +262,15 @@ runs:
               --head "$BRANCH_NAME" \
               --base "$BASE_BRANCH" \
               --title "#${ISSUE_NUMBER}: $(gh issue view "$ISSUE_NUMBER" --json title --jq '.title') [partial]" \
-              --body "## Partial Implementation
+              --body "${MSG_PR_BODY_HEADER}
 
-        This PR was auto-created by Leonidas to preserve partial progress after the execution was interrupted (likely hit max turns).
-
-        **Status:** Incomplete — review and continue manually or retry.
-        **Workflow run:** [View logs]($RUN_URL)
-
-        Closes #${ISSUE_NUMBER}" 2>&1 || echo "")
+        ${MSG_PR_BODY_CONTENT}" 2>&1 || echo "")
 
             if [ -n "$PR_URL" ]; then
               echo "pr_created=true" >> "$GITHUB_OUTPUT"
-              gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Partial Progress
+              gh issue comment "$ISSUE_NUMBER" --body "${MSG_HEADER_PARTIAL}
 
-        Implementation was interrupted, but a draft PR was created to preserve progress.
-
-        **Draft PR:** ${PR_URL}
-        **Workflow run:** [View logs]($RUN_URL)
-
-        **To continue:** Comment \`/approve\` again to retry, or manually complete the draft PR."
+        ${MSG_DRAFT_CREATED_BODY}"
             fi
           fi
         else
