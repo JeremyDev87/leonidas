@@ -24,6 +24,7 @@ const DEFAULT_CONFIG: LeonidasConfig = {
   max_turns: 50,
   language: "en",
   rules_path: ".github/leonidas-rules",
+  authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
 };
 
 export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
@@ -68,6 +69,25 @@ export function mergeConfig(
     throw new Error(
       `Invalid label format: "${merged.label}". Labels must contain only alphanumeric characters, hyphens, and underscores.`,
     );
+  }
+
+  // Validate authorized_approvers contains valid GitHub author associations
+  const validAssociations = [
+    "OWNER",
+    "MEMBER",
+    "COLLABORATOR",
+    "CONTRIBUTOR",
+    "FIRST_TIME_CONTRIBUTOR",
+    "FIRST_TIMER",
+    "MANNEQUIN",
+    "NONE",
+  ];
+  for (const approver of merged.authorized_approvers) {
+    if (!validAssociations.includes(approver)) {
+      throw new Error(
+        `Invalid authorized_approvers value: "${approver}". Must be one of: ${validAssociations.join(", ")}`,
+      );
+    }
   }
 
   return merged;
