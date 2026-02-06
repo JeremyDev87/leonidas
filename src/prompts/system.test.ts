@@ -282,5 +282,67 @@ describe("prompts/system", () => {
         "All responses, comments, commit messages, and output MUST be in Korean",
       );
     });
+
+    it("should include rules when provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const rules = {
+        "plan-quality": "# Plan Quality\nEnsure plans are specific and testable.",
+        "coding-standards": "# Coding Standards\nFollow the style guide.",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en", rules);
+
+      expect(result).toContain("## Project Rules");
+      expect(result).toContain("### Rule: plan-quality");
+      expect(result).toContain("# Plan Quality\nEnsure plans are specific and testable.");
+      expect(result).toContain("### Rule: coding-standards");
+      expect(result).toContain("# Coding Standards\nFollow the style guide.");
+    });
+
+    it("should omit rules section when no rules provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en");
+
+      expect(result).toBe("Default instructions.");
+      expect(result).not.toContain("## Project Rules");
+    });
+
+    it("should place rules after user override and before language directive", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const userOverride = "Custom instructions.";
+      const rules = {
+        "plan-quality": "# Plan Quality Rules",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce(defaultPrompt)
+        .mockReturnValueOnce(userOverride);
+
+      const result = buildSystemPrompt("/repo/override.md", "ko", rules);
+
+      // Verify order: default → user override → rules → language
+      const repoInstructionsPos = result.indexOf("## Repository-Specific Instructions");
+      const projectRulesPos = result.indexOf("## Project Rules");
+      const languageConfigPos = result.indexOf("## Language Configuration");
+
+      expect(repoInstructionsPos).toBeGreaterThan(0);
+      expect(projectRulesPos).toBeGreaterThan(repoInstructionsPos);
+      expect(languageConfigPos).toBeGreaterThan(projectRulesPos);
+
+      expect(result).toContain("Custom instructions.");
+      expect(result).toContain("# Plan Quality Rules");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+    });
   });
 });
