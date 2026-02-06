@@ -51,10 +51,11 @@ Before creating a plan, assess whether this issue can be completed within a sing
 
 1. Split the work into 2-5 sub-issues following the Single Responsibility Principle.
 2. Each sub-issue should be independently implementable and testable.
-3. Create sub-issues using the \`gh\` CLI with the \`${label}\` label:
+3. Create sub-issues AND link them as native GitHub sub-issues using the \`gh\` CLI with the \`${label}\` label:
 
 \`\`\`bash
-gh issue create \\
+# Create sub-issue and capture the URL
+SUB_URL=$(gh issue create \\
   --label "${label}" \\
   --title "[1/N] Sub-issue title" \\
   --body "<!-- leonidas-parent: #${issueNumber} -->
@@ -72,7 +73,13 @@ Part of #${issueNumber}: ${issueTitle}
 
 ## Acceptance Criteria
 - [ ] Criterion 1
-- [ ] Criterion 2"
+- [ ] Criterion 2")
+
+# Extract sub-issue number and link as native sub-issue
+SUB_NUM=\$(echo "$SUB_URL" | grep -oE '[0-9]+$')
+SUB_DB_ID=$(gh api "repos/${repoName}/issues/$SUB_NUM" --jq '.id')
+gh api "repos/${repoName}/issues/${issueNumber}/sub_issues" \\
+  -X POST -F "sub_issue_id=$SUB_DB_ID" || true
 \`\`\`
 
 4. After creating ALL sub-issues, post a decomposed plan comment on issue #${issueNumber}:
