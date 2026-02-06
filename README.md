@@ -182,6 +182,104 @@ By default, GitHub Actions workflows triggered by `GITHUB_TOKEN` cannot trigger 
 
 Without a PAT, sub-issues will be created but you will need to manually remove and re-add the `leonidas` label to trigger planning.
 
+## Rules System
+
+The Rules System allows you to inject project-specific guidelines and coding standards into Leonidas's system prompt, ensuring consistent code quality and adherence to your project's conventions.
+
+### What Are Rules?
+
+Rules are markdown files that define guidelines for:
+- Plan quality standards and anti-patterns
+- Coding conventions and style guidelines
+- Test-driven development practices
+- Architecture principles and patterns
+- Security guidelines and vulnerability checks
+
+When rules are present, they are automatically injected into the system prompt for both planning and execution phases, helping Leonidas make better decisions aligned with your project's standards.
+
+### Benefits
+
+- **Consistency:** Enforce coding standards across all automated implementations
+- **Quality:** Ensure plans meet specific quality criteria before execution
+- **Pattern Adherence:** Guide Leonidas to follow existing patterns in your codebase
+- **Security:** Remind Leonidas to check for common vulnerabilities
+- **Testability:** Encourage test-driven development practices
+
+### Quick Start
+
+1. **Copy default templates:**
+   ```bash
+   # Create rules directory
+   mkdir -p .github/leonidas-rules
+
+   # Copy bundled templates as starting point
+   cp prompts/rules/*.md .github/leonidas-rules/
+   ```
+
+2. **Customize for your project:**
+   Edit the files in `.github/leonidas-rules/` to match your project's conventions:
+   - `plan-quality.md` — Plan quality standards checklist
+   - `coding-standards.md` — Coding conventions and principles
+   - `tdd.md` — Test-driven development guidelines
+   - `architecture.md` — Architecture principles and patterns
+   - `security.md` — Security guidelines and vulnerability checks
+
+3. **Commit and use:**
+   ```bash
+   git add .github/leonidas-rules/
+   git commit -m "Add Leonidas rules for project standards"
+   git push
+   ```
+
+Leonidas will automatically detect and load all `.md` files from the rules directory.
+
+### Configuration
+
+By default, Leonidas looks for rules in `.github/leonidas-rules/`. You can change this location in `leonidas.config.yml`:
+
+```yaml
+rules_path: ".leonidas/rules"  # Custom path
+```
+
+### How Rules Work
+
+- Rules are loaded from all `.md` files in the `rules_path` directory
+- Files are sorted alphabetically by filename
+- Each rule is injected into the system prompt under a `## Project Rules` section
+- Rules appear after repository-specific instructions but before language directives
+- Both plan and execute modes receive the same rules for consistency
+
+### Best Practices
+
+1. **Start with templates:** Use the bundled templates in `prompts/rules/` as a starting point
+2. **Keep rules concise:** Focus on actionable guidelines rather than lengthy explanations
+3. **Be specific:** Reference exact patterns from your codebase with examples
+4. **Update regularly:** Keep rules in sync with evolving project standards
+5. **Test effectiveness:** Review generated plans and code to see if rules are being followed
+
+### Example Rules Structure
+
+```
+.github/leonidas-rules/
+├── coding-standards.md    # Naming conventions, DRY/YAGNI principles
+├── tdd.md                 # Red-Green-Refactor cycle, test organization
+├── architecture.md        # Dependency direction, layer separation
+└── security.md            # Input validation, common vulnerabilities
+```
+
+### Troubleshooting
+
+**Rules not being applied?**
+- Check that files are in the correct directory (`.github/leonidas-rules/` by default)
+- Ensure files have `.md` extension
+- Verify files are committed to the repository
+- Check `rules_path` in `leonidas.config.yml` if using custom location
+
+**Rules too verbose?**
+- Break long rules into focused, topic-specific files
+- Use bullet points and checklists for clarity
+- Remove redundant content that duplicates system prompt
+
 ## Security
 
 ### Prompt Injection Protection
