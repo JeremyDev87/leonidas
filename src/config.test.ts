@@ -82,6 +82,7 @@ describe("config", () => {
       max_turns: 50,
       language: "en",
       rules_path: ".github/leonidas-rules",
+      authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
     };
 
     it("should merge file config with default config", () => {
@@ -482,6 +483,146 @@ describe("config", () => {
 
         expect(() => mergeConfig(fileConfig, inputs)).toThrow(
           "Labels must contain only alphanumeric characters, hyphens, and underscores",
+        );
+      });
+    });
+
+    describe("authorized_approvers validation", () => {
+      it("should accept valid authorized_approvers", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.authorized_approvers).toEqual(["OWNER", "MEMBER", "COLLABORATOR"]);
+      });
+
+      it("should accept CONTRIBUTOR as authorized approver", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "CONTRIBUTOR"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.authorized_approvers).toEqual(["OWNER", "CONTRIBUTOR"]);
+      });
+
+      it("should accept all valid GitHub author associations", () => {
+        const fileConfig = {
+          authorized_approvers: [
+            "OWNER",
+            "MEMBER",
+            "COLLABORATOR",
+            "CONTRIBUTOR",
+            "FIRST_TIME_CONTRIBUTOR",
+            "FIRST_TIMER",
+            "MANNEQUIN",
+            "NONE",
+          ],
+        };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.authorized_approvers).toEqual([
+          "OWNER",
+          "MEMBER",
+          "COLLABORATOR",
+          "CONTRIBUTOR",
+          "FIRST_TIME_CONTRIBUTOR",
+          "FIRST_TIMER",
+          "MANNEQUIN",
+          "NONE",
+        ]);
+      });
+
+      it("should reject invalid authorized_approvers value", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "INVALID_VALUE"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid authorized_approvers value: "INVALID_VALUE"',
+        );
+      });
+
+      it("should reject lowercase authorized_approvers value", () => {
+        const fileConfig = { authorized_approvers: ["owner", "member"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid authorized_approvers value: "owner"',
+        );
+      });
+
+      it("should reject empty string in authorized_approvers", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", ""] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow('Invalid authorized_approvers value: ""');
+      });
+
+      it("should use default authorized_approvers when not specified", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.authorized_approvers).toEqual(["OWNER", "MEMBER", "COLLABORATOR"]);
+      });
+
+      it("should list all valid associations in error message", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "ADMIN"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "Must be one of: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER, MANNEQUIN, NONE",
         );
       });
     });
