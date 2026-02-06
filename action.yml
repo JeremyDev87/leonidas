@@ -1,0 +1,107 @@
+name: "Leonidas"
+description: "Issue-to-PR automation powered by Claude Code"
+author: "JeremyDev87"
+
+branding:
+  icon: "zap"
+  color: "orange"
+
+inputs:
+  mode:
+    description: "Operation mode: 'plan' or 'execute'"
+    required: true
+  anthropic_api_key:
+    description: "Anthropic API key for Claude Code"
+    required: true
+  github_token:
+    description: "GitHub token for API access"
+    required: true
+  model:
+    description: "Claude model to use (overrides config)"
+    required: false
+  max_turns:
+    description: "Maximum turns for Claude Code (overrides config)"
+    required: false
+  allowed_tools:
+    description: "Comma-separated allowed tools (overrides config)"
+    required: false
+  branch_prefix:
+    description: "Branch name prefix for PRs (overrides config)"
+    required: false
+  base_branch:
+    description: "Base branch for PRs (overrides config)"
+    required: false
+  language:
+    description: "Language for plan comments (overrides config)"
+    required: false
+  config_path:
+    description: "Path to leonidas.config.yml"
+    required: false
+    default: "leonidas.config.yml"
+  system_prompt_path:
+    description: "Path to custom system prompt file"
+    required: false
+    default: ".github/leonidas.md"
+
+outputs:
+  conclusion:
+    description: "Conclusion from Claude Code execution"
+    value: ${{ steps.claude.outputs.conclusion }}
+  execution_file:
+    description: "Path to execution output file"
+    value: ${{ steps.claude.outputs.execution_file }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare
+      id: prepare
+      shell: bash
+      env:
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_MAX_TURNS: ${{ inputs.max_turns }}
+        INPUT_ALLOWED_TOOLS: ${{ inputs.allowed_tools }}
+        INPUT_BRANCH_PREFIX: ${{ inputs.branch_prefix }}
+        INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
+        INPUT_LANGUAGE: ${{ inputs.language }}
+        INPUT_CONFIG_PATH: ${{ inputs.config_path }}
+        INPUT_SYSTEM_PROMPT_PATH: ${{ inputs.system_prompt_path }}
+      run: node ${{ github.action_path }}/dist/index.js
+
+    - name: Run Claude Code
+      id: claude
+      uses: anthropics/claude-code-action/base-action@v1
+      with:
+        prompt_file: ${{ steps.prepare.outputs.prompt_file }}
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        model: ${{ steps.prepare.outputs.model }}
+        max_turns: ${{ steps.prepare.outputs.max_turns }}
+        allowed_tools: ${{ steps.prepare.outputs.allowed_tools }}
+
+    - name: Post completion comment
+      if: inputs.mode == 'execute' && !failure()
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+      run: |
+        gh issue comment "$ISSUE_NUMBER" --body "✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check the pull request for details."
+
+    - name: Post failure comment
+      if: failure()
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Failed
+
+        The automated ${{ inputs.mode }} encountered an error.
+
+        **Workflow run:** [View logs]($RUN_URL)
+
+        **To retry:** $(if [ '${{ inputs.mode }}' = 'plan' ]; then echo 'Remove the \`leonidas\` label and re-add it.'; else echo 'Comment \`/approve\` again on this issue.'; fi)"
