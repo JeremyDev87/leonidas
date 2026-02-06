@@ -827,12 +827,18 @@ describe("config", () => {
         "plan-quality.md",
         "coding-standards.md",
         "tdd.md",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
         const pathStr = path.toString();
-        if (pathStr.includes("plan-quality.md")) return "# Plan Quality";
-        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
-        if (pathStr.includes("tdd.md")) return "# TDD";
+        if (pathStr.includes("plan-quality.md")) {
+          return "# Plan Quality";
+        }
+        if (pathStr.includes("coding-standards.md")) {
+          return "# Coding Standards";
+        }
+        if (pathStr.includes("tdd.md")) {
+          return "# TDD";
+        }
         return "";
       });
 
@@ -856,7 +862,7 @@ describe("config", () => {
     it("should return empty object for empty directory", () => {
       vi.mocked(fs.existsSync).mockReturnValue(true);
       vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
-      vi.mocked(fs.readdirSync).mockReturnValue([] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readdirSync).mockReturnValue([] as any);
 
       const result = loadRules(".github/leonidas-rules");
 
@@ -871,11 +877,15 @@ describe("config", () => {
         "readme.txt",
         "config.json",
         "coding-standards.md",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
         const pathStr = path.toString();
-        if (pathStr.includes("plan-quality.md")) return "# Plan Quality";
-        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
+        if (pathStr.includes("plan-quality.md")) {
+          return "# Plan Quality";
+        }
+        if (pathStr.includes("coding-standards.md")) {
+          return "# Coding Standards";
+        }
         return "";
       });
 
@@ -895,12 +905,18 @@ describe("config", () => {
         "tdd.md",
         "architecture.md",
         "coding-standards.md",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
         const pathStr = path.toString();
-        if (pathStr.includes("tdd.md")) return "# TDD";
-        if (pathStr.includes("architecture.md")) return "# Architecture";
-        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
+        if (pathStr.includes("tdd.md")) {
+          return "# TDD";
+        }
+        if (pathStr.includes("architecture.md")) {
+          return "# Architecture";
+        }
+        if (pathStr.includes("coding-standards.md")) {
+          return "# Coding Standards";
+        }
         return "";
       });
 
