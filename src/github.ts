@@ -9,19 +9,14 @@ export async function findPlanComment(
   issueNumber: number,
 ): Promise<string | null> {
   const octokit = github.getOctokit(token);
-  const comments = await octokit.paginate(
-    octokit.rest.issues.listComments,
-    {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      per_page: 100,
-    },
-  );
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
 
-  const planComments = comments.filter(
-    (comment) => comment.body?.includes(PLAN_HEADER),
-  );
+  const planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
 
   if (planComments.length === 0) {
     return null;
@@ -31,8 +26,8 @@ export async function findPlanComment(
 }
 
 export function parseSubIssueMetadata(issueBody: string): SubIssueMetadata | undefined {
-  const parentMatch = issueBody.match(/<!--\s*leonidas-parent:\s*#(\d+)\s*-->/);
-  const orderMatch = issueBody.match(/<!--\s*leonidas-order:\s*(\d+)\/(\d+)\s*-->/);
+  const parentMatch = /<!--\s*leonidas-parent:\s*#(\d+)\s*-->/.exec(issueBody);
+  const orderMatch = /<!--\s*leonidas-order:\s*(\d+)\/(\d+)\s*-->/.exec(issueBody);
 
   if (!parentMatch || !orderMatch) {
     return undefined;
@@ -44,7 +39,7 @@ export function parseSubIssueMetadata(issueBody: string): SubIssueMetadata | und
     total: parseInt(orderMatch[2], 10),
   };
 
-  const dependsMatch = issueBody.match(/<!--\s*leonidas-depends:\s*#(\d+)\s*-->/);
+  const dependsMatch = /<!--\s*leonidas-depends:\s*#(\d+)\s*-->/.exec(issueBody);
   if (dependsMatch) {
     metadata.depends_on = parseInt(dependsMatch[1], 10);
   }
@@ -75,7 +70,9 @@ export async function isIssueClosed(
     if (status === 404) {
       throw new Error(`Dependency issue #${issueNumber} not found in ${owner}/${repo}.`);
     }
-    throw new Error(`Failed to check issue #${issueNumber} status: ${error instanceof Error ? error.message : "unknown error"}`);
+    throw new Error(
+      `Failed to check issue #${issueNumber} status: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
   }
 }
 

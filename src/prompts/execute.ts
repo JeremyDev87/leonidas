@@ -10,7 +10,7 @@ export function buildExecutePrompt(
   systemPrompt: string,
   maxTurns: number,
   issueLabels: string[] = [],
-  issueAuthor: string = "",
+  issueAuthor = "",
   subIssueMetadata?: SubIssueMetadata,
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
@@ -18,9 +18,10 @@ export function buildExecutePrompt(
   const pushDeadline = maxTurns - reservedTurns;
 
   const prLabels = issueLabels.filter((l) => l !== "leonidas");
-  const labelCmd = prLabels.length > 0
-    ? `\n   - Add labels: \`gh pr edit --add-label "${prLabels.join(",")}"\``
-    : "";
+  const labelCmd =
+    prLabels.length > 0
+      ? `\n   - Add labels: \`gh pr edit --add-label "${prLabels.join(",")}"\``
+      : "";
   const assigneeCmd = issueAuthor
     ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
     : "";

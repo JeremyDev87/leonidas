@@ -23,6 +23,7 @@ You can download them from the [Leonidas repository](https://github.com/JeremyDe
 Copy `.github/leonidas.md` to your repository. This file contains the coding guidelines and rules that Claude follows when analyzing and implementing code.
 
 Customize it to match your project's conventions:
+
 - Commit message format
 - Code style preferences
 - Testing requirements
@@ -68,34 +69,38 @@ Copy `.github/ISSUE_TEMPLATE/leonidas-request.yml` to your repository. This prov
 
 ## Configuration Reference
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `label` | `leonidas` | Issue label that triggers the workflow |
-| `model` | `claude-sonnet-4-5-20250929` | Claude model for analysis and implementation |
-| `branch_prefix` | `claude/issue-` | Prefix for implementation branches |
-| `base_branch` | `main` | Target branch for pull requests |
-| `allowed_tools` | (see config file) | Tools Claude can use during execution |
-| `max_turns` | `30` | Maximum API round-trips per workflow run |
-| `language` | `en` | Language for plan comments |
+| Option          | Default                      | Description                                  |
+| --------------- | ---------------------------- | -------------------------------------------- |
+| `label`         | `leonidas`                   | Issue label that triggers the workflow       |
+| `model`         | `claude-sonnet-4-5-20250929` | Claude model for analysis and implementation |
+| `branch_prefix` | `claude/issue-`              | Prefix for implementation branches           |
+| `base_branch`   | `main`                       | Target branch for pull requests              |
+| `allowed_tools` | (see config file)            | Tools Claude can use during execution        |
+| `max_turns`     | `30`                         | Maximum API round-trips per workflow run     |
+| `language`      | `en`                         | Language for plan comments                   |
 
 ## Troubleshooting
 
 ### Workflow doesn't trigger
+
 - Verify the issue has the `leonidas` label
 - Check that `ANTHROPIC_API_KEY` is set in repository secrets
 - Ensure workflow files are in the default branch (usually `main`)
 
 ### Plan comment is empty or incomplete
+
 - Check the workflow run logs for errors
 - Increase `max_turns` if the repository is large
 - Ensure the repository is checked out with `fetch-depth: 0`
 
 ### PR creation fails
+
 - Verify the workflow has `contents: write` and `pull-requests: write` permissions
 - Check that the base branch exists
 - Ensure there are no branch protection rules blocking the workflow
 
 ### `/approve` doesn't trigger execution
+
 - The comment must be exactly `/approve` (no extra text)
 - The issue must still have the `leonidas` label
 - A plan comment must exist on the issue

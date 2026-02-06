@@ -1,4 +1,9 @@
-import { PLAN_HEADER, PLAN_FOOTER, DECOMPOSED_MARKER, DECOMPOSED_PLAN_FOOTER } from "../templates/plan_comment";
+import {
+  PLAN_HEADER,
+  PLAN_FOOTER,
+  DECOMPOSED_MARKER,
+  DECOMPOSED_PLAN_FOOTER,
+} from "../templates/plan_comment";
 import { SubIssueMetadata } from "../types";
 
 export function buildPlanPrompt(
@@ -7,7 +12,7 @@ export function buildPlanPrompt(
   issueNumber: number,
   repoName: string,
   systemPrompt: string,
-  label: string = "leonidas",
+  label = "leonidas",
 ): string {
   return `${systemPrompt}
 

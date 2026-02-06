@@ -399,7 +399,14 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildPlanPrompt).toHaveBeenCalledWith("Test Issue", "", 1, "owner/repo", "system prompt", "leonidas");
+      expect(buildPlanPrompt).toHaveBeenCalledWith(
+        "Test Issue",
+        "",
+        1,
+        "owner/repo",
+        "system prompt",
+        "leonidas",
+      );
     });
   });
 
@@ -458,7 +465,10 @@ describe("main", () => {
         "leonidas",
       );
 
-      expect(core.setOutput).toHaveBeenCalledWith("prompt_file", expect.stringContaining("leonidas-prompt-"));
+      expect(core.setOutput).toHaveBeenCalledWith(
+        "prompt_file",
+        expect.stringContaining("leonidas-prompt-"),
+      );
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
       expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
       expect(core.setOutput).toHaveBeenCalledWith(
@@ -597,7 +607,10 @@ describe("main", () => {
 
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
       expect(core.setOutput).toHaveBeenCalledWith("max_turns", "75");
-      expect(core.setOutput).toHaveBeenCalledWith("allowed_tools", "Read,Write,Edit,Bash(npm:*),Bash(git:*)");
+      expect(core.setOutput).toHaveBeenCalledWith(
+        "allowed_tools",
+        "Read,Write,Edit,Bash(npm:*),Bash(git:*)",
+      );
       expect(core.setOutput).toHaveBeenCalledWith("branch_prefix", "feature/issue-");
       expect(core.setOutput).toHaveBeenCalledWith("base_branch", "staging");
     });

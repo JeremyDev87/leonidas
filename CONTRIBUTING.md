@@ -115,6 +115,7 @@ This project follows **Clean Architecture** principles:
 - **Testability**: Business logic is independent of frameworks and external dependencies
 
 Example directory structure:
+
 ```
 src/
   features/
@@ -182,11 +183,13 @@ chore: upgrade dependencies to latest versions
 ## Pull Request Process
 
 1. **Ensure all tests pass** with at least 90% coverage:
+
    ```bash
    npm run test:coverage
    ```
 
 2. **Run the linter** and fix any issues:
+
    ```bash
    npm run lint:fix
    ```
