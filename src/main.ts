@@ -5,9 +5,9 @@ import * as os from "os";
 import { ActionInputs, GitHubContext, LeonidasMode } from "./types";
 import { resolveConfig } from "./config";
 import { buildSystemPrompt } from "./prompts/system";
-import { buildPlanPrompt } from "./prompts/plan";
+import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
-import { findPlanComment, postComment } from "./github";
+import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
 
 function readInputs(): ActionInputs {
   const mode = core.getInput("mode", { required: true }) as LeonidasMode;
@@ -65,21 +65,38 @@ async function run(): Promise<void> {
     const repoFullName = `${context.owner}/${context.repo}`;
 
     const systemPrompt = buildSystemPrompt(inputs.system_prompt_path);
+    const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
 
     let prompt: string;
     let allowedTools: string;
     let maxTurns: number;
 
     if (inputs.mode === "plan") {
-      prompt = buildPlanPrompt(
-        context.issue_title,
-        context.issue_body,
-        context.issue_number,
-        repoFullName,
-        systemPrompt,
-      );
-      allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
-      maxTurns = 10;
+      if (subIssueMetadata) {
+        // Sub-issue: use dedicated sub-issue plan prompt (no further decomposition)
+        prompt = buildSubIssuePlanPrompt(
+          context.issue_title,
+          context.issue_body,
+          context.issue_number,
+          repoFullName,
+          systemPrompt,
+          subIssueMetadata,
+        );
+        allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+        maxTurns = 10;
+      } else {
+        // Regular issue: use extended plan prompt with decomposition capability
+        prompt = buildPlanPrompt(
+          context.issue_title,
+          context.issue_body,
+          context.issue_number,
+          repoFullName,
+          systemPrompt,
+          config.label,
+        );
+        allowedTools = "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+        maxTurns = 20;
+      }
     } else {
       // execute mode
       const planComment = await findPlanComment(
@@ -92,6 +109,40 @@ async function run(): Promise<void> {
       if (!planComment) {
         core.setFailed(`No plan comment found on issue #${context.issue_number}. Run plan mode first.`);
         return;
+      }
+
+      // Block execution on decomposed parent issues
+      if (isDecomposedPlan(planComment)) {
+        await postComment(
+          inputs.github_token,
+          context.owner,
+          context.repo,
+          context.issue_number,
+          `⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.`,
+        );
+        core.setFailed("Cannot execute a decomposed parent issue. Execute sub-issues individually.");
+        return;
+      }
+
+      // Check dependency for sub-issues
+      if (subIssueMetadata?.depends_on) {
+        const depClosed = await isIssueClosed(
+          inputs.github_token,
+          context.owner,
+          context.repo,
+          subIssueMetadata.depends_on,
+        );
+        if (!depClosed) {
+          await postComment(
+            inputs.github_token,
+            context.owner,
+            context.repo,
+            context.issue_number,
+            `⏳ **Leonidas**: This sub-issue depends on #${subIssueMetadata.depends_on} which is not yet closed. Please complete #${subIssueMetadata.depends_on} first.`,
+          );
+          core.setFailed(`Dependency #${subIssueMetadata.depends_on} is not yet closed.`);
+          return;
+        }
       }
 
       await postComment(
@@ -113,6 +164,7 @@ async function run(): Promise<void> {
         config.max_turns,
         context.issue_labels,
         context.issue_author,
+        subIssueMetadata ?? undefined,
       );
       allowedTools = config.allowed_tools.join(",");
       maxTurns = config.max_turns;
