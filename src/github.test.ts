@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
-import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
+import {
+  findPlanComment,
+  postComment,
+  parseSubIssueMetadata,
+  isDecomposedPlan,
+  isIssueClosed,
+} from "./github";
 import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/github");

@@ -342,7 +342,9 @@ describe("prompts/system", () => {
 
       expect(result).toContain("Custom instructions.");
       expect(result).toContain("# Plan Quality Rules");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Korean",
+      );
     });
   });
 });

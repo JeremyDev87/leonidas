@@ -25,10 +25,9 @@ describe("config", () => {
       const result = loadConfigFile(".leonidas.yml");
 
       expect(fs.readFileSync).toHaveBeenCalledWith(".leonidas.yml", "utf-8");
-      expect(yaml.load).toHaveBeenCalledWith(
-        "model: claude-opus-4\nmax_turns: 100",
-        { schema: yaml.JSON_SCHEMA }
-      );
+      expect(yaml.load).toHaveBeenCalledWith("model: claude-opus-4\nmax_turns: 100", {
+        schema: yaml.JSON_SCHEMA,
+      });
       expect(result).toEqual(mockConfig);
     });
 
@@ -725,7 +724,9 @@ describe("config", () => {
           system_prompt_path: ".github/leonidas.md",
         };
 
-        expect(() => mergeConfig(fileConfig, inputs)).toThrow('Invalid authorized_approvers value: ""');
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid authorized_approvers value: ""',
+        );
       });
 
       it("should use default authorized_approvers when not specified", () => {
@@ -826,8 +827,12 @@ describe("config", () => {
       vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
       vi.mocked(fs.readdirSync).mockReturnValue(["plan-quality.md", "coding-standards.md"] as any);
       vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
-        if (path.includes("plan-quality.md")) return "# Plan Quality\nContent";
-        if (path.includes("coding-standards.md")) return "# Coding Standards\nContent";
+        if (path.includes("plan-quality.md")) {
+          return "# Plan Quality\nContent";
+        }
+        if (path.includes("coding-standards.md")) {
+          return "# Coding Standards\nContent";
+        }
         return "";
       });
 
@@ -867,8 +872,12 @@ describe("config", () => {
         "coding-standards.md",
       ] as any);
       vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
-        if (path.includes("plan-quality.md")) return "# Plan Quality";
-        if (path.includes("coding-standards.md")) return "# Coding Standards";
+        if (path.includes("plan-quality.md")) {
+          return "# Plan Quality";
+        }
+        if (path.includes("coding-standards.md")) {
+          return "# Coding Standards";
+        }
         return "";
       });
 
