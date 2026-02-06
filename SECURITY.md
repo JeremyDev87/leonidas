@@ -12,7 +12,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 
 **Please DO NOT open a public GitHub issue for security vulnerabilities.**
 
-Instead, please send an email to **jeremy@example.com** with:
+Instead, please send an email to **soundbrokaz@kakao.com** with:
 
 - A description of the vulnerability
 - Steps to reproduce the issue
