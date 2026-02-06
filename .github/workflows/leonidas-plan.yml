@@ -1,0 +1,27 @@
+name: Leonidas Plan
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  plan:
+    if: contains(github.event.issue.labels.*.name, 'leonidas')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate implementation plan
+        uses: ./
+        with:
+          mode: plan
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}

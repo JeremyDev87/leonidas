@@ -1,0 +1,31 @@
+# Leonidas Configuration
+# Place this file in your repository root to customize behavior
+
+# Trigger label name - issues with this label activate Leonidas
+label: "leonidas"
+
+# Claude model to use for analysis and implementation
+model: "claude-sonnet-4-5-20250929"
+
+# Branch name prefix for implementation PRs
+branch_prefix: "claude/issue-"
+
+# Base branch for pull requests
+base_branch: "main"
+
+# Allowed tools for Claude Code during execution
+allowed_tools:
+  - "Read"
+  - "Write"
+  - "Edit"
+  - "Bash(npm:*)"
+  - "Bash(git:*)"
+  - "Bash(gh pr:*)"
+  - "Bash(npx:*)"
+  - "Bash(node:*)"
+
+# Maximum number of Claude Code turns
+max_turns: 30
+
+# Language for plan comments (e.g., "en", "ko", "ja")
+language: "en"
