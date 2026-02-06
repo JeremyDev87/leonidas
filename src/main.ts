@@ -117,7 +117,7 @@ async function run(): Promise<void> {
           config.language,
         );
         allowedTools =
-          "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+          "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
         maxTurns = REGULAR_PLAN_MAX_TURNS;
       }
     } else {
