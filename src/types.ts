@@ -11,6 +11,7 @@ export interface LeonidasConfig {
   max_turns: number;
   language: SupportedLanguage;
   rules_path: string;
+  authorized_approvers: string[];
 }
 
 export interface ActionInputs {
