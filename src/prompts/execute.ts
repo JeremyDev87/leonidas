@@ -77,7 +77,15 @@ You have **${maxTurns} turns** total. Reserve the last ${reservedTurns} turns fo
   Then continue pushing incremental commits. Convert to ready PR when done.
 - **If running low on turns:** Push whatever you have, create a draft PR, and leave a comment
   explaining what's done and what remains.
+${
+    hasRules
+      ? `
+## Project Rules
 
+This project has custom rules defined in .leonidas/RULES.md. These rules were already included in your system prompt. Follow them throughout implementation.
+`
+      : ""
+  }
 ## Instructions
 
 1. Create a new branch for this implementation:
