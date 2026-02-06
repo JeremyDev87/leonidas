@@ -283,4 +283,66 @@ describe("prompts/system", () => {
       );
     });
   });
+
+  describe("buildSystemPrompt with rules", () => {
+    it("should include rules when provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const rules = {
+        "coding-standards": "# Coding Standards\nUse camelCase for variables.",
+        security: "# Security\nValidate all inputs.",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en", rules);
+
+      expect(result).toContain("Default instructions.");
+      expect(result).toContain("## Project Rules");
+      expect(result).toContain("### Rule: coding-standards");
+      expect(result).toContain("# Coding Standards\nUse camelCase for variables.");
+      expect(result).toContain("### Rule: security");
+      expect(result).toContain("# Security\nValidate all inputs.");
+    });
+
+    it("should omit rules section when no rules provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en");
+
+      expect(result).toBe("Default instructions.");
+      expect(result).not.toContain("## Project Rules");
+    });
+
+    it("should place rules after user override and before language directive", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const userOverride = "Custom instructions.";
+      const rules = {
+        tdd: "# TDD\nWrite tests first.",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce(defaultPrompt)
+        .mockReturnValueOnce(userOverride);
+
+      const result = buildSystemPrompt("/repo/override.md", "ko", rules);
+
+      const repoInstructionsIndex = result.indexOf("## Repository-Specific Instructions");
+      const rulesIndex = result.indexOf("## Project Rules");
+      const languageIndex = result.indexOf("## Language Configuration");
+
+      expect(repoInstructionsIndex).toBeGreaterThan(-1);
+      expect(rulesIndex).toBeGreaterThan(-1);
+      expect(languageIndex).toBeGreaterThan(-1);
+      expect(repoInstructionsIndex).toBeLessThan(rulesIndex);
+      expect(rulesIndex).toBeLessThan(languageIndex);
+    });
+  });
 });
