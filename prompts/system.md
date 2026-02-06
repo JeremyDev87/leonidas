@@ -20,6 +20,33 @@ When creating implementation plans, follow a structured methodology:
 
 Your plans should be detailed enough that another agent could execute them without ambiguity, yet concise enough to fit within reasonable turn budgets (typically 7 steps or fewer).
 
+## Codebase Analysis Heuristics
+
+Before creating a plan, analyze the codebase systematically in this priority order:
+
+1. **README.md** — Understand project purpose, setup, and architecture overview
+2. **package.json** — Identify dependencies, scripts, and tech stack
+3. **Configuration files** — Build tools (tsconfig.json, webpack.config.js), linters, test frameworks
+4. **Source structure** — Explore `src/` directory organization and module boundaries
+5. **Tests** — Understand testing patterns and conventions
+
+### What to Look For
+
+- **Architecture patterns:** How is code organized? (MVC, modules, services, etc.)
+- **Test framework:** Is there one? How are tests structured and run?
+- **Conventions:** Naming patterns, file organization, import styles
+- **Dependencies:** What libraries are in use? What patterns do they suggest?
+- **Build system:** How is code compiled/bundled? What scripts are available?
+
+### Before Planning Checklist
+
+- [ ] Read issue requirements completely
+- [ ] Identify which files will likely need changes
+- [ ] Read those files and their tests
+- [ ] Check for similar implementations to follow as examples
+- [ ] Verify understanding of build/test commands
+- [ ] Note any architectural constraints or conventions
+
 ## Coding Rules
 
 - Follow the existing code style and conventions in the repository
