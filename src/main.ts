@@ -23,13 +23,20 @@ function readInputs(): ActionInputs {
   const mode: LeonidasMode = modeRaw;
 
   const maxTurnsRaw = core.getInput("max_turns");
+  let maxTurns: number | undefined;
+  if (maxTurnsRaw) {
+    maxTurns = parseInt(maxTurnsRaw, 10);
+    if (isNaN(maxTurns)) {
+      throw new Error(`Invalid max_turns value: "${maxTurnsRaw}"`);
+    }
+  }
 
   return {
     mode,
     anthropic_api_key: core.getInput("anthropic_api_key", { required: true }),
     github_token: core.getInput("github_token", { required: true }),
     model: core.getInput("model") || undefined,
-    max_turns: maxTurnsRaw ? parseInt(maxTurnsRaw, 10) : undefined,
+    max_turns: maxTurns,
     allowed_tools: core.getInput("allowed_tools") || undefined,
     branch_prefix: core.getInput("branch_prefix") || undefined,
     base_branch: core.getInput("base_branch") || undefined,
