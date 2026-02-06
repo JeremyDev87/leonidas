@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
-import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
+import {
+  findPlanComment,
+  postComment,
+  parseSubIssueMetadata,
+  isDecomposedPlan,
+  isIssueClosed,
+  getPRDiff,
+  getPRChangedFiles,
+  getPRDetails,
+} from "./github";
 import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/github");
@@ -520,6 +529,193 @@ Plan content`;
       const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe("getPRDiff", () => {
+    const mockPRNumber = 123;
+
+    it("should fetch PR diff successfully", async () => {
+      const mockDiff = "diff --git a/file.ts b/file.ts\n--- a/file.ts\n+++ b/file.ts\n@@ -1,3 +1,4 @@";
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockResolvedValue({
+          data: mockDiff,
+        }),
+      };
+
+      const result = await getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        pull_number: mockPRNumber,
+        mediaType: {
+          format: "diff",
+        },
+      });
+      expect(result).toBe(mockDiff);
+    });
+
+    it("should handle empty diff", async () => {
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockResolvedValue({
+          data: "",
+        }),
+      };
+
+      const result = await getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(result).toBe("");
+    });
+
+    it("should handle API errors", async () => {
+      const error = new Error("API error");
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockRejectedValue(error),
+      };
+
+      await expect(getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
+    });
+  });
+
+  describe("getPRChangedFiles", () => {
+    const mockPRNumber = 123;
+
+    it("should fetch list of changed files successfully", async () => {
+      const mockFiles = [
+        { filename: "src/file1.ts", status: "modified" },
+        { filename: "src/file2.ts", status: "added" },
+        { filename: "test/file1.test.ts", status: "modified" },
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockFiles);
+      mockOctokit.rest.pulls = {
+        listFiles: vi.fn(),
+      };
+
+      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(mockOctokit.rest.pulls.listFiles, {
+        owner: mockOwner,
+        repo: mockRepo,
+        pull_number: mockPRNumber,
+        per_page: 100,
+      });
+      expect(result).toEqual(["src/file1.ts", "src/file2.ts", "test/file1.test.ts"]);
+    });
+
+    it("should handle empty file list", async () => {
+      mockOctokit.paginate.mockResolvedValue([]);
+      mockOctokit.rest.pulls = {
+        listFiles: vi.fn(),
+      };
+
+      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should handle pagination of many files", async () => {
+      const mockFiles = Array.from({ length: 250 }, (_, i) => ({
+        filename: `file${i}.ts`,
+        status: "modified",
+      }));
+      mockOctokit.paginate.mockResolvedValue(mockFiles);
+      mockOctokit.rest.pulls = {
+        listFiles: vi.fn(),
+      };
+
+      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(result).toHaveLength(250);
+      expect(result[0]).toBe("file0.ts");
+      expect(result[249]).toBe("file249.ts");
+    });
+
+    it("should handle API errors", async () => {
+      const error = new Error("API error");
+      mockOctokit.paginate.mockRejectedValue(error);
+      mockOctokit.rest.pulls = {
+        listFiles: vi.fn(),
+      };
+
+      await expect(getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
+    });
+  });
+
+  describe("getPRDetails", () => {
+    const mockPRNumber = 123;
+
+    it("should fetch PR details successfully", async () => {
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockResolvedValue({
+          data: {
+            title: "Add new feature",
+            base: { ref: "main" },
+            head: { ref: "feature-branch" },
+          },
+        }),
+      };
+
+      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        pull_number: mockPRNumber,
+      });
+      expect(result).toEqual({
+        title: "Add new feature",
+        baseBranch: "main",
+        headBranch: "feature-branch",
+      });
+    });
+
+    it("should handle PR with different base and head branches", async () => {
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockResolvedValue({
+          data: {
+            title: "Fix bug in parser",
+            base: { ref: "develop" },
+            head: { ref: "bugfix/parser-issue" },
+          },
+        }),
+      };
+
+      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(result).toEqual({
+        title: "Fix bug in parser",
+        baseBranch: "develop",
+        headBranch: "bugfix/parser-issue",
+      });
+    });
+
+    it("should handle empty PR title", async () => {
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockResolvedValue({
+          data: {
+            title: "",
+            base: { ref: "main" },
+            head: { ref: "test-branch" },
+          },
+        }),
+      };
+
+      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
+
+      expect(result.title).toBe("");
+    });
+
+    it("should handle API errors", async () => {
+      const error = new Error("API error");
+      mockOctokit.rest.pulls = {
+        get: vi.fn().mockRejectedValue(error),
+      };
+
+      await expect(getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
     });
   });
 });
