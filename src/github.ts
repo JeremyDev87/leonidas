@@ -97,3 +97,56 @@ export async function postComment(
     body,
   });
 }
+
+export async function getPRDiff(
+  token: string,
+  owner: string,
+  repo: string,
+  prNumber: number,
+): Promise<string> {
+  const octokit = github.getOctokit(token);
+  const { data } = await octokit.rest.pulls.get({
+    owner,
+    repo,
+    pull_number: prNumber,
+    mediaType: {
+      format: "diff",
+    },
+  });
+  return data as unknown as string;
+}
+
+export async function getPRChangedFiles(
+  token: string,
+  owner: string,
+  repo: string,
+  prNumber: number,
+): Promise<string[]> {
+  const octokit = github.getOctokit(token);
+  const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
+    owner,
+    repo,
+    pull_number: prNumber,
+    per_page: 100,
+  });
+  return files.map((file) => file.filename);
+}
+
+export async function getPRDetails(
+  token: string,
+  owner: string,
+  repo: string,
+  prNumber: number,
+): Promise<{ title: string; baseBranch: string; headBranch: string }> {
+  const octokit = github.getOctokit(token);
+  const { data } = await octokit.rest.pulls.get({
+    owner,
+    repo,
+    pull_number: prNumber,
+  });
+  return {
+    title: data.title,
+    baseBranch: data.base.ref,
+    headBranch: data.head.ref,
+  };
+}
