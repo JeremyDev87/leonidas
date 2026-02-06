@@ -61,3 +61,38 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
     decomposed_plan_footer: "---\n> Este issue ha sido descompuesto en sub-issues. Aprueba y ejecuta cada sub-issue individualmente comentando `/approve` en cada uno.",
   },
 };
+
+/**
+ * Translation function that retrieves localized strings and performs string interpolation
+ * @param key - The translation key to look up
+ * @param lang - The language code (defaults to "en")
+ * @param args - Values to interpolate into the string (%d for numbers, %s for strings)
+ * @returns The translated and interpolated string
+ */
+export function t(key: TranslationKey, lang: SupportedLanguage = "en", ...args: (string | number)[]): string {
+  const resolvedLang = resolveLanguage(lang);
+  const template = translations[resolvedLang][key];
+
+  if (!template) {
+    return `[Missing translation: ${key}]`;
+  }
+
+  if (args.length === 0) {
+    return template;
+  }
+
+  // Replace placeholders with provided arguments
+  let result = template;
+  let argIndex = 0;
+
+  // Replace %d and %s placeholders sequentially
+  result = result.replace(/%[ds]/g, (match) => {
+    if (argIndex >= args.length) {
+      return match; // No more arguments, leave placeholder as-is
+    }
+    const arg = args[argIndex++];
+    return String(arg);
+  });
+
+  return result;
+}
