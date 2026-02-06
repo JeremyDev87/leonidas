@@ -439,6 +439,49 @@ describe("config", () => {
 
         expect(() => mergeConfig(fileConfig, inputs)).toThrow();
       });
+
+      it("should provide informative error message for invalid label", () => {
+        const fileConfig = { label: "invalid label!" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid label format: "invalid label!". Labels must contain only alphanumeric characters, hyphens, and underscores.',
+        );
+      });
+
+      it("should include the invalid label value in error message", () => {
+        const fileConfig = { label: "test@label" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow('Invalid label format: "test@label"');
+      });
+
+      it("should explain allowed characters in error message", () => {
+        const fileConfig = { label: "bad.label" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "Labels must contain only alphanumeric characters, hyphens, and underscores",
+        );
+      });
     });
   });
 
