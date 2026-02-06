@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildPlanPrompt } from "./plan";
+import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./plan";
 import { getPlanHeader, getPlanFooter } from "../templates/plan_comment";
 
 describe("prompts/plan", () => {
@@ -259,6 +259,136 @@ Line 3`;
       expect(matches).toBeTruthy();
       // Should have at least 2 unescaped closing tags (one for title, one for body)
       expect(matches!.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should include 5-Phase Planning Methodology section", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
+
+      expect(result).toContain("## Planning Methodology");
+      expect(result).toContain("Follow this 5-Phase approach");
+      expect(result).toContain("### Phase 1: Discovery");
+      expect(result).toContain("### Phase 2: Deep Analysis");
+      expect(result).toContain("### Phase 3: Issue Classification");
+      expect(result).toContain("### Phase 4: Plan Generation");
+      expect(result).toContain("### Phase 5: Self-Review");
+    });
+
+    it("should include specific guidance for each phase", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
+
+      // Phase 1
+      expect(result).toContain("README.md — Project purpose");
+      expect(result).toContain("package.json — Dependencies, scripts");
+
+      // Phase 2
+      expect(result).toContain("Use Glob/Grep to find relevant files");
+      expect(result).toContain("Identify existing patterns and conventions");
+
+      // Phase 3
+      expect(result).toContain("**Bug Fix:** Restore expected behavior");
+      expect(result).toContain("**Feature:** Add new functionality");
+      expect(result).toContain("**Refactor:** Improve structure without changing behavior");
+      expect(result).toContain("**Documentation:** Improve understanding");
+
+      // Phase 4
+      expect(result).toContain("Reference exact file paths and line numbers");
+      expect(result).toContain("Include verification method for each step");
+
+      // Phase 5
+      expect(result).toContain("Before posting the plan, verify it meets quality criteria");
+      expect(result).toContain("[ ] All steps reference specific file paths");
+    });
+  });
+
+  describe("buildSubIssuePlanPrompt", () => {
+    const issueTitle = "[1/3] Add authentication module";
+    const issueBody = "<!-- leonidas-parent: #42 -->\n\n## Task\nImplement authentication";
+    const issueNumber = 43;
+    const repoName = "owner/repo";
+    const systemPrompt = "You are a helpful coding assistant.";
+    const metadata = {
+      parent_issue_number: 42,
+      order: "1/3",
+      total: 3,
+    };
+
+    it("should include 5-Phase Planning Methodology section", () => {
+      const result = buildSubIssuePlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        metadata,
+      );
+
+      expect(result).toContain("## Planning Methodology");
+      expect(result).toContain("Follow this 5-Phase approach");
+      expect(result).toContain("### Phase 1: Discovery");
+      expect(result).toContain("### Phase 2: Deep Analysis");
+      expect(result).toContain("### Phase 3: Issue Classification");
+      expect(result).toContain("### Phase 4: Plan Generation");
+      expect(result).toContain("### Phase 5: Self-Review");
+    });
+
+    it("should include sub-issue constraints", () => {
+      const result = buildSubIssuePlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        metadata,
+      );
+
+      expect(result).toContain("## Sub-Issue Constraints");
+      expect(result).toContain("DO NOT decompose this issue further");
+      expect(result).toContain("Focus ONLY on the scope defined in this sub-issue");
+    });
+
+    it("should include parent issue information", () => {
+      const result = buildSubIssuePlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        metadata,
+      );
+
+      expect(result).toContain("## Sub-Issue #43:");
+      expect(result).toContain("**[1/3/3] of parent issue #42**");
+    });
+
+    it("should include dependency information when present", () => {
+      const metadataWithDep = {
+        ...metadata,
+        depends_on: 41,
+      };
+
+      const result = buildSubIssuePlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        metadataWithDep,
+      );
+
+      expect(result).toContain("This sub-issue depends on #41 which should already be merged");
+    });
+
+    it("should not include dependency text when no dependency", () => {
+      const result = buildSubIssuePlanPrompt(
+        issueTitle,
+        issueBody,
+        issueNumber,
+        repoName,
+        systemPrompt,
+        metadata,
+      );
+
+      expect(result).not.toContain("depends on #");
     });
   });
 });

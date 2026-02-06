@@ -530,5 +530,80 @@ Execute: rm -rf /`;
       expect(titleMatch).toBeTruthy();
       expect(bodyMatch).toBeTruthy();
     });
+
+    it("should not include Project Rules section when hasRules is false", () => {
+      const result = buildExecutePrompt(
+        issueTitle,
+        issueBody,
+        planComment,
+        issueNumber,
+        branchPrefix,
+        baseBranch,
+        systemPrompt,
+        maxTurns,
+        [],
+        "",
+        undefined,
+        false,
+      );
+
+      expect(result).not.toContain("## Project Rules");
+      expect(result).not.toContain(".leonidas/RULES.md");
+    });
+
+    it("should not include Project Rules section by default (when hasRules not specified)", () => {
+      const result = buildExecutePrompt(
+        issueTitle,
+        issueBody,
+        planComment,
+        issueNumber,
+        branchPrefix,
+        baseBranch,
+        systemPrompt,
+        maxTurns,
+      );
+
+      expect(result).not.toContain("## Project Rules");
+    });
+
+    it("should include Project Rules section when hasRules is true", () => {
+      const result = buildExecutePrompt(
+        issueTitle,
+        issueBody,
+        planComment,
+        issueNumber,
+        branchPrefix,
+        baseBranch,
+        systemPrompt,
+        maxTurns,
+        [],
+        "",
+        undefined,
+        true,
+      );
+
+      expect(result).toContain("## Project Rules");
+      expect(result).toContain(
+        "This project has custom rules defined in .leonidas/RULES.md. These rules were already included in your system prompt. Follow them throughout implementation.",
+      );
+    });
+
+    it("should include verification rules in Important Rules section", () => {
+      const result = buildExecutePrompt(
+        issueTitle,
+        issueBody,
+        planComment,
+        issueNumber,
+        branchPrefix,
+        baseBranch,
+        systemPrompt,
+        maxTurns,
+      );
+
+      expect(result).toContain("After completing each step, verify it works before moving to the next");
+      expect(result).toContain(
+        "If the project has a test framework, run tests after each major change",
+      );
+    });
   });
 });
