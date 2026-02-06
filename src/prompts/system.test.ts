@@ -283,4 +283,76 @@ describe("prompts/system", () => {
       );
     });
   });
+
+  describe("buildSystemPrompt with rules", () => {
+    it("should include rules when provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const rules = {
+        "plan-quality": "# Plan Quality\n\nEnsure plans are specific.",
+        "coding-standards": "# Coding Standards\n\nFollow conventions.",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en", rules);
+
+      expect(result).toContain("Default instructions.");
+      expect(result).toContain("## Project Rules");
+      expect(result).toContain("### Rule: plan-quality");
+      expect(result).toContain("# Plan Quality");
+      expect(result).toContain("Ensure plans are specific.");
+      expect(result).toContain("### Rule: coding-standards");
+      expect(result).toContain("# Coding Standards");
+      expect(result).toContain("Follow conventions.");
+    });
+
+    it("should omit rules section when no rules provided", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en");
+
+      expect(result).toBe("Default instructions.");
+      expect(result).not.toContain("## Project Rules");
+    });
+
+    it("should place rules after user override and before language directive", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const userOverride = "Custom instructions.";
+      const rules = {
+        tdd: "# TDD Guidelines\n\nWrite tests first.",
+      };
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce(defaultPrompt)
+        .mockReturnValueOnce(userOverride);
+
+      const result = buildSystemPrompt("/repo/override.md", "ja", rules);
+
+      // Verify order: default -> user override -> rules -> language
+      const defaultIndex = result.indexOf("Default instructions.");
+      const userOverrideIndex = result.indexOf("## Repository-Specific Instructions");
+      const rulesIndex = result.indexOf("## Project Rules");
+      const languageIndex = result.indexOf("## Language Configuration");
+
+      expect(defaultIndex).toBeGreaterThan(-1);
+      expect(userOverrideIndex).toBeGreaterThan(defaultIndex);
+      expect(rulesIndex).toBeGreaterThan(userOverrideIndex);
+      expect(languageIndex).toBeGreaterThan(rulesIndex);
+
+      expect(result).toContain("Custom instructions.");
+      expect(result).toContain("### Rule: tdd");
+      expect(result).toContain("# TDD Guidelines");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Japanese",
+      );
+    });
+  });
 });
