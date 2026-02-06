@@ -56,6 +56,9 @@ outputs:
   base_branch:
     description: "Base branch used for this run"
     value: ${{ steps.prepare.outputs.base_branch }}
+  language:
+    description: "Language used for this run"
+    value: ${{ steps.prepare.outputs.language }}
 
 runs:
   using: "composite"
