@@ -1,0 +1,31 @@
+name: Leonidas Request
+description: Request automated implementation via Claude Code
+labels: ["leonidas"]
+body:
+  - type: textarea
+    id: task-description
+    attributes:
+      label: Task Description
+      description: Describe what you want to implement or change.
+      placeholder: "e.g., Add a user authentication system with JWT tokens"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List the criteria that must be met for this task to be considered complete.
+      placeholder: |
+        - [ ] Users can register with email and password
+        - [ ] Users can log in and receive a JWT token
+        - [ ] Protected routes require valid JWT
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any related files, references, or additional information.
+      placeholder: "e.g., Related files: src/auth/, Reference: https://jwt.io/"
+    validations:
+      required: false

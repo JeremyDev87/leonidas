@@ -1,0 +1,86 @@
+name: Leonidas Execute
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  execute:
+    if: |
+      github.event.comment.body == '/approve' &&
+      contains(github.event.issue.labels.*.name, 'leonidas')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find plan comment
+        id: find-plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          PLAN_COMMENT=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+            --jq '[.[] | select(.body | contains("Leonidas Implementation Plan"))] | last | .body')
+          echo "plan<<EOF" >> $GITHUB_OUTPUT
+          echo "$PLAN_COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Execute implementation
+        uses: anthropics/claude-code-action@v1
+        with:
+          model: "claude-sonnet-4-5-20250929"
+          max_turns: 30
+          allowed_tools: "Read,Write,Edit,Bash(npm:*),Bash(git:*),Bash(gh pr:*),Bash(npx:*),Bash(node:*)"
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are Leonidas, an automated implementation agent.
+            Read the file .github/leonidas.md for your operating guidelines.
+
+            ## Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            ${{ github.event.issue.body }}
+
+            ## Approved Plan
+
+            ${{ steps.find-plan.outputs.plan }}
+
+            ## Your Task
+
+            1. Follow the implementation plan step by step.
+            2. For each step:
+               - Implement the changes described
+               - Make an atomic commit with a clear message: `step N: <description>`
+               - Verify the changes work before moving to the next step
+            3. After all steps are complete:
+               - Run any relevant tests or build commands
+               - Ensure all changes are committed
+            4. Create a pull request:
+               - Title: `#${{ github.event.issue.number }}: ${{ github.event.issue.title }}`
+               - Body must include `Closes #${{ github.event.issue.number }}`
+               - Include a summary of all changes made
+               - Use: gh pr create --title "#${{ github.event.issue.number }}: ${{ github.event.issue.title }}" --body "<summary>\n\nCloses #${{ github.event.issue.number }}"
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Implementation Failed
+
+          The automated implementation encountered an error.
+
+          **Workflow run:** [View logs]($RUN_URL)
+
+          **To retry:** Comment \`/approve\` again on this issue."

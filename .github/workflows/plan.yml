@@ -1,0 +1,85 @@
+name: Leonidas Plan
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  plan:
+    if: contains(github.event.issue.labels.*.name, 'leonidas')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate implementation plan
+        uses: anthropics/claude-code-action@v1
+        with:
+          model: "claude-sonnet-4-5-20250929"
+          max_turns: 10
+          allowed_tools: "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)"
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are Leonidas, an automated implementation planning agent.
+            Read the file .github/leonidas.md for your operating guidelines.
+
+            ## Repository
+            ${{ github.repository }}
+
+            ## Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            ${{ github.event.issue.body }}
+
+            ## Your Task
+
+            1. Analyze the repository structure:
+               - Read key files (README, package.json, tsconfig.json, etc.)
+               - Understand the project architecture and conventions
+               - Identify files that will need to be created or modified
+
+            2. Create a detailed implementation plan and post it as a comment on issue #${{ github.event.issue.number }}.
+
+            Use this exact format for the comment:
+
+            ## 🏛️ Leonidas Implementation Plan
+
+            ### Summary
+            <Brief description of the approach>
+
+            ### Implementation Steps
+            - [ ] Step 1: <description>
+            - [ ] Step 2: <description>
+            ...
+
+            ### Considerations
+            <Edge cases, dependencies, testing notes>
+
+            ### Verification
+            <How to verify the implementation>
+
+            ---
+            > To approve this plan and start implementation, comment `/approve` on this issue.
+
+            3. Post the plan using: gh issue comment ${{ github.event.issue.number }} --body "<plan>"
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Plan Generation Failed
+
+          The automated plan generation encountered an error.
+
+          **Workflow run:** [View logs]($RUN_URL)
+
+          **To retry:** Remove the \`leonidas\` label and re-add it to this issue."

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+*.js.map
+
+# Local config
+.mcp.json
+.claude/
+codingbuddy.config.json
+
+# Planning artifacts
+plan.md
