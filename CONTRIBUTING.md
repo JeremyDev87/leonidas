@@ -79,6 +79,13 @@ npm run test:watch
 npm run test:coverage
 ```
 
+### Type Checking
+
+```bash
+# Run TypeScript type checker
+npm run typecheck
+```
+
 ### Running Linter
 
 ```bash
@@ -87,6 +94,16 @@ npm run lint
 
 # Auto-fix linting issues where possible
 npm run lint:fix
+```
+
+### Code Formatting
+
+```bash
+# Format all files
+npm run format
+
+# Check formatting without making changes
+npm run format:check
 ```
 
 ## Coding Conventions
