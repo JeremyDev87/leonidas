@@ -87,9 +87,10 @@ describe('config', () => {
       const fileConfig = { model: 'claude-opus-4', max_turns: 100 };
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
       };
 
       const result = mergeConfig(fileConfig, inputs);
@@ -105,9 +106,10 @@ describe('config', () => {
       const fileConfig = { model: 'claude-opus-4' };
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         model: 'claude-haiku-4',
       };
 
@@ -120,9 +122,10 @@ describe('config', () => {
       const fileConfig = { max_turns: 100 };
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         max_turns: 75,
       };
 
@@ -135,9 +138,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         allowed_tools: 'Read, Write, Edit',
       };
 
@@ -150,9 +154,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         allowed_tools: '  Read  ,  Write  ,  Edit  ',
       };
 
@@ -165,9 +170,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         branch_prefix: 'bot/issue-',
       };
 
@@ -180,9 +186,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         base_branch: 'develop',
       };
 
@@ -195,9 +202,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         language: 'ja',
       };
 
@@ -210,9 +218,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
       };
 
       const result = mergeConfig(fileConfig, inputs);
@@ -224,9 +233,10 @@ describe('config', () => {
       const fileConfig = {};
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         max_turns: 0,
       };
 
@@ -244,9 +254,10 @@ describe('config', () => {
 
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
         model: 'claude-haiku-4',
       };
 
@@ -264,9 +275,10 @@ describe('config', () => {
 
       const inputs: ActionInputs = {
         mode: 'plan',
-        issue_number: 1,
+        anthropic_api_key: 'test-key',
+        github_token: 'test-token',
         config_path: '.leonidas.yml',
-        api_key: 'test-key',
+        system_prompt_path: '.github/leonidas.md',
       };
 
       const result = resolveConfig(inputs);
