@@ -256,15 +256,31 @@ runs:
 
         ${MSG_PR_EXISTS_BODY}"
           else
-            # Create a draft PR to preserve the work
+            # Build PR title with sub-issue metadata if available
+            ISSUE_BODY=$(gh issue view "$ISSUE_NUMBER" --json body --jq '.body' 2>/dev/null || echo "")
+            PARENT_NUM=$(echo "$ISSUE_BODY" | grep -oP '<!--\s*leonidas-parent:\s*#\K\d+' || echo "")
+            ISSUE_TITLE=$(gh issue view "$ISSUE_NUMBER" --json title --jq '.title')
+
+            if [ -n "$PARENT_NUM" ]; then
+              PR_TITLE="#${PARENT_NUM} ${ISSUE_TITLE} [partial]"
+              PR_BODY="Part of #${PARENT_NUM}
+
+        ${MSG_PR_BODY_HEADER}
+
+        ${MSG_PR_BODY_CONTENT}"
+            else
+              PR_TITLE="#${ISSUE_NUMBER}: ${ISSUE_TITLE} [partial]"
+              PR_BODY="${MSG_PR_BODY_HEADER}
+
+        ${MSG_PR_BODY_CONTENT}"
+            fi
+
             PR_URL=$(gh pr create \
               --draft \
               --head "$BRANCH_NAME" \
               --base "$BASE_BRANCH" \
-              --title "#${ISSUE_NUMBER}: $(gh issue view "$ISSUE_NUMBER" --json title --jq '.title') [partial]" \
-              --body "${MSG_PR_BODY_HEADER}
-
-        ${MSG_PR_BODY_CONTENT}" 2>&1 || echo "")
+              --title "$PR_TITLE" \
+              --body "$PR_BODY" 2>&1 || echo "")
 
             if [ -n "$PR_URL" ]; then
               echo "pr_created=true" >> "$GITHUB_OUTPUT"
@@ -332,3 +348,54 @@ runs:
         gh issue comment "$ISSUE_NUMBER" --body "${HEADER}
 
         ${BODY}"
+
+    - name: Post-process PR
+      if: always() && inputs.mode == 'execute'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
+      run: |
+        BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
+        PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+        if [ -z "$PR_NUMBER" ]; then
+          echo "No PR found for branch $BRANCH_NAME, skipping post-processing."
+          exit 0
+        fi
+
+        echo "Post-processing PR #${PR_NUMBER}..."
+
+        # Add labels from issue (excluding 'leonidas')
+        LABELS=$(gh issue view "$ISSUE_NUMBER" --json labels --jq '[.labels[].name | select(. != "leonidas")] | join(",")' 2>/dev/null || echo "")
+        if [ -n "$LABELS" ]; then
+          echo "Adding labels: $LABELS"
+          gh pr edit "$PR_NUMBER" --add-label "$LABELS" || echo "Warning: failed to add labels"
+        fi
+
+        # Add assignee from issue author
+        AUTHOR=$(gh issue view "$ISSUE_NUMBER" --json author --jq '.author.login' 2>/dev/null || echo "")
+        if [ -n "$AUTHOR" ]; then
+          echo "Adding assignee: $AUTHOR"
+          gh pr edit "$PR_NUMBER" --add-assignee "$AUTHOR" || echo "Warning: failed to add assignee"
+        fi
+
+    - name: Trigger CI on PR branch
+      if: always() && inputs.mode == 'execute'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+      run: |
+        BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
+
+        # Check if branch exists on remote
+        if ! git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+          echo "Branch $BRANCH_NAME not found on remote, skipping CI trigger."
+          exit 0
+        fi
+
+        echo "Triggering CI workflow on branch $BRANCH_NAME..."
+        gh workflow run ci.yml --ref "$BRANCH_NAME" 2>&1 || echo "Note: Could not trigger CI via workflow_dispatch. CI may need to be triggered manually."

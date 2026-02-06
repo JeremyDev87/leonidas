@@ -2,8 +2,6 @@ import { SupportedLanguage } from "./i18n";
 
 export type LeonidasMode = "plan" | "execute";
 
-import { SupportedLanguage } from "./i18n";
-
 export interface LeonidasConfig {
   label: string;
   model: string;
