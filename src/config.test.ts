@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
-import { loadConfigFile, mergeConfig, resolveConfig } from "./config";
+import { loadConfigFile, mergeConfig, resolveConfig, loadRules } from "./config";
 import { ActionInputs, LeonidasConfig } from "./types";
 
 vi.mock("fs");
@@ -799,6 +799,111 @@ describe("config", () => {
 
       expect(result.model).toBe("claude-sonnet-4-5-20250929");
       expect(result.max_turns).toBe(50);
+    });
+
+    it("should include rules_path default", () => {
+      const mockConfig = {};
+      vi.mocked(fs.readFileSync).mockReturnValue("");
+      vi.mocked(yaml.load).mockReturnValue(mockConfig);
+
+      const inputs: ActionInputs = {
+        mode: "plan",
+        anthropic_api_key: "test-key",
+        github_token: "test-token",
+        config_path: ".leonidas.yml",
+        system_prompt_path: ".github/leonidas.md",
+      };
+
+      const result = resolveConfig(inputs);
+
+      expect(result.rules_path).toBe(".github/leonidas-rules");
+    });
+  });
+
+  describe("loadRules", () => {
+    it("should load .md files from directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue(["plan-quality.md", "coding-standards.md"] as any);
+      vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
+        if (path.includes("plan-quality.md")) return "# Plan Quality\nContent";
+        if (path.includes("coding-standards.md")) return "# Coding Standards\nContent";
+        return "";
+      });
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({
+        "plan-quality": "# Plan Quality\nContent",
+        "coding-standards": "# Coding Standards\nContent",
+      });
+    });
+
+    it("should return empty object for non-existent directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({});
+    });
+
+    it("should return empty object for empty directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([] as any);
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({});
+    });
+
+    it("should ignore non-.md files", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "plan-quality.md",
+        "README.txt",
+        "config.json",
+        "coding-standards.md",
+      ] as any);
+      vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
+        if (path.includes("plan-quality.md")) return "# Plan Quality";
+        if (path.includes("coding-standards.md")) return "# Coding Standards";
+        return "";
+      });
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({
+        "plan-quality": "# Plan Quality",
+        "coding-standards": "# Coding Standards",
+      });
+      expect(Object.keys(result)).toHaveLength(2);
+    });
+
+    it("should sort rules alphabetically", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "tdd.md",
+        "architecture.md",
+        "coding-standards.md",
+      ] as any);
+      vi.mocked(fs.readFileSync).mockReturnValue("Content");
+
+      const result = loadRules(".github/leonidas-rules");
+
+      const keys = Object.keys(result);
+      expect(keys).toEqual(["architecture", "coding-standards", "tdd"]);
+    });
+
+    it("should return empty object when path is not a directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => false } as fs.Stats);
+
+      const result = loadRules(".github/leonidas-rules/plan-quality.md");
+
+      expect(result).toEqual({});
     });
   });
 });
