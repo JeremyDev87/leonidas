@@ -10,6 +10,7 @@ export interface LeonidasConfig {
   allowed_tools: string[];
   max_turns: number;
   language: SupportedLanguage;
+  rules_path: string;
 }
 
 export interface ActionInputs {
@@ -24,6 +25,7 @@ export interface ActionInputs {
   language?: string;
   config_path: string;
   system_prompt_path: string;
+  rules_path?: string;
 }
 
 export interface SubIssueMetadata {
