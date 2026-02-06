@@ -50,6 +50,12 @@ outputs:
   execution_file:
     description: "Path to execution output file"
     value: ${{ steps.claude.outputs.execution_file }}
+  branch_prefix:
+    description: "Branch prefix used for this run"
+    value: ${{ steps.prepare.outputs.branch_prefix }}
+  base_branch:
+    description: "Base branch used for this run"
+    value: ${{ steps.prepare.outputs.base_branch }}
 
 runs:
   using: "composite"
@@ -94,8 +100,72 @@ runs:
       run: |
         gh issue comment "$ISSUE_NUMBER" --body "✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check the pull request for details."
 
+    - name: Rescue partial progress
+      id: rescue
+      if: failure() && inputs.mode == 'execute'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
+        BASE_BRANCH: ${{ steps.prepare.outputs.base_branch }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
+
+        # Check if the branch was pushed to remote
+        if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+          echo "branch_exists=true" >> "$GITHUB_OUTPUT"
+
+          # Check if a PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "pr_exists=true" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING_PR" >> "$GITHUB_OUTPUT"
+            gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Partial Progress
+
+        Implementation was interrupted (likely hit max turns), but a PR exists.
+
+        **Pull Request:** #${EXISTING_PR}
+        **Status:** Partial implementation — review the PR for completed work.
+        **Workflow run:** [View logs]($RUN_URL)
+
+        **To continue:** Comment \`/approve\` again to retry from a clean branch, or manually complete the PR."
+          else
+            # Create a draft PR to preserve the work
+            PR_URL=$(gh pr create \
+              --draft \
+              --head "$BRANCH_NAME" \
+              --base "$BASE_BRANCH" \
+              --title "#${ISSUE_NUMBER}: $(gh issue view "$ISSUE_NUMBER" --json title --jq '.title') [partial]" \
+              --body "## Partial Implementation
+
+        This PR was auto-created by Leonidas to preserve partial progress after the execution was interrupted (likely hit max turns).
+
+        **Status:** Incomplete — review and continue manually or retry.
+        **Workflow run:** [View logs]($RUN_URL)
+
+        Closes #${ISSUE_NUMBER}" 2>&1 || echo "")
+
+            if [ -n "$PR_URL" ]; then
+              echo "pr_created=true" >> "$GITHUB_OUTPUT"
+              gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Partial Progress
+
+        Implementation was interrupted, but a draft PR was created to preserve progress.
+
+        **Draft PR:** ${PR_URL}
+        **Workflow run:** [View logs]($RUN_URL)
+
+        **To continue:** Comment \`/approve\` again to retry, or manually complete the draft PR."
+            fi
+          fi
+        else
+          echo "branch_exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Post failure comment
-      if: failure()
+      if: failure() && steps.rescue.outputs.branch_exists != 'true'
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
