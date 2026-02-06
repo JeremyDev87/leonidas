@@ -83,6 +83,7 @@ runs:
       with:
         prompt_file: ${{ steps.prepare.outputs.prompt_file }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        show_full_output: "true"
 
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()
