@@ -182,6 +182,98 @@ By default, GitHub Actions workflows triggered by `GITHUB_TOKEN` cannot trigger 
 
 Without a PAT, sub-issues will be created but you will need to manually remove and re-add the `leonidas` label to trigger planning.
 
+## Rules System
+
+Leonidas supports custom project rules that guide the agent's planning and coding behavior. Rules are markdown files that provide specific guidelines, conventions, and patterns for your project.
+
+### What Are Rules?
+
+Rules are project-specific guidelines that help Leonidas:
+- Follow your coding conventions and style preferences
+- Apply architecture patterns consistently
+- Enforce quality standards for plans and code
+- Adhere to security best practices
+- Implement test-driven development workflows
+
+### Setting Up Rules
+
+1. Create a rules directory in your repository:
+   ```bash
+   mkdir -p .github/leonidas-rules
+   ```
+
+2. Add markdown files with your project guidelines:
+   ```bash
+   # Copy default templates as starting examples
+   cp prompts/rules/*.md .github/leonidas-rules/
+
+   # Or create your own custom rules
+   echo "# Custom Rule" > .github/leonidas-rules/my-rule.md
+   ```
+
+3. Customize the templates to match your project's needs
+
+### Bundled Templates
+
+Leonidas includes 5 default rules templates in `prompts/rules/` as reference examples:
+
+- **plan-quality.md** — Plan quality standards checklist (specificity, testability, granularity, coverage, convention adherence) with anti-patterns
+- **coding-standards.md** — Naming conventions, DRY/YAGNI/SRP principles, error handling, import organization
+- **tdd.md** — Red-Green-Refactor cycle, test organization, assertions, edge case coverage
+- **architecture.md** — Dependency direction, layer separation, single responsibility, file organization patterns
+- **security.md** — Input validation, auth/authz guidelines, secret handling, common vulnerabilities (SQL injection, XSS, etc.)
+
+You can copy and customize these templates for your project:
+
+```bash
+# Copy all default templates
+mkdir -p .github/leonidas-rules
+cp prompts/rules/*.md .github/leonidas-rules/
+
+# Edit to match your project
+nano .github/leonidas-rules/coding-standards.md
+nano .github/leonidas-rules/architecture.md
+# etc.
+```
+
+### Custom Rules Path
+
+By default, Leonidas looks for rules in `.github/leonidas-rules/`. You can override this in `leonidas.config.yml`:
+
+```yaml
+# leonidas.config.yml
+rules_path: "docs/leonidas-rules"  # Custom path
+```
+
+### How Rules Work
+
+When rules are present:
+1. Leonidas loads all `.md` files from the rules directory
+2. Rules are injected into the agent's system prompt
+3. The agent follows these guidelines during both planning and execution phases
+4. Rules appear after repository-specific instructions but before language directives
+
+Rules are sorted alphabetically by filename and included in the prompt as:
+
+```
+## Project Rules
+
+### Rule: architecture
+[Content of architecture.md]
+
+### Rule: coding-standards
+[Content of coding-standards.md]
+...
+```
+
+### Best Practices
+
+- **Keep rules concise** — Focus on the most important guidelines (50-80 lines per rule)
+- **Use examples** — Show good vs. bad patterns with code snippets
+- **Be specific** — Vague rules are hard to follow; provide actionable guidance
+- **Organize by topic** — Separate concerns (one file for architecture, one for testing, etc.)
+- **Update regularly** — Review and refine rules as your project evolves
+
 ## Security
 
 ### Prompt Injection Protection
