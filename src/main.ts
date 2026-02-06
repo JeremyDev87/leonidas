@@ -79,7 +79,7 @@ async function run(): Promise<void> {
     const context = readGitHubContext();
     const repoFullName = `${context.owner}/${context.repo}`;
 
-    const systemPrompt = buildSystemPrompt(inputs.system_prompt_path);
+    const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
 
     let prompt: string;
@@ -102,6 +102,7 @@ async function run(): Promise<void> {
           repoFullName,
           systemPrompt,
           subIssueMetadata,
+          config.language,
         );
         allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
         maxTurns = SUB_ISSUE_PLAN_MAX_TURNS;
@@ -113,6 +114,7 @@ async function run(): Promise<void> {
           repoFullName,
           systemPrompt,
           config.label,
+          config.language,
         );
         allowedTools =
           "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
@@ -190,6 +192,7 @@ async function run(): Promise<void> {
         context.issue_labels,
         context.issue_author,
         subIssueMetadata,
+        config.language,
       );
       allowedTools = config.allowed_tools.join(",");
       maxTurns = config.max_turns;
@@ -207,6 +210,7 @@ async function run(): Promise<void> {
     core.setOutput("allowed_tools", allowedTools);
     core.setOutput("branch_prefix", config.branch_prefix);
     core.setOutput("base_branch", config.base_branch);
+    core.setOutput("language", config.language);
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
