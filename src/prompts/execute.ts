@@ -1,5 +1,6 @@
 import { SubIssueMetadata } from "../types";
 import { SupportedLanguage } from "../i18n";
+import { wrapUserContent } from "../utils/sanitize";
 
 export function buildExecutePrompt(
   issueTitle: string,
@@ -48,15 +49,19 @@ ${subIssueMetadata.depends_on ? `- Dependency: #${subIssueMetadata.depends_on} s
 `
     : "";
 
+  // Wrap user-supplied content to prevent prompt injection
+  const safeTitle = wrapUserContent(issueTitle);
+  const safeBody = wrapUserContent(issueBody);
+
   return `${systemPrompt}
 
 ---
 
 You are implementing code changes based on an approved plan.
 
-## Issue #${issueNumber}: ${issueTitle}
+## Issue #${issueNumber}: ${safeTitle}
 
-${issueBody}
+${safeBody}
 ${subIssueContext}
 ## Approved Plan
 
