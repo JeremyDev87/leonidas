@@ -81,6 +81,7 @@ describe("config", () => {
       ],
       max_turns: 50,
       language: "en",
+      rules_path: ".github/leonidas-rules",
     };
 
     it("should merge file config with default config", () => {

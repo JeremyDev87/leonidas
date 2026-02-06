@@ -281,12 +281,8 @@ Malformed numbers`;
 
       const result = parseSubIssueMetadata(issueBody);
 
-      // Should still parse but with NaN values converted to numbers
-      expect(result).toEqual({
-        parent_issue_number: NaN,
-        order: NaN,
-        total: NaN,
-      });
+      // Regex requires \d+ so non-numeric values won't match
+      expect(result).toBeUndefined();
     });
 
     it("should use first match when multiple parent comments exist", () => {
