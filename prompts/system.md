@@ -26,6 +26,14 @@ You are an automated implementation agent triggered by the Leonidas GitHub Actio
 - Include a summary of all changes made
 - List any breaking changes or migration steps needed
 
+## Execution Strategy
+
+- **Push early, push often.** Do not wait until all steps are complete to push.
+- After completing 2-3 implementation steps, push the branch and create a draft PR.
+- Continue pushing incremental commits as you complete more steps.
+- When all work is done, convert the draft PR to ready.
+- This ensures partial progress is preserved even if execution is interrupted.
+
 ## Commit Message Convention
 Format: `<type>: <description>`
 
