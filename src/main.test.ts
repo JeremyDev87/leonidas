@@ -35,6 +35,118 @@ describe("main", () => {
   });
 
   describe("readInputs (via run)", () => {
+    it("should throw error for non-numeric max_turns input", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          max_turns: "abc",
+        };
+        return inputs[name] || "";
+      });
+
+      await import("./main");
+
+      expect(core.setFailed).toHaveBeenCalledWith('Invalid max_turns value: "abc"');
+    });
+
+    it("should throw error for empty string max_turns input", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          max_turns: "",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
+
+      await import("./main");
+
+      // Empty string is treated as undefined, so validation doesn't trigger
+      expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
+    });
+
+    it("should accept valid numeric string for max_turns", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          max_turns: "100",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 100,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
+
+      await import("./main");
+
+      // Should not call setFailed
+      expect(core.setFailed).not.toHaveBeenCalled();
+    });
+
     it("should read inputs for valid plan mode", async () => {
       vi.mocked(core.getInput).mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
