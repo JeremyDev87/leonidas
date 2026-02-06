@@ -772,6 +772,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "ko",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -782,7 +783,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "ko");
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "ko", undefined);
       expect(buildPlanPrompt).toHaveBeenCalledWith(
         "Test Issue",
         "Test body",
@@ -828,6 +829,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "es",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -842,7 +844,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es");
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es", undefined);
       expect(buildExecutePrompt).toHaveBeenCalledWith(
         "Test Issue",
         "Test body",
@@ -893,6 +895,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "en",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -903,7 +906,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "en");
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "en", undefined);
       expect(buildPlanPrompt).toHaveBeenCalledWith(
         "Test Issue",
         "Test body",
@@ -949,6 +952,7 @@ describe("main", () => {
         allowed_tools: ["Read"],
         max_turns: 50,
         language: "zh",
+        rules_path: ".github/leonidas-rules",
       });
 
       const { buildSystemPrompt } = await import("./prompts/system");
@@ -966,7 +970,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "zh");
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "zh", undefined);
       expect(buildSubIssuePlanPrompt).toHaveBeenCalledWith(
         "[1/3] Test Sub-Issue",
         "<!-- leonidas-parent: #100 -->\n<!-- leonidas-order: 1/3 -->\nTest sub-issue body",
