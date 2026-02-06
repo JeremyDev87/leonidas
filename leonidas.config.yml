@@ -26,6 +26,19 @@ allowed_tools:
   - "Bash(mkdir:*)"
   - "Bash(ls:*)"
   - "Bash(cat:*)"
+  # File management utilities
+  - "Bash(rm:*)"
+  - "Bash(mv:*)"
+  - "Bash(cp:*)"
+  - "Bash(touch:*)"
+  # Text processing and search utilities
+  - "Bash(sed:*)"
+  - "Bash(grep:*)"
+  - "Bash(echo:*)"
+  - "Bash(find:*)"
+  - "Bash(head:*)"
+  - "Bash(tail:*)"
+  - "Bash(wc:*)"
 
 # Maximum number of Claude Code turns
 max_turns: 50
