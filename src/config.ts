@@ -23,6 +23,7 @@ const DEFAULT_CONFIG: LeonidasConfig = {
   ],
   max_turns: 50,
   language: "en",
+  rules_path: ".github/leonidas-rules",
 };
 
 export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
@@ -57,6 +58,9 @@ export function mergeConfig(
   }
   if (inputs.language) {
     merged.language = resolveLanguage(inputs.language);
+  }
+  if (inputs.rules_path) {
+    merged.rules_path = inputs.rules_path;
   }
 
   // Validate label format: alphanumeric, hyphens, underscores only
