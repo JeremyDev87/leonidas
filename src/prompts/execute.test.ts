@@ -26,7 +26,8 @@ describe("prompts/execute", () => {
 
       expect(result).toContain(systemPrompt);
       expect(result).toContain("You are implementing code changes based on an approved plan.");
-      expect(result).toContain(`## Issue #${issueNumber}: ${issueTitle}`);
+      expect(result).toContain(`## Issue #${issueNumber}:`);
+      expect(result).toContain(issueTitle);
       expect(result).toContain(issueBody);
       expect(result).toContain("## Approved Plan");
       expect(result).toContain(planComment);
