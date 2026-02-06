@@ -52,6 +52,8 @@ function readGitHubContext(): GitHubContext {
     issue_number: issue.number,
     issue_title: issue.title,
     issue_body: issue.body ?? "",
+    issue_labels: (issue.labels ?? []).map((l: { name: string }) => l.name),
+    issue_author: issue.user?.login ?? "",
   };
 }
 
@@ -108,6 +110,8 @@ async function run(): Promise<void> {
         config.branch_prefix,
         config.base_branch,
         systemPrompt,
+        context.issue_labels,
+        context.issue_author,
       );
       allowedTools = config.allowed_tools.join(",");
       maxTurns = config.max_turns;

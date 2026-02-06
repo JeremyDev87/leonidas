@@ -34295,6 +34295,8 @@ function readGitHubContext() {
         issue_number: issue.number,
         issue_title: issue.title,
         issue_body: issue.body ?? "",
+        issue_labels: (issue.labels ?? []).map((l) => l.name),
+        issue_author: issue.user?.login ?? "",
     };
 }
 async function run() {
@@ -34320,7 +34322,7 @@ async function run() {
                 return;
             }
             await (0, github_1.postComment)(inputs.github_token, context.owner, context.repo, context.issue_number, `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`);
-            prompt = (0, execute_1.buildExecutePrompt)(context.issue_title, context.issue_body, planComment, context.issue_number, config.branch_prefix, config.base_branch, systemPrompt);
+            prompt = (0, execute_1.buildExecutePrompt)(context.issue_title, context.issue_body, planComment, context.issue_number, config.branch_prefix, config.base_branch, systemPrompt, context.issue_labels, context.issue_author);
             allowedTools = config.allowed_tools.join(",");
             maxTurns = config.max_turns;
         }
@@ -34355,8 +34357,15 @@ run();
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildExecutePrompt = buildExecutePrompt;
-function buildExecutePrompt(issueTitle, issueBody, planComment, issueNumber, branchPrefix, baseBranch, systemPrompt) {
+function buildExecutePrompt(issueTitle, issueBody, planComment, issueNumber, branchPrefix, baseBranch, systemPrompt, issueLabels = [], issueAuthor = "") {
     const branchName = `${branchPrefix}${issueNumber}`;
+    const prLabels = issueLabels.filter((l) => l !== "leonidas");
+    const labelCmd = prLabels.length > 0
+        ? `\n   - Add labels: \`gh pr edit --add-label "${prLabels.join(",")}"\``
+        : "";
+    const assigneeCmd = issueAuthor
+        ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
+        : "";
     return `${systemPrompt}
 
 ---
@@ -34387,7 +34396,7 @@ ${planComment}
    - Ensure all changes are committed
 5. Push the branch and create a pull request:
    - Push: \`git push origin ${branchName}\`
-   - Create PR: \`gh pr create --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`
+   - Create PR: \`gh pr create --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`${labelCmd}${assigneeCmd}
 
 ## Important Rules
 - Do NOT run \`npm install\` or install dependencies unless the plan explicitly requires adding new packages

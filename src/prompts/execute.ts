@@ -6,8 +6,18 @@ export function buildExecutePrompt(
   branchPrefix: string,
   baseBranch: string,
   systemPrompt: string,
+  issueLabels: string[] = [],
+  issueAuthor: string = "",
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
+
+  const prLabels = issueLabels.filter((l) => l !== "leonidas");
+  const labelCmd = prLabels.length > 0
+    ? `\n   - Add labels: \`gh pr edit --add-label "${prLabels.join(",")}"\``
+    : "";
+  const assigneeCmd = issueAuthor
+    ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
+    : "";
 
   return `${systemPrompt}
 
@@ -39,7 +49,7 @@ ${planComment}
    - Ensure all changes are committed
 5. Push the branch and create a pull request:
    - Push: \`git push origin ${branchName}\`
-   - Create PR: \`gh pr create --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`
+   - Create PR: \`gh pr create --base ${baseBranch} --title "#${issueNumber}: ${issueTitle}" --body "<summary>\\n\\nCloses #${issueNumber}"\`${labelCmd}${assigneeCmd}
 
 ## Important Rules
 - Do NOT run \`npm install\` or install dependencies unless the plan explicitly requires adding new packages

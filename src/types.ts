@@ -30,4 +30,6 @@ export interface GitHubContext {
   issue_number: number;
   issue_title: string;
   issue_body: string;
+  issue_labels: string[];
+  issue_author: string;
 }
