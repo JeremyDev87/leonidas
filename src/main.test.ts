@@ -983,4 +983,111 @@ describe("main", () => {
       expect(core.setOutput).toHaveBeenCalledWith("language", "zh");
     });
   });
+
+  describe("allowed tools for sub-issue linking", () => {
+    it("should include Bash(gh api:*) in allowed tools for regular plan mode", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
+
+      await import("./main");
+
+      expect(core.setOutput).toHaveBeenCalledWith(
+        "allowed_tools",
+        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+      );
+    });
+
+    it("should NOT include Bash(gh api:*) in allowed tools for sub-issue plan mode", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 5,
+            title: "[1/2] Test Sub-Issue",
+            body: "<!-- leonidas-parent: #4 -->\n<!-- leonidas-order: 1/2 -->\nSub-issue body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildSubIssuePlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildSubIssuePlanPrompt).mockReturnValue("sub-issue plan prompt");
+
+      const { parseSubIssueMetadata } = await import("./github");
+      vi.mocked(parseSubIssueMetadata).mockReturnValue({
+        parent_issue_number: 4,
+        order: 1,
+        total: 2,
+      });
+
+      await import("./main");
+
+      expect(core.setOutput).toHaveBeenCalledWith(
+        "allowed_tools",
+        "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+      );
+    });
+  });
 });
