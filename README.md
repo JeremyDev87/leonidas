@@ -182,6 +182,109 @@ By default, GitHub Actions workflows triggered by `GITHUB_TOKEN` cannot trigger 
 
 Without a PAT, sub-issues will be created but you will need to manually remove and re-add the `leonidas` label to trigger planning.
 
+## Rules System
+
+Leonidas supports project-specific rules to guide its planning and coding behavior. Rules help enforce project conventions, coding standards, and quality requirements consistently across all implementations.
+
+### What Are Rules?
+
+Rules are markdown files that contain guidelines for the agent to follow. When rules are configured, they are automatically injected into Leonidas's system prompt, influencing how it analyzes issues, creates plans, and writes code.
+
+**Benefits:**
+- **Consistency:** Enforce naming conventions, file organization, and coding patterns
+- **Quality:** Set explicit standards for plan specificity, test coverage, and documentation
+- **Best Practices:** Embed TDD, security guidelines, or architecture principles
+- **Customization:** Tailor Leonidas's behavior to match your team's workflow
+
+### Quick Start
+
+Leonidas includes 5 bundled rules templates as reference examples. To use them:
+
+```bash
+# Copy default templates
+mkdir -p .github/leonidas-rules
+cp prompts/rules/*.md .github/leonidas-rules/
+
+# Customize for your project
+# Edit .github/leonidas-rules/coding-standards.md
+# Edit .github/leonidas-rules/plan-quality.md
+# etc.
+```
+
+### Bundled Templates
+
+The following templates are available in `prompts/rules/`:
+
+1. **plan-quality.md** — Plan quality standards checklist (specificity, testability, granularity)
+2. **coding-standards.md** — Coding conventions and principles (naming, DRY/YAGNI/SRP, error handling)
+3. **tdd.md** — Test-driven development guidelines (Red-Green-Refactor cycle, test organization)
+4. **architecture.md** — Architecture principles and patterns (dependency direction, layer separation)
+5. **security.md** — Security guidelines and vulnerability checks (input validation, auth/authz, secrets)
+
+### Configuration
+
+By default, Leonidas looks for rules in `.github/leonidas-rules/`. To customize the path:
+
+```yaml
+# leonidas.config.yml
+rules_path: .custom/rules-directory
+```
+
+### Usage
+
+Once you've added rules to your project:
+
+1. Place `.md` files in `.github/leonidas-rules/` (or your configured `rules_path`)
+2. Name files descriptively (e.g., `coding-standards.md`, `security.md`)
+3. Leonidas automatically loads all `.md` files alphabetically and includes them in the system prompt
+4. Rules apply to both plan generation and code execution phases
+
+**Example structure:**
+```
+.github/
+  leonidas-rules/
+    architecture.md
+    coding-standards.md
+    plan-quality.md
+    security.md
+    tdd.md
+```
+
+### Creating Custom Rules
+
+Rules are standard markdown files. Each rule should:
+
+- Have a clear heading structure (`# Title`, `## Section`)
+- Use concrete examples showing good vs. bad practices
+- Include actionable guidelines, not vague advice
+- Be concise (~50-100 lines) to avoid overwhelming the context window
+
+**Example rule snippet:**
+```markdown
+# Naming Conventions
+
+## Variables and Functions
+Use `camelCase` for variables and functions:
+```javascript
+const userName = "Alice";
+function getUserById(id) { }
+```
+
+## Classes and Interfaces
+Use `PascalCase` for classes and types:
+```javascript
+class UserRepository { }
+interface ApiResponse { }
+```
+```
+
+### Best Practices
+
+- **Start small:** Begin with 1-2 critical rules, add more as needed
+- **Be specific:** "Use TypeScript strict mode" is better than "Use TypeScript properly"
+- **Show examples:** Include code snippets demonstrating the desired pattern
+- **Keep it updated:** Review and refine rules as your project evolves
+
 ## Security
 
 ### Prompt Injection Protection
