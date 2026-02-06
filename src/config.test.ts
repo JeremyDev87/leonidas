@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
-import { loadConfigFile, mergeConfig, resolveConfig } from "./config";
+import { loadConfigFile, mergeConfig, resolveConfig, loadRules } from "./config";
 import { ActionInputs, LeonidasConfig } from "./types";
 
 vi.mock("fs");
@@ -798,6 +798,116 @@ describe("config", () => {
 
       expect(result.model).toBe("claude-sonnet-4-5-20250929");
       expect(result.max_turns).toBe(50);
+    });
+
+    it("should include rules_path default", () => {
+      vi.mocked(fs.readFileSync).mockImplementation(() => {
+        throw new Error("ENOENT");
+      });
+
+      const inputs: ActionInputs = {
+        mode: "plan",
+        anthropic_api_key: "test-key",
+        github_token: "test-token",
+        config_path: ".leonidas.yml",
+        system_prompt_path: ".github/leonidas.md",
+      };
+
+      const result = resolveConfig(inputs);
+
+      expect(result.rules_path).toBe(".github/leonidas-rules");
+    });
+  });
+
+  describe("loadRules", () => {
+    it("should load .md files from directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "plan-quality.md",
+        "coding-standards.md",
+        "tdd.md",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
+        const pathStr = path.toString();
+        if (pathStr.includes("plan-quality.md")) return "# Plan Quality";
+        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
+        if (pathStr.includes("tdd.md")) return "# TDD";
+        return "";
+      });
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({
+        "coding-standards": "# Coding Standards",
+        "plan-quality": "# Plan Quality",
+        tdd: "# TDD",
+      });
+    });
+
+    it("should return empty object for non-existent directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const result = loadRules(".github/nonexistent");
+
+      expect(result).toEqual({});
+    });
+
+    it("should return empty object for empty directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([] as unknown as fs.Dirent[]);
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({});
+    });
+
+    it("should ignore non-.md files", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "plan-quality.md",
+        "readme.txt",
+        "config.json",
+        "coding-standards.md",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
+        const pathStr = path.toString();
+        if (pathStr.includes("plan-quality.md")) return "# Plan Quality";
+        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
+        return "";
+      });
+
+      const result = loadRules(".github/leonidas-rules");
+
+      expect(result).toEqual({
+        "coding-standards": "# Coding Standards",
+        "plan-quality": "# Plan Quality",
+      });
+      expect(Object.keys(result).length).toBe(2);
+    });
+
+    it("should sort rules alphabetically", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "tdd.md",
+        "architecture.md",
+        "coding-standards.md",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync).mockImplementation((path: fs.PathOrFileDescriptor) => {
+        const pathStr = path.toString();
+        if (pathStr.includes("tdd.md")) return "# TDD";
+        if (pathStr.includes("architecture.md")) return "# Architecture";
+        if (pathStr.includes("coding-standards.md")) return "# Coding Standards";
+        return "";
+      });
+
+      const result = loadRules(".github/leonidas-rules");
+      const keys = Object.keys(result);
+
+      expect(keys).toEqual(["architecture", "coding-standards", "tdd"]);
     });
   });
 });
