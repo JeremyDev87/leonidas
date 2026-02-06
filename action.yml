@@ -229,12 +229,52 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+        LANGUAGE: ${{ steps.prepare.outputs.language }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        MODE: ${{ inputs.mode }}
       run: |
-        gh issue comment "$ISSUE_NUMBER" --body "## ⚠️ Leonidas Failed
+        case "$LANGUAGE" in
+          ko)
+            HEADER="## ⚠️ 레오니다스 실패"
+            if [ "$MODE" = "plan" ]; then
+              BODY="자동화된 계획이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** \`leonidas\` 레이블을 제거한 후 다시 추가하세요."
+            else
+              BODY="자동화된 실행이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** 이 이슈에 \`/approve\`를 다시 댓글로 다세요."
+            fi
+            ;;
+          ja)
+            HEADER="## ⚠️ Leonidas 失敗"
+            if [ "$MODE" = "plan" ]; then
+              BODY="自動計画でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** \`leonidas\` ラベルを削除してから再度追加してください。"
+            else
+              BODY="自動実行でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** このイシューに \`/approve\` を再度コメントしてください。"
+            fi
+            ;;
+          zh)
+            HEADER="## ⚠️ Leonidas 失败"
+            if [ "$MODE" = "plan" ]; then
+              BODY="自动计划遇到错误。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 移除 \`leonidas\` 标签，然后重新添加。"
+            else
+              BODY="自动执行遇到错误。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 在此问题上再次评论 \`/approve\`。"
+            fi
+            ;;
+          es)
+            HEADER="## ⚠️ Leonidas Falló"
+            if [ "$MODE" = "plan" ]; then
+              BODY="El plan automatizado encontró un error.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Elimina la etiqueta \`leonidas\` y agrégala nuevamente."
+            else
+              BODY="La ejecución automatizada encontró un error.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Comenta \`/approve\` nuevamente en este issue."
+            fi
+            ;;
+          *)
+            HEADER="## ⚠️ Leonidas Failed"
+            if [ "$MODE" = "plan" ]; then
+              BODY="The automated plan encountered an error.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Remove the \`leonidas\` label and re-add it."
+            else
+              BODY="The automated execution encountered an error.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Comment \`/approve\` again on this issue."
+            fi
+            ;;
+        esac
+        gh issue comment "$ISSUE_NUMBER" --body "${HEADER}
 
-        The automated ${{ inputs.mode }} encountered an error.
-
-        **Workflow run:** [View logs]($RUN_URL)
-
-        **To retry:** $(if [ '${{ inputs.mode }}' = 'plan' ]; then echo 'Remove the \`leonidas\` label and re-add it.'; else echo 'Comment \`/approve\` again on this issue.'; fi)"
+        ${BODY}"
