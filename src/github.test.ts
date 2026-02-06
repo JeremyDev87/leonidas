@@ -423,4 +423,107 @@ Plan content`;
       expect(result).toBe(false);
     });
   });
+
+  describe("isIssueClosed", () => {
+    it("should return true for closed issue", async () => {
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+        data: { state: "closed", number: mockIssueNumber },
+      });
+
+      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+      });
+      expect(result).toBe(true);
+    });
+
+    it("should return false for open issue", async () => {
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+        data: { state: "open", number: mockIssueNumber },
+      });
+
+      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+      });
+      expect(result).toBe(false);
+    });
+
+    it("should throw specific error for 404 (issue not found)", async () => {
+      const error = { status: 404, message: "Not Found" };
+      mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
+
+      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+        `Dependency issue #${mockIssueNumber} not found in ${mockOwner}/${mockRepo}.`,
+      );
+
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+      });
+    });
+
+    it("should throw generic error for other API errors", async () => {
+      const error = new Error("API rate limit exceeded");
+      mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
+
+      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+        `Failed to check issue #${mockIssueNumber} status: API rate limit exceeded`,
+      );
+
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+      });
+    });
+
+    it("should throw generic error with unknown error type", async () => {
+      const error = { someField: "not a standard error" };
+      mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
+
+      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+        `Failed to check issue #${mockIssueNumber} status: unknown error`,
+      );
+    });
+
+    it("should handle 403 forbidden error", async () => {
+      const error = { status: 403, message: "Forbidden" };
+      mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
+
+      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+        `Failed to check issue #${mockIssueNumber} status:`,
+      );
+    });
+
+    it("should handle string error message", async () => {
+      mockOctokit.rest.issues.get = vi.fn().mockRejectedValue("Network connection failed");
+
+      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+        `Failed to check issue #${mockIssueNumber} status: unknown error`,
+      );
+    });
+
+    it("should correctly identify closed issue with additional state fields", async () => {
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+        data: {
+          state: "closed",
+          state_reason: "completed",
+          number: mockIssueNumber,
+        },
+      });
+
+      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(true);
+    });
+  });
 });
