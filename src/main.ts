@@ -72,8 +72,14 @@ async function run(): Promise<void> {
     let maxTurns: number;
 
     if (inputs.mode === "plan") {
+      // Plan mode turn limits:
+      // - Sub-issue plans: capped at 10 (scope is narrow, no decomposition)
+      // - Regular plans with decomposition: capped at 20 (needs turns for analysis + gh issue create)
+      // These caps exist because plan mode is read-only analysis; config.max_turns is for execute mode.
+      const SUB_ISSUE_PLAN_MAX_TURNS = 10;
+      const REGULAR_PLAN_MAX_TURNS = 20;
+
       if (subIssueMetadata) {
-        // Sub-issue: use dedicated sub-issue plan prompt (no further decomposition)
         prompt = buildSubIssuePlanPrompt(
           context.issue_title,
           context.issue_body,
@@ -83,9 +89,8 @@ async function run(): Promise<void> {
           subIssueMetadata,
         );
         allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
-        maxTurns = 10;
+        maxTurns = SUB_ISSUE_PLAN_MAX_TURNS;
       } else {
-        // Regular issue: use extended plan prompt with decomposition capability
         prompt = buildPlanPrompt(
           context.issue_title,
           context.issue_body,
@@ -95,7 +100,7 @@ async function run(): Promise<void> {
           config.label,
         );
         allowedTools = "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
-        maxTurns = 20;
+        maxTurns = REGULAR_PLAN_MAX_TURNS;
       }
     } else {
       // execute mode
@@ -164,7 +169,7 @@ async function run(): Promise<void> {
         config.max_turns,
         context.issue_labels,
         context.issue_author,
-        subIssueMetadata ?? undefined,
+        subIssueMetadata,
       );
       allowedTools = config.allowed_tools.join(",");
       maxTurns = config.max_turns;

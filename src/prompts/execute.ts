@@ -29,9 +29,10 @@ export function buildExecutePrompt(
     ? `#${subIssueMetadata.parent_issue_number} [${subIssueMetadata.order}/${subIssueMetadata.total}]: ${issueTitle}`
     : `#${issueNumber}: ${issueTitle}`;
 
-  const prBody = subIssueMetadata
-    ? `Part of #${subIssueMetadata.parent_issue_number}\\n\\nCloses #${issueNumber}`
-    : `Closes #${issueNumber}`;
+  const prBodyLines = subIssueMetadata
+    ? [`Part of #${subIssueMetadata.parent_issue_number}`, "", `Closes #${issueNumber}`]
+    : [`Closes #${issueNumber}`];
+  const prBody = prBodyLines.join("\n");
 
   const subIssueContext = subIssueMetadata
     ? `
@@ -84,7 +85,13 @@ You have **${maxTurns} turns** total. Reserve the last ${reservedTurns} turns fo
    - Run any relevant tests or build commands if a test framework and dependencies are available
    - Ensure all changes are committed
 5. If you haven't already, create or update the pull request:
-   - If no PR exists yet, create as draft: \`gh pr create --draft --base ${baseBranch} --title "${prTitle}" --body "${prBody}"\`${labelCmd}${assigneeCmd}
+   - If no PR exists yet, create as draft:
+     \`\`\`bash
+     gh pr create --draft --base ${baseBranch} --title "${prTitle}" --body "$(cat <<'PRBODY'
+${prBody}
+PRBODY
+)"
+     \`\`\`${labelCmd}${assigneeCmd}
    - Continue pushing commits as you complete more work
    - When all steps complete, convert draft to ready: \`gh pr ready\`
 
