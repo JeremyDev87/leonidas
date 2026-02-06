@@ -1,0 +1,70 @@
+name: Leonidas Track
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  track:
+    if: contains(github.event.issue.body, '<!-- leonidas-parent:')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Update parent issue checklist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch issue body via API to avoid shell injection from event payload
+          ISSUE_BODY=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '.body')
+
+          # Parse parent issue number from sub-issue body (only digits after marker)
+          PARENT=$(echo "$ISSUE_BODY" | grep -oP '<!-- leonidas-parent: #\K\d+' | head -1)
+          if [ -z "$PARENT" ]; then
+            echo "No parent issue found in body"
+            exit 0
+          fi
+
+          # Validate PARENT is a number
+          if ! [[ "$PARENT" =~ ^[0-9]+$ ]]; then
+            echo "Invalid parent issue number"
+            exit 0
+          fi
+
+          echo "Sub-issue #$ISSUE_NUMBER closed. Updating parent #$PARENT checklist."
+
+          # Find the plan comment on parent issue (contains leonidas-decomposed marker)
+          COMMENT_DATA=$(gh api "repos/$REPO/issues/$PARENT/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- leonidas-decomposed -->")) | {id: .id, body: .body}' \
+            | jq -s 'last')
+
+          if [ -z "$COMMENT_DATA" ] || [ "$COMMENT_DATA" = "null" ]; then
+            echo "No decomposed plan comment found on parent #$PARENT"
+            exit 0
+          fi
+
+          COMMENT_ID=$(echo "$COMMENT_DATA" | jq -r '.id')
+          COMMENT_BODY=$(echo "$COMMENT_DATA" | jq -r '.body')
+
+          # Update checkbox: - [ ] #N → - [x] #N
+          UPDATED_BODY=$(echo "$COMMENT_BODY" | sed "s/- \[ \] #${ISSUE_NUMBER} /- [x] #${ISSUE_NUMBER} /g")
+
+          # Update the comment via API
+          gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
+            -X PATCH \
+            --field body="$UPDATED_BODY"
+
+          echo "Updated checklist for #$ISSUE_NUMBER in parent #$PARENT"
+
+          # Check if all sub-issues are complete
+          REMAINING=$(echo "$UPDATED_BODY" | grep -c '- \[ \] #' || true)
+          if [ "$REMAINING" -eq 0 ]; then
+            gh issue comment "$PARENT" --repo "$REPO" \
+              --body $'✅ **Leonidas**: All sub-issues have been completed! This issue can now be closed.'
+            echo "All sub-issues complete. Posted completion comment on #$PARENT."
+          else
+            echo "$REMAINING sub-issues remaining."
+          fi
