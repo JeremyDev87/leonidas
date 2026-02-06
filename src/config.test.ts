@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
-import { loadConfigFile, mergeConfig, resolveConfig } from "./config";
+import { loadConfigFile, mergeConfig, resolveConfig, loadRules } from "./config";
 import { ActionInputs, LeonidasConfig } from "./types";
 
 vi.mock("fs");
@@ -799,6 +799,111 @@ describe("config", () => {
 
       expect(result.model).toBe("claude-sonnet-4-5-20250929");
       expect(result.max_turns).toBe(50);
+    });
+
+    it("should include rules_path default in resolved config", () => {
+      vi.mocked(fs.readFileSync).mockImplementation(() => {
+        throw new Error("ENOENT");
+      });
+
+      const inputs: ActionInputs = {
+        mode: "plan",
+        anthropic_api_key: "test-key",
+        github_token: "test-token",
+        config_path: ".leonidas.yml",
+        system_prompt_path: ".github/leonidas.md",
+      };
+
+      const result = resolveConfig(inputs);
+
+      expect(result.rules_path).toBe(".github/leonidas-rules");
+    });
+  });
+
+  describe("loadRules", () => {
+    it("should load .md files from directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({
+        isDirectory: () => true,
+      } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "coding-standards.md",
+        "security.md",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce("# Coding Standards\nContent here")
+        .mockReturnValueOnce("# Security\nSecurity guidelines");
+
+      const result = loadRules(".github/rules");
+
+      expect(fs.existsSync).toHaveBeenCalledWith(".github/rules");
+      expect(fs.readdirSync).toHaveBeenCalledWith(".github/rules");
+      expect(result).toEqual({
+        "coding-standards": "# Coding Standards\nContent here",
+        security: "# Security\nSecurity guidelines",
+      });
+    });
+
+    it("should return empty object for non-existent directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const result = loadRules("/path/does/not/exist");
+
+      expect(result).toEqual({});
+      expect(fs.readdirSync).not.toHaveBeenCalled();
+    });
+
+    it("should return empty object for empty directory", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({
+        isDirectory: () => true,
+      } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([] as unknown as fs.Dirent[]);
+
+      const result = loadRules(".github/rules");
+
+      expect(result).toEqual({});
+    });
+
+    it("should ignore non-.md files", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({
+        isDirectory: () => true,
+      } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "rules.md",
+        "readme.txt",
+        "config.json",
+        "other.MD",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync).mockReturnValue("# Rules Content");
+
+      const result = loadRules(".github/rules");
+
+      expect(Object.keys(result)).toEqual(["rules"]);
+      expect(fs.readFileSync).toHaveBeenCalledTimes(1);
+      expect(fs.readFileSync).toHaveBeenCalledWith(".github/rules/rules.md", "utf-8");
+    });
+
+    it("should sort rules alphabetically", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.statSync).mockReturnValue({
+        isDirectory: () => true,
+      } as fs.Stats);
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        "zebra.md",
+        "alpha.md",
+        "beta.md",
+      ] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce("alpha content")
+        .mockReturnValueOnce("beta content")
+        .mockReturnValueOnce("zebra content");
+
+      const result = loadRules(".github/rules");
+
+      const keys = Object.keys(result);
+      expect(keys).toEqual(["alpha", "beta", "zebra"]);
     });
   });
 });
