@@ -206,5 +206,27 @@ Line 3`;
       expect(result).toContain("## 🏛️ Plan de Implementación de Leonidas");
       expect(result).toContain("Para aprobar este plan e iniciar la implementación");
     });
+
+    it("should include gh api commands for sub-issue linking", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
+
+      expect(result).toContain("gh api");
+      expect(result).toContain("sub_issues");
+      expect(result).toContain("SUB_DB_ID");
+    });
+
+    it("should include sub_issues API endpoint with correct parameters", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, 123, "owner/repo", systemPrompt);
+
+      expect(result).toContain('gh api "repos/owner/repo/issues/123/sub_issues"');
+      expect(result).toContain("-X POST");
+      expect(result).toContain("sub_issue_id");
+    });
+
+    it("should include fallback handling for sub-issue linking", () => {
+      const result = buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt);
+
+      expect(result).toContain("|| true");
+    });
   });
 });
