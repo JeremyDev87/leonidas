@@ -3,6 +3,11 @@ import * as yaml from "js-yaml";
 import { LeonidasConfig, ActionInputs } from "./types";
 import { resolveLanguage } from "./i18n";
 
+// max_turns validation bounds
+// MIN must be > reservedTurns (5) to prevent negative pushDeadline in execute mode
+const MIN_MAX_TURNS = 10;
+const MAX_MAX_TURNS = 200;
+
 const DEFAULT_CONFIG: LeonidasConfig = {
   label: "leonidas",
   model: "claude-sonnet-4-5-20250929",
@@ -47,6 +52,14 @@ export function mergeConfig(
   if (inputs.max_turns !== undefined) {
     merged.max_turns = inputs.max_turns;
   }
+
+  // Validate max_turns bounds
+  if (merged.max_turns < MIN_MAX_TURNS || merged.max_turns > MAX_MAX_TURNS) {
+    throw new Error(
+      `max_turns must be between ${MIN_MAX_TURNS} and ${MAX_MAX_TURNS}, got ${merged.max_turns}`,
+    );
+  }
+
   if (inputs.allowed_tools) {
     merged.allowed_tools = inputs.allowed_tools.split(",").map((t) => t.trim());
   }
