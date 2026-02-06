@@ -29,7 +29,7 @@ const DEFAULT_CONFIG: LeonidasConfig = {
 export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
   try {
     const content = fs.readFileSync(configPath, "utf-8");
-    return (yaml.load(content) as Partial<LeonidasConfig>) ?? {};
+    return (yaml.load(content, { schema: yaml.JSON_SCHEMA }) as Partial<LeonidasConfig>) ?? {};
   } catch {
     return {};
   }
