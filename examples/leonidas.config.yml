@@ -25,7 +25,7 @@ allowed_tools:
   - "Bash(node:*)"
 
 # Maximum number of Claude Code turns
-max_turns: 30
+max_turns: 50
 
 # Language for plan comments (e.g., "en", "ko", "ja")
 language: "en"
