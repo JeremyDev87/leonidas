@@ -6,6 +6,7 @@ import {
 } from "../templates/plan_comment";
 import { SubIssueMetadata } from "../types";
 import { SupportedLanguage } from "../i18n";
+import { wrapUserContent } from "../utils/sanitize";
 
 export function buildPlanPrompt(
   issueTitle: string,
@@ -19,6 +20,11 @@ export function buildPlanPrompt(
   const planHeader = getPlanHeader(language);
   const planFooter = getPlanFooter(language);
   const decomposedPlanFooter = getDecomposedPlanFooter(language);
+
+  // Wrap user-supplied content to prevent prompt injection
+  const safeTitle = wrapUserContent(issueTitle);
+  const safeBody = wrapUserContent(issueBody);
+
   return `${systemPrompt}
 
 ---
@@ -28,9 +34,9 @@ You are analyzing a GitHub issue to create an implementation plan.
 ## Repository
 ${repoName}
 
-## Issue #${issueNumber}: ${issueTitle}
+## Issue #${issueNumber}: ${safeTitle}
 
-${issueBody}
+${safeBody}
 
 ## Complexity Assessment
 
@@ -164,6 +170,10 @@ export function buildSubIssuePlanPrompt(
   const planHeader = getPlanHeader(language);
   const planFooter = getPlanFooter(language);
 
+  // Wrap user-supplied content to prevent prompt injection
+  const safeTitle = wrapUserContent(issueTitle);
+  const safeBody = wrapUserContent(issueBody);
+
   return `${systemPrompt}
 
 ---
@@ -173,10 +183,10 @@ You are analyzing a sub-issue to create an implementation plan.
 ## Repository
 ${repoName}
 
-## Sub-Issue #${issueNumber}: ${issueTitle}
+## Sub-Issue #${issueNumber}: ${safeTitle}
 **[${metadata.order}/${metadata.total}] of parent issue #${metadata.parent_issue_number}**
 
-${issueBody}
+${safeBody}
 
 ## Sub-Issue Constraints
 
