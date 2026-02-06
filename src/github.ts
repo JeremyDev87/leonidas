@@ -30,12 +30,12 @@ export async function findPlanComment(
   return planComments[planComments.length - 1].body ?? null;
 }
 
-export function parseSubIssueMetadata(issueBody: string): SubIssueMetadata | null {
+export function parseSubIssueMetadata(issueBody: string): SubIssueMetadata | undefined {
   const parentMatch = issueBody.match(/<!--\s*leonidas-parent:\s*#(\d+)\s*-->/);
   const orderMatch = issueBody.match(/<!--\s*leonidas-order:\s*(\d+)\/(\d+)\s*-->/);
 
   if (!parentMatch || !orderMatch) {
-    return null;
+    return undefined;
   }
 
   const metadata: SubIssueMetadata = {
@@ -62,13 +62,21 @@ export async function isIssueClosed(
   repo: string,
   issueNumber: number,
 ): Promise<boolean> {
-  const octokit = github.getOctokit(token);
-  const { data: issue } = await octokit.rest.issues.get({
-    owner,
-    repo,
-    issue_number: issueNumber,
-  });
-  return issue.state === "closed";
+  try {
+    const octokit = github.getOctokit(token);
+    const { data: issue } = await octokit.rest.issues.get({
+      owner,
+      repo,
+      issue_number: issueNumber,
+    });
+    return issue.state === "closed";
+  } catch (error) {
+    const status = (error as { status?: number }).status;
+    if (status === 404) {
+      throw new Error(`Dependency issue #${issueNumber} not found in ${owner}/${repo}.`);
+    }
+    throw new Error(`Failed to check issue #${issueNumber} status: ${error instanceof Error ? error.message : "unknown error"}`);
+  }
 }
 
 export async function postComment(
