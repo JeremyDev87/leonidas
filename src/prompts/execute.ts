@@ -118,5 +118,7 @@ PRBODY
 - Focus only on implementing the changes described in the plan
 - Keep changes minimal and focused on the issue requirements
 - Follow existing code style and conventions
+- After completing each step, verify it works before moving to the next
+- If the project has a test framework, run tests after each major change
 `;
 }
