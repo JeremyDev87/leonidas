@@ -118,12 +118,8 @@ async function run(): Promise<void> {
     const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
     fs.writeFileSync(promptFile, prompt, "utf-8");
 
-    // Build claude args
-    const claudeArgs = `--model ${config.model} --max-turns ${maxTurns} --allowedTools "${allowedTools}"`;
-
     // Set outputs for composite action
     core.setOutput("prompt_file", promptFile);
-    core.setOutput("claude_args", claudeArgs);
     core.setOutput("model", config.model);
     core.setOutput("max_turns", maxTurns.toString());
     core.setOutput("allowed_tools", allowedTools);

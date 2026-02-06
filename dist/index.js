@@ -34325,11 +34325,8 @@ async function run() {
         const tmpDir = os.tmpdir();
         const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
         fs.writeFileSync(promptFile, prompt, "utf-8");
-        // Build claude args
-        const claudeArgs = `--model ${config.model} --max-turns ${maxTurns} --allowedTools "${allowedTools}"`;
         // Set outputs for composite action
         core.setOutput("prompt_file", promptFile);
-        core.setOutput("claude_args", claudeArgs);
         core.setOutput("model", config.model);
         core.setOutput("max_turns", maxTurns.toString());
         core.setOutput("allowed_tools", allowedTools);
@@ -34402,12 +34399,13 @@ ${planComment}
 /***/ }),
 
 /***/ 6016:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildPlanPrompt = buildPlanPrompt;
+const plan_comment_1 = __nccwpck_require__(6154);
 function buildPlanPrompt(issueTitle, issueBody, issueNumber, repoName, systemPrompt) {
     return `${systemPrompt}
 
@@ -34429,28 +34427,33 @@ ${issueBody}
    - Understand the project architecture and conventions
    - Identify files that will need to be created or modified
 
-2. Create a detailed implementation plan in the following format:
+2. Create a detailed implementation plan and post it as a comment on issue #${issueNumber}.
+
+**IMPORTANT:** The comment MUST start with this exact header:
+
+${plan_comment_1.PLAN_HEADER}
+
+Use this exact format for the comment:
+
+${plan_comment_1.PLAN_HEADER}
 
 ### Summary
-A brief description of what needs to be done and the overall approach.
+<Brief description of the approach>
 
 ### Implementation Steps
-- [ ] Step 1: Description of the first task
-- [ ] Step 2: Description of the second task
-- [ ] ...
+- [ ] Step 1: <description>
+- [ ] Step 2: <description>
+...
 
 ### Considerations
-Any important notes about edge cases, dependencies, testing, or potential issues.
+<Edge cases, dependencies, testing notes>
 
 ### Verification
-How to verify the implementation is correct (commands to run, behavior to check).
+<How to verify the implementation>
 
-3. Post the plan as a comment on issue #${issueNumber} using:
-   \`gh issue comment ${issueNumber} --body "<your plan>"\`
+${plan_comment_1.PLAN_FOOTER}
 
-4. End the plan comment with:
-   ---
-   > To approve this plan and start implementation, comment \`/approve\` on this issue.
+3. Post the plan using: \`gh issue comment ${issueNumber} --body "<plan>"\`
 `;
 }
 
@@ -34500,7 +34503,8 @@ exports.buildSystemPrompt = buildSystemPrompt;
 const fs = __importStar(__nccwpck_require__(9896));
 const path = __importStar(__nccwpck_require__(6928));
 function buildSystemPrompt(userOverridePath) {
-    const defaultPromptPath = path.join(__dirname, "../../prompts/system.md");
+    const actionRoot = process.env.GITHUB_ACTION_PATH || path.join(__dirname, "..");
+    const defaultPromptPath = path.join(actionRoot, "prompts/system.md");
     let systemPrompt = "";
     try {
         systemPrompt = fs.readFileSync(defaultPromptPath, "utf-8");

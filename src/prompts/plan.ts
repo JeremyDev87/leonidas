@@ -1,3 +1,5 @@
+import { PLAN_HEADER, PLAN_FOOTER } from "../templates/plan_comment";
+
 export function buildPlanPrompt(
   issueTitle: string,
   issueBody: string,
@@ -25,27 +27,32 @@ ${issueBody}
    - Understand the project architecture and conventions
    - Identify files that will need to be created or modified
 
-2. Create a detailed implementation plan in the following format:
+2. Create a detailed implementation plan and post it as a comment on issue #${issueNumber}.
+
+**IMPORTANT:** The comment MUST start with this exact header:
+
+${PLAN_HEADER}
+
+Use this exact format for the comment:
+
+${PLAN_HEADER}
 
 ### Summary
-A brief description of what needs to be done and the overall approach.
+<Brief description of the approach>
 
 ### Implementation Steps
-- [ ] Step 1: Description of the first task
-- [ ] Step 2: Description of the second task
-- [ ] ...
+- [ ] Step 1: <description>
+- [ ] Step 2: <description>
+...
 
 ### Considerations
-Any important notes about edge cases, dependencies, testing, or potential issues.
+<Edge cases, dependencies, testing notes>
 
 ### Verification
-How to verify the implementation is correct (commands to run, behavior to check).
+<How to verify the implementation>
 
-3. Post the plan as a comment on issue #${issueNumber} using:
-   \`gh issue comment ${issueNumber} --body "<your plan>"\`
+${PLAN_FOOTER}
 
-4. End the plan comment with:
-   ---
-   > To approve this plan and start implementation, comment \`/approve\` on this issue.
+3. Post the plan using: \`gh issue comment ${issueNumber} --body "<plan>"\`
 `;
 }
