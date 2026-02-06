@@ -185,5 +185,92 @@ describe("prompts/system", () => {
         "You are an automated implementation agent.\n\n## Repository-Specific Instructions\n\nCustom instructions",
       );
     });
+
+    it("should not include language directive for English (default)", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "en");
+
+      expect(result).toBe("Default instructions.");
+      expect(result).not.toContain("## Language Configuration");
+      expect(result).not.toContain("IMPORTANT");
+    });
+
+    it("should include language directive for Korean", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "ko");
+
+      expect(result).toContain("Default instructions.");
+      expect(result).toContain("## Language Configuration");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+      expect(result).toContain("Write all plan comments in Korean");
+    });
+
+    it("should include language directive for Japanese", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "ja");
+
+      expect(result).toContain("## Language Configuration");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Japanese");
+    });
+
+    it("should include language directive for Chinese", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "zh");
+
+      expect(result).toContain("## Language Configuration");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Chinese");
+    });
+
+    it("should include language directive for Spanish", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync).mockReturnValue(defaultPrompt);
+
+      const result = buildSystemPrompt(undefined, "es");
+
+      expect(result).toContain("## Language Configuration");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Spanish");
+    });
+
+    it("should include language directive after user override", () => {
+      process.env.GITHUB_ACTION_PATH = "/action/path";
+      const defaultPrompt = "Default instructions.";
+      const userOverride = "Custom instructions.";
+
+      vi.mocked(path.join).mockReturnValue("/action/path/prompts/system.md");
+      vi.mocked(fs.readFileSync)
+        .mockReturnValueOnce(defaultPrompt)
+        .mockReturnValueOnce(userOverride);
+
+      const result = buildSystemPrompt("/repo/override.md", "ko");
+
+      expect(result).toContain("Default instructions.");
+      expect(result).toContain("## Repository-Specific Instructions");
+      expect(result).toContain("Custom instructions.");
+      expect(result).toContain("## Language Configuration");
+      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+    });
   });
 });
