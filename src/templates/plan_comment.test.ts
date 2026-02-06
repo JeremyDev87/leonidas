@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLAN_HEADER,
   PLAN_FOOTER,
+  PLAN_MARKER,
   formatPlanComment,
   getPlanHeader,
   getPlanFooter,
@@ -161,7 +162,8 @@ describe("templates/plan_comment", () => {
     it("should create valid markdown structure", () => {
       const result = formatPlanComment("Summary", ["Step one"], "Consider this", "Verify that");
 
-      expect(result.startsWith(PLAN_HEADER)).toBe(true);
+      expect(result.startsWith(PLAN_MARKER)).toBe(true);
+      expect(result).toContain(PLAN_HEADER);
       expect(result.endsWith(PLAN_FOOTER + "\n")).toBe(true);
       expect(result).toContain("\n\n");
     });
