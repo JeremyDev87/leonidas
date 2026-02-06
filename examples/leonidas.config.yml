@@ -29,3 +29,16 @@ max_turns: 50
 
 # Language for plan comments (e.g., "en", "ko", "ja")
 language: "en"
+
+# Authorized approvers for /approve command
+# Only users with these GitHub author associations can trigger execution
+# Default: ["OWNER", "MEMBER", "COLLABORATOR"]
+# Valid values: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR,
+#               FIRST_TIMER, MANNEQUIN, NONE
+# Security warning: CONTRIBUTOR and less restrictive values may allow unauthorized access
+# Note: To activate this setting, you must also update the if condition in
+#       .github/workflows/leonidas-execute.yml to use these values
+# authorized_approvers:
+#   - "OWNER"
+#   - "MEMBER"
+#   - "COLLABORATOR"
