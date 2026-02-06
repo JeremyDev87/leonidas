@@ -1,0 +1,30 @@
+name: Leonidas Execute
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  execute:
+    if: |
+      github.event.comment.body == '/approve' &&
+      contains(github.event.issue.labels.*.name, 'leonidas')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Execute implementation
+        uses: ./
+        with:
+          mode: execute
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
