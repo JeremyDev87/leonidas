@@ -174,24 +174,49 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         LANGUAGE: ${{ steps.prepare.outputs.language }}
+        BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
-        case "$LANGUAGE" in
-          ko)
-            MESSAGE="✅ **레오니다스**가 이슈 #${ISSUE_NUMBER}에 대한 구현을 완료했습니다. 자세한 내용은 풀 리퀘스트를 확인하세요."
-            ;;
-          ja)
-            MESSAGE="✅ **Leonidas**がイシュー #${ISSUE_NUMBER} の実装を完了しました。詳細はプルリクエストをご確認ください。"
-            ;;
-          zh)
-            MESSAGE="✅ **Leonidas** 已完成问题 #${ISSUE_NUMBER} 的实现。请查看拉取请求了解详情。"
-            ;;
-          es)
-            MESSAGE="✅ **Leonidas** ha completado la implementación del issue #${ISSUE_NUMBER}. Consulta el pull request para más detalles."
-            ;;
-          *)
-            MESSAGE="✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check the pull request for details."
-            ;;
-        esac
+        BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
+        PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+        if [ -n "$PR_NUMBER" ]; then
+          case "$LANGUAGE" in
+            ko)
+              MESSAGE="✅ **레오니다스**가 이슈 #${ISSUE_NUMBER}에 대한 구현을 완료했습니다. 자세한 내용은 풀 리퀘스트 #${PR_NUMBER}을 확인하세요."
+              ;;
+            ja)
+              MESSAGE="✅ **Leonidas**がイシュー #${ISSUE_NUMBER} の実装を完了しました。詳細はプルリクエスト #${PR_NUMBER} をご確認ください。"
+              ;;
+            zh)
+              MESSAGE="✅ **Leonidas** 已完成问题 #${ISSUE_NUMBER} 的实现。请查看拉取请求 #${PR_NUMBER} 了解详情。"
+              ;;
+            es)
+              MESSAGE="✅ **Leonidas** ha completado la implementación del issue #${ISSUE_NUMBER}. Consulta el pull request #${PR_NUMBER} para más detalles."
+              ;;
+            *)
+              MESSAGE="✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check pull request #${PR_NUMBER} for details."
+              ;;
+          esac
+        else
+          case "$LANGUAGE" in
+            ko)
+              MESSAGE="⚠️ **레오니다스** 실행이 완료되었지만 이슈 #${ISSUE_NUMBER}에 대한 풀 리퀘스트를 생성하지 못했습니다. 브랜치 push에 실패했을 수 있습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** \`/approve\`를 다시 댓글로 다세요."
+              ;;
+            ja)
+              MESSAGE="⚠️ **Leonidas** の実行は完了しましたが、イシュー #${ISSUE_NUMBER} のプルリクエストを作成できませんでした。ブランチのpushに失敗した可能性があります。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** \`/approve\` を再度コメントしてください。"
+              ;;
+            zh)
+              MESSAGE="⚠️ **Leonidas** 执行已完成，但未能为问题 #${ISSUE_NUMBER} 创建拉取请求。分支推送可能失败。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 再次评论 \`/approve\`。"
+              ;;
+            es)
+              MESSAGE="⚠️ **Leonidas** completó la ejecución pero no pudo crear un pull request para el issue #${ISSUE_NUMBER}. Es posible que el push de la rama haya fallado.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Comenta \`/approve\` nuevamente."
+              ;;
+            *)
+              MESSAGE="⚠️ **Leonidas** execution completed but failed to create a pull request for issue #${ISSUE_NUMBER}. The branch push may have failed.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Comment \`/approve\` again."
+              ;;
+          esac
+        fi
         gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE"
 
     - name: Rescue partial progress
