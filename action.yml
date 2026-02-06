@@ -114,8 +114,26 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+        LANGUAGE: ${{ steps.prepare.outputs.language }}
       run: |
-        gh issue comment "$ISSUE_NUMBER" --body "✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check the pull request for details."
+        case "$LANGUAGE" in
+          ko)
+            MESSAGE="✅ **레오니다스**가 이슈 #${ISSUE_NUMBER}에 대한 구현을 완료했습니다. 자세한 내용은 풀 리퀘스트를 확인하세요."
+            ;;
+          ja)
+            MESSAGE="✅ **Leonidas**がイシュー #${ISSUE_NUMBER} の実装を完了しました。詳細はプルリクエストをご確認ください。"
+            ;;
+          zh)
+            MESSAGE="✅ **Leonidas** 已完成问题 #${ISSUE_NUMBER} 的实现。请查看拉取请求了解详情。"
+            ;;
+          es)
+            MESSAGE="✅ **Leonidas** ha completado la implementación del issue #${ISSUE_NUMBER}. Consulta el pull request para más detalles."
+            ;;
+          *)
+            MESSAGE="✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check the pull request for details."
+            ;;
+        esac
+        gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE"
 
     - name: Rescue partial progress
       id: rescue
