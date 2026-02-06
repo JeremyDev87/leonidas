@@ -321,6 +321,7 @@ describe("main", () => {
         "owner/repo",
         "system prompt",
         "leonidas",
+        "en",
       );
     });
 
@@ -406,6 +407,7 @@ describe("main", () => {
         "owner/repo",
         "system prompt",
         "leonidas",
+        "en",
       );
     });
   });
@@ -463,6 +465,7 @@ describe("main", () => {
         "owner/repo",
         "system prompt",
         "leonidas",
+        "en",
       );
 
       expect(core.setOutput).toHaveBeenCalledWith(
@@ -477,6 +480,7 @@ describe("main", () => {
       );
       expect(core.setOutput).toHaveBeenCalledWith("branch_prefix", "bot/issue-");
       expect(core.setOutput).toHaveBeenCalledWith("base_branch", "develop");
+      expect(core.setOutput).toHaveBeenCalledWith("language", "en");
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining("leonidas-prompt-"),
@@ -603,6 +607,7 @@ describe("main", () => {
         ["bug", "urgent"],
         "reporter",
         undefined,
+        "ja",
       );
 
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
@@ -613,6 +618,7 @@ describe("main", () => {
       );
       expect(core.setOutput).toHaveBeenCalledWith("branch_prefix", "feature/issue-");
       expect(core.setOutput).toHaveBeenCalledWith("base_branch", "staging");
+      expect(core.setOutput).toHaveBeenCalledWith("language", "ja");
     });
 
     it("should call setFailed when plan comment not found", async () => {
@@ -729,6 +735,252 @@ describe("main", () => {
       await import("./main");
 
       expect(core.setFailed).toHaveBeenCalledWith("GitHub API error");
+    });
+  });
+
+  describe("language parameter wiring", () => {
+    it("should pass language parameter to buildSystemPrompt in plan mode", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "ko",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
+
+      await import("./main");
+
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "ko");
+      expect(buildPlanPrompt).toHaveBeenCalledWith(
+        "Test Issue",
+        "Test body",
+        1,
+        "owner/repo",
+        "system prompt",
+        "leonidas",
+        "ko",
+      );
+      expect(core.setOutput).toHaveBeenCalledWith("language", "ko");
+    });
+
+    it("should pass language parameter to buildSystemPrompt in execute mode", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "execute",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "es",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildExecutePrompt } = await import("./prompts/execute");
+      vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
+
+      const { findPlanComment, postComment } = await import("./github");
+      vi.mocked(findPlanComment).mockResolvedValue("Plan content");
+      vi.mocked(postComment).mockResolvedValue();
+
+      await import("./main");
+
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es");
+      expect(buildExecutePrompt).toHaveBeenCalledWith(
+        "Test Issue",
+        "Test body",
+        "Plan content",
+        1,
+        "claude/issue-",
+        "main",
+        "system prompt",
+        50,
+        [],
+        "testuser",
+        undefined,
+        "es",
+      );
+      expect(core.setOutput).toHaveBeenCalledWith("language", "es");
+    });
+
+    it("should default to English when language not specified", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
+
+      await import("./main");
+
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "en");
+      expect(buildPlanPrompt).toHaveBeenCalledWith(
+        "Test Issue",
+        "Test body",
+        1,
+        "owner/repo",
+        "system prompt",
+        "leonidas",
+        "en",
+      );
+      expect(core.setOutput).toHaveBeenCalledWith("language", "en");
+    });
+
+    it("should pass language to buildSubIssuePlanPrompt for sub-issues", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "[1/3] Test Sub-Issue",
+            body: "<!-- leonidas-parent: #100 -->\n<!-- leonidas-order: 1/3 -->\nTest sub-issue body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "zh",
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildSubIssuePlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildSubIssuePlanPrompt).mockReturnValue("sub-issue plan prompt");
+
+      const { parseSubIssueMetadata } = await import("./github");
+      vi.mocked(parseSubIssueMetadata).mockReturnValue({
+        parent_issue_number: 100,
+        order: "1/3",
+        total: 3,
+      });
+
+      await import("./main");
+
+      expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "zh");
+      expect(buildSubIssuePlanPrompt).toHaveBeenCalledWith(
+        "[1/3] Test Sub-Issue",
+        "<!-- leonidas-parent: #100 -->\n<!-- leonidas-order: 1/3 -->\nTest sub-issue body",
+        1,
+        "owner/repo",
+        "system prompt",
+        {
+          parent_issue_number: 100,
+          order: "1/3",
+          total: 3,
+        },
+        "zh",
+      );
+      expect(core.setOutput).toHaveBeenCalledWith("language", "zh");
     });
   });
 });
