@@ -201,6 +201,7 @@ async function run(): Promise<void> {
         context.issue_labels,
         context.issue_author,
         subIssueMetadata,
+        Object.keys(rules).length > 0,
         config.language,
       );
       allowedTools = config.allowed_tools.join(",");
