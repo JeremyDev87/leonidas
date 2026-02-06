@@ -330,4 +330,97 @@ Only depends comment`;
       expect(result).toBeUndefined();
     });
   });
+
+  describe("isDecomposedPlan", () => {
+    it("should return true for plan comment containing DECOMPOSED_MARKER", () => {
+      const planComment = `${PLAN_HEADER}
+
+### Summary
+This is a decomposed plan
+
+${DECOMPOSED_MARKER}
+
+More content here`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false for regular plan comment without DECOMPOSED_MARKER", () => {
+      const planComment = `${PLAN_HEADER}
+
+### Summary
+This is a regular plan without decomposition marker
+
+### Implementation Steps
+- Step 1
+- Step 2`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true when DECOMPOSED_MARKER is at the beginning", () => {
+      const planComment = `${DECOMPOSED_MARKER}
+${PLAN_HEADER}
+
+Plan content`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return true when DECOMPOSED_MARKER is at the end", () => {
+      const planComment = `${PLAN_HEADER}
+
+Plan content
+
+${DECOMPOSED_MARKER}`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false for empty string", () => {
+      const result = isDecomposedPlan("");
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false for string with similar but not exact marker", () => {
+      const planComment = `${PLAN_HEADER}
+
+<!-- leonidas decomposed -->
+<!-- leonidas-decomposed-->
+Not the exact marker`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(false);
+    });
+
+    it("should handle marker with surrounding whitespace", () => {
+      const planComment = `${PLAN_HEADER}
+
+   ${DECOMPOSED_MARKER}
+
+Plan content`;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false for comment with only plan header", () => {
+      const planComment = PLAN_HEADER;
+
+      const result = isDecomposedPlan(planComment);
+
+      expect(result).toBe(false);
+    });
+  });
 });
