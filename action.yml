@@ -105,6 +105,60 @@ runs:
         show_full_output: "true"
         use_node_cache: "false"
 
+    - name: Link native sub-issues (if decomposed)
+      if: inputs.mode == 'plan' && !failure()
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        # Find decomposed plan comment on this issue
+        COMMENT_BODY=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+          --paginate \
+          --jq '[.[] | select(.body | contains("<!-- leonidas-decomposed -->"))] | last | .body // empty')
+
+        if [ -z "$COMMENT_BODY" ]; then
+          echo "No decomposed plan found, skipping sub-issue linking."
+          exit 0
+        fi
+
+        echo "Decomposed plan found. Linking sub-issues to parent #$ISSUE_NUMBER..."
+
+        # Extract sub-issue numbers from checklist (e.g., "- [ ] #36 — ...")
+        SUB_ISSUES=$(echo "$COMMENT_BODY" | grep -oP '- \[[ x]\] #\K\d+' || true)
+
+        if [ -z "$SUB_ISSUES" ]; then
+          echo "No sub-issue numbers found in checklist."
+          exit 0
+        fi
+
+        LINKED=0
+        FAILED=0
+        for SUB_NUM in $SUB_ISSUES; do
+          # Get database ID (not node_id) of sub-issue
+          DB_ID=$(gh api "repos/$REPO/issues/$SUB_NUM" --jq '.id' 2>/dev/null)
+
+          if [ -z "$DB_ID" ]; then
+            echo "Warning: Could not get DB ID for #$SUB_NUM"
+            FAILED=$((FAILED + 1))
+            continue
+          fi
+
+          echo "Linking #$SUB_NUM (DB ID: $DB_ID) as sub-issue of #$ISSUE_NUMBER"
+
+          # Link as native sub-issue (idempotent — skip if already linked)
+          if gh api "repos/$REPO/issues/$ISSUE_NUMBER/sub_issues" \
+            -X POST -F "sub_issue_id=$DB_ID" 2>/dev/null; then
+            LINKED=$((LINKED + 1))
+          else
+            echo "Warning: Failed to link #$SUB_NUM (may already be linked)"
+            FAILED=$((FAILED + 1))
+          fi
+        done
+
+        echo "Sub-issue linking complete: $LINKED linked, $FAILED skipped/failed."
+
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()
       shell: bash
