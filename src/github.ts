@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
+import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 import { SubIssueMetadata } from "./types";
 
 export async function findPlanComment(
@@ -16,7 +16,13 @@ export async function findPlanComment(
     per_page: 100,
   });
 
-  const planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
+  // First try to find comments with the language-agnostic marker
+  let planComments = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
+
+  // Fallback to English header for backward compatibility
+  if (planComments.length === 0) {
+    planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
+  }
 
   if (planComments.length === 0) {
     return null;
