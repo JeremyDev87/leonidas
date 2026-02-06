@@ -48,6 +48,70 @@ Create `leonidas.config.yml` in your repository root to customize:
 | `max_turns`     | `30`                         | Max Claude Code turns |
 | `language`      | `en`                         | Plan comment language |
 
+## Language Configuration
+
+Leonidas supports internationalization (i18n) for plan comments and status messages. You can configure the language in three ways, with the following priority order:
+
+1. **GitHub Variables** (highest priority): `vars.LEONIDAS_LANGUAGE`
+2. **Repository Config**: `language` in `leonidas.config.yml`
+3. **Action Input**: `language` parameter in workflow files
+
+### Supported Languages
+
+| Language Code | Language    |
+| ------------- | ----------- |
+| `en`          | English     |
+| `ko`          | Korean      |
+| `ja`          | Japanese    |
+| `zh`          | Chinese     |
+| `es`          | Spanish     |
+
+### Configuration Examples
+
+**Option 1: GitHub Variables (Recommended)**
+
+Set a repository or organization variable:
+
+```bash
+# Using GitHub CLI
+gh variable set LEONIDAS_LANGUAGE --body "ko"
+
+# Or set in: Settings → Secrets and variables → Actions → Variables
+```
+
+Then reference it in your workflow:
+
+```yaml
+- uses: ./
+  with:
+    language: ${{ vars.LEONIDAS_LANGUAGE }}
+```
+
+**Option 2: Repository Config**
+
+```yaml
+# leonidas.config.yml
+language: ko
+```
+
+**Option 3: Workflow Action Input**
+
+```yaml
+- uses: ./
+  with:
+    language: ko
+```
+
+### Usage
+
+Once configured, Leonidas will:
+
+- Generate implementation plans in the specified language
+- Post status comments (success, failure, partial progress) in the specified language
+- Display localized messages in bash status updates
+
+If the language is not configured or set to an unsupported value, Leonidas defaults to English (`en`).
+
 ## Project Structure
 
 ```
