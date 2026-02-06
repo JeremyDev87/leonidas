@@ -14,6 +14,7 @@ export function buildExecutePrompt(
   issueLabels: string[] = [],
   issueAuthor = "",
   subIssueMetadata?: SubIssueMetadata,
+  hasRules = false,
   _language: SupportedLanguage = "en",
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
