@@ -2,6 +2,9 @@
   "name": "leonidas",
   "version": "1.0.0",
   "description": "GitHub Actions automation tool - Claude Code analyzes issues and implements code",
+  "engines": {
+    "node": ">=20"
+  },
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/main.ts -o dist --source-map --license licenses.txt",
