@@ -50,8 +50,8 @@ describe("prompts/system", () => {
     it("should use __dirname when GITHUB_ACTION_PATH is not set", () => {
       delete process.env.GITHUB_ACTION_PATH;
 
-      vi.mocked(path.join).mockImplementation((a, b) => {
-        if (b === "..") {
+      vi.mocked(path.join).mockImplementation((...args: string[]) => {
+        if (args[1] === "..") {
           return "/some/action/root";
         }
         return "/some/action/root/prompts/system.md";
@@ -211,7 +211,9 @@ describe("prompts/system", () => {
 
       expect(result).toContain("Default instructions.");
       expect(result).toContain("## Language Configuration");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Korean",
+      );
       expect(result).toContain("Write all plan comments in Korean");
     });
 
@@ -225,7 +227,9 @@ describe("prompts/system", () => {
       const result = buildSystemPrompt(undefined, "ja");
 
       expect(result).toContain("## Language Configuration");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Japanese");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Japanese",
+      );
     });
 
     it("should include language directive for Chinese", () => {
@@ -238,7 +242,9 @@ describe("prompts/system", () => {
       const result = buildSystemPrompt(undefined, "zh");
 
       expect(result).toContain("## Language Configuration");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Chinese");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Chinese",
+      );
     });
 
     it("should include language directive for Spanish", () => {
@@ -251,7 +257,9 @@ describe("prompts/system", () => {
       const result = buildSystemPrompt(undefined, "es");
 
       expect(result).toContain("## Language Configuration");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Spanish");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Spanish",
+      );
     });
 
     it("should include language directive after user override", () => {
@@ -270,7 +278,9 @@ describe("prompts/system", () => {
       expect(result).toContain("## Repository-Specific Instructions");
       expect(result).toContain("Custom instructions.");
       expect(result).toContain("## Language Configuration");
-      expect(result).toContain("All responses, comments, commit messages, and output MUST be in Korean");
+      expect(result).toContain(
+        "All responses, comments, commit messages, and output MUST be in Korean",
+      );
     });
   });
 });

@@ -1,3 +1,5 @@
+import { SupportedLanguage } from "./i18n";
+
 export type LeonidasMode = "plan" | "execute";
 
 import { SupportedLanguage } from "./i18n";
