@@ -3,8 +3,13 @@ export function buildPlanPrompt(
   issueBody: string,
   issueNumber: number,
   repoName: string,
+  systemPrompt: string,
 ): string {
-  return `You are analyzing a GitHub issue to create an implementation plan.
+  return `${systemPrompt}
+
+---
+
+You are analyzing a GitHub issue to create an implementation plan.
 
 ## Repository
 ${repoName}
