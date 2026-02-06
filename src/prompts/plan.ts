@@ -79,7 +79,7 @@ Part of #${issueNumber}: ${issueTitle}
 
 The comment MUST start with this exact header and include the decomposed marker:
 
-${PLAN_HEADER}
+${planHeader}
 
 ${DECOMPOSED_MARKER}
 

@@ -23,8 +23,8 @@ describe("prompts/plan", () => {
       expect(result).toContain("## Scope Constraints");
       expect(result).toContain("**Maximum 7 implementation steps.**");
       expect(result).toContain("## Instructions");
-      expect(result).toContain(PLAN_HEADER);
-      expect(result).toContain(PLAN_FOOTER);
+      expect(result).toContain(getPlanHeader());
+      expect(result).toContain(getPlanFooter());
       expect(result).toContain(`gh issue comment ${issueNumber} --body "<plan>"`);
     });
 

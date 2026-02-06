@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { LeonidasConfig, ActionInputs } from "./types";
+import { resolveLanguage } from "./i18n";
 
 const DEFAULT_CONFIG: LeonidasConfig = {
   label: "leonidas",
@@ -55,7 +56,7 @@ export function mergeConfig(
     merged.base_branch = inputs.base_branch;
   }
   if (inputs.language) {
-    merged.language = inputs.language;
+    merged.language = resolveLanguage(inputs.language);
   }
 
   // Validate label format: alphanumeric, hyphens, underscores only

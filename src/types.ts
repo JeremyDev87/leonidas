@@ -1,5 +1,7 @@
 export type LeonidasMode = "plan" | "execute";
 
+import { SupportedLanguage } from "./i18n";
+
 export interface LeonidasConfig {
   label: string;
   model: string;
@@ -7,7 +9,7 @@ export interface LeonidasConfig {
   base_branch: string;
   allowed_tools: string[];
   max_turns: number;
-  language: string;
+  language: SupportedLanguage;
 }
 
 export interface ActionInputs {
