@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
-import { findPlanComment, postComment } from "./github";
-import { PLAN_HEADER } from "./templates/plan_comment";
+import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
+import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/github");
 
@@ -160,6 +160,174 @@ describe("github", () => {
         issue_number: mockIssueNumber,
         body: commentBody,
       });
+    });
+  });
+
+  describe("parseSubIssueMetadata", () => {
+    it("should parse valid metadata from issue body", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #123 -->
+<!-- leonidas-order: 2/5 -->
+
+Some content here`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toEqual({
+        parent_issue_number: 123,
+        order: 2,
+        total: 5,
+      });
+    });
+
+    it("should parse valid metadata with depends_on field", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #42 -->
+<!-- leonidas-order: 3/4 -->
+<!-- leonidas-depends: #99 -->
+
+Some content here`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toEqual({
+        parent_issue_number: 42,
+        order: 3,
+        total: 4,
+        depends_on: 99,
+      });
+    });
+
+    it("should return undefined for body without metadata", () => {
+      const issueBody = `# Regular Issue
+
+This is just a regular issue with no metadata`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined when only parent comment exists", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #123 -->
+
+Missing order comment`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined when only order comment exists", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-order: 2/5 -->
+
+Missing parent comment`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should handle extra whitespace in metadata comments", () => {
+      const issueBody = `# Test Issue
+<!--   leonidas-parent:   #456   -->
+<!--   leonidas-order:   1/3   -->
+<!--   leonidas-depends:   #789   -->
+
+Content with extra whitespace in comments`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toEqual({
+        parent_issue_number: 456,
+        order: 1,
+        total: 3,
+        depends_on: 789,
+      });
+    });
+
+    it("should handle metadata comments in different order", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-order: 4/7 -->
+<!-- leonidas-depends: #101 -->
+<!-- leonidas-parent: #50 -->
+
+Order of comments shouldn't matter`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toEqual({
+        parent_issue_number: 50,
+        order: 4,
+        total: 7,
+        depends_on: 101,
+      });
+    });
+
+    it("should handle empty body", () => {
+      const result = parseSubIssueMetadata("");
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should handle malformed HTML comments", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #abc -->
+<!-- leonidas-order: x/y -->
+
+Malformed numbers`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      // Should still parse but with NaN values converted to numbers
+      expect(result).toEqual({
+        parent_issue_number: NaN,
+        order: NaN,
+        total: NaN,
+      });
+    });
+
+    it("should use first match when multiple parent comments exist", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #111 -->
+<!-- leonidas-parent: #222 -->
+<!-- leonidas-order: 1/2 -->
+
+Multiple parent comments`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      // Regex exec returns first match
+      expect(result?.parent_issue_number).toBe(111);
+    });
+
+    it("should parse large issue numbers correctly", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-parent: #999999 -->
+<!-- leonidas-order: 10/20 -->
+
+Large numbers`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toEqual({
+        parent_issue_number: 999999,
+        order: 10,
+        total: 20,
+      });
+    });
+
+    it("should handle depends comment without parent and order", () => {
+      const issueBody = `# Test Issue
+<!-- leonidas-depends: #99 -->
+
+Only depends comment`;
+
+      const result = parseSubIssueMetadata(issueBody);
+
+      expect(result).toBeUndefined();
     });
   });
 });
