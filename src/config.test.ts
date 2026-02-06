@@ -335,6 +335,110 @@ describe("config", () => {
 
         expect(result.label).toBe("a");
       });
+
+      it("should reject label with spaces", () => {
+        const fileConfig = { label: "has spaces" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with semicolons", () => {
+        const fileConfig = { label: "has;semicolons" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with angle brackets", () => {
+        const fileConfig = { label: "has<brackets>" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with ampersands", () => {
+        const fileConfig = { label: "has&amp" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with dots", () => {
+        const fileConfig = { label: "v2.0" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with slashes", () => {
+        const fileConfig = { label: "has/slash" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject label with special characters", () => {
+        const fileConfig = { label: "has@special#chars!" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
+
+      it("should reject empty label", () => {
+        const fileConfig = { label: "" };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow();
+      });
     });
   });
 
