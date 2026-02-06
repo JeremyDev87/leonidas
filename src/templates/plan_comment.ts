@@ -51,10 +51,13 @@ export function formatPlanComment(
   steps: string[],
   considerations: string,
   verification: string,
+  language: SupportedLanguage = "en",
 ): string {
   const stepsList = steps.map((step, i) => `- [ ] **Step ${i + 1}:** ${step}`).join("\n");
+  const header = getPlanHeader(language);
+  const footer = getPlanFooter(language);
 
-  return `${PLAN_HEADER}
+  return `${header}
 
 ### Summary
 ${summary}
@@ -68,6 +71,6 @@ ${considerations}
 ### Verification
 ${verification}
 
-${PLAN_FOOTER}
+${footer}
 `;
 }
