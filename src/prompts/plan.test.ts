@@ -308,7 +308,7 @@ Line 3`;
     const systemPrompt = "You are a helpful coding assistant.";
     const metadata = {
       parent_issue_number: 42,
-      order: "1/3",
+      order: 1,
       total: 3,
     };
 
@@ -357,7 +357,7 @@ Line 3`;
       );
 
       expect(result).toContain("## Sub-Issue #43:");
-      expect(result).toContain("**[1/3/3] of parent issue #42**");
+      expect(result).toContain("**[1/3] of parent issue #42**");
     });
 
     it("should include dependency information when present", () => {
