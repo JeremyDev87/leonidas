@@ -25,7 +25,10 @@ describe("config", () => {
       const result = loadConfigFile(".leonidas.yml");
 
       expect(fs.readFileSync).toHaveBeenCalledWith(".leonidas.yml", "utf-8");
-      expect(yaml.load).toHaveBeenCalled();
+      expect(yaml.load).toHaveBeenCalledWith(
+        "model: claude-opus-4\nmax_turns: 100",
+        { schema: yaml.JSON_SCHEMA }
+      );
       expect(result).toEqual(mockConfig);
     });
 
