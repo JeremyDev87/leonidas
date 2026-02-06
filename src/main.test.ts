@@ -83,10 +83,10 @@ describe("main", () => {
       expect(core.getInput).toHaveBeenCalledWith("anthropic_api_key", { required: true });
       expect(core.getInput).toHaveBeenCalledWith("github_token", { required: true });
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
-      expect(core.setOutput).toHaveBeenCalledWith("max_turns", "10");
+      expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
       expect(core.setOutput).toHaveBeenCalledWith(
         "allowed_tools",
-        "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
       );
     });
 
@@ -320,6 +320,7 @@ describe("main", () => {
         42,
         "owner/repo",
         "system prompt",
+        "leonidas",
       );
     });
 
@@ -398,7 +399,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildPlanPrompt).toHaveBeenCalledWith("Test Issue", "", 1, "owner/repo", "system prompt");
+      expect(buildPlanPrompt).toHaveBeenCalledWith("Test Issue", "", 1, "owner/repo", "system prompt", "leonidas");
     });
   });
 
@@ -454,14 +455,15 @@ describe("main", () => {
         1,
         "owner/repo",
         "system prompt",
+        "leonidas",
       );
 
       expect(core.setOutput).toHaveBeenCalledWith("prompt_file", expect.stringContaining("leonidas-prompt-"));
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
-      expect(core.setOutput).toHaveBeenCalledWith("max_turns", "10");
+      expect(core.setOutput).toHaveBeenCalledWith("max_turns", "20");
       expect(core.setOutput).toHaveBeenCalledWith(
         "allowed_tools",
-        "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
+        "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)",
       );
       expect(core.setOutput).toHaveBeenCalledWith("branch_prefix", "bot/issue-");
       expect(core.setOutput).toHaveBeenCalledWith("base_branch", "develop");
@@ -590,6 +592,7 @@ describe("main", () => {
         75,
         ["bug", "urgent"],
         "reporter",
+        undefined,
       );
 
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
