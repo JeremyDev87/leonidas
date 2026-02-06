@@ -1,4 +1,5 @@
 import { SubIssueMetadata } from "../types";
+import { SupportedLanguage } from "../i18n";
 
 export function buildExecutePrompt(
   issueTitle: string,
@@ -12,6 +13,7 @@ export function buildExecutePrompt(
   issueLabels: string[] = [],
   issueAuthor = "",
   subIssueMetadata?: SubIssueMetadata,
+  language: SupportedLanguage = "en",
 ): string {
   const branchName = `${branchPrefix}${issueNumber}`;
   const reservedTurns = 5;
