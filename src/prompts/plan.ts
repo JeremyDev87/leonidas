@@ -20,6 +20,14 @@ ${repoName}
 
 ${issueBody}
 
+## Scope Constraints
+
+- **Maximum 7 implementation steps.** If the issue requires more, split into phases:
+  - Phase 1 covers the core changes (up to 7 steps)
+  - Note remaining work as "Future Phases" in the Considerations section
+- Each step should be completable in 3-5 turns of Claude Code execution.
+- Prefer fewer, larger steps over many small ones.
+
 ## Instructions
 
 1. Analyze the repository structure to understand the codebase:
