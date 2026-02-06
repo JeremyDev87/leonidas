@@ -74,11 +74,13 @@ runs:
     - name: Run Claude Code
       id: claude
       uses: anthropics/claude-code-action/base-action@v1
+      env:
+        ANTHROPIC_MODEL: ${{ steps.prepare.outputs.model }}
+        INPUT_MAX_TURNS: ${{ steps.prepare.outputs.max_turns }}
+        INPUT_ALLOWED_TOOLS: ${{ steps.prepare.outputs.allowed_tools }}
       with:
         prompt_file: ${{ steps.prepare.outputs.prompt_file }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
-        claude_args: ${{ steps.prepare.outputs.claude_args }}
-        settings: ${{ steps.prepare.outputs.settings_file }}
 
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()
