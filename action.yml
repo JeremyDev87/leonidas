@@ -78,6 +78,8 @@ runs:
         ANTHROPIC_MODEL: ${{ steps.prepare.outputs.model }}
         INPUT_MAX_TURNS: ${{ steps.prepare.outputs.max_turns }}
         INPUT_ALLOWED_TOOLS: ${{ steps.prepare.outputs.allowed_tools }}
+        GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
         prompt_file: ${{ steps.prepare.outputs.prompt_file }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
