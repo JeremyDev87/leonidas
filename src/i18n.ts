@@ -29,7 +29,7 @@ export function resolveLanguage(lang: unknown): SupportedLanguage {
 /**
  * Translation keys used throughout the Leonidas system
  */
-export type TranslationKey = "plan_header" | "plan_footer" | "decomposed_plan_footer";
+export type TranslationKey = "plan_header" | "plan_footer" | "decomposed_plan_footer" | "review_header" | "review_footer" | "review_fixing" | "review_complete";
 
 /**
  * Translation map containing all localized strings for supported languages
@@ -37,37 +37,48 @@ export type TranslationKey = "plan_header" | "plan_footer" | "decomposed_plan_fo
 const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = {
   en: {
     plan_header: "## 🏛️ Leonidas Implementation Plan",
-    plan_footer:
-      "---\n> To approve this plan and start implementation, comment `/approve` on this issue.",
-    decomposed_plan_footer:
-      "---\n> This issue has been decomposed into sub-issues. Approve and execute each sub-issue individually by commenting `/approve` on each one.",
+    plan_footer: "---\n> To approve this plan and start implementation, comment `/approve` on this issue.",
+    decomposed_plan_footer: "---\n> This issue has been decomposed into sub-issues. Approve and execute each sub-issue individually by commenting `/approve` on each one.",
+    review_header: "## 🔍 Leonidas Code Review",
+    review_footer: "---\n> **Auto-fix enabled:** Leonidas will automatically commit fixes for issues found during review.",
+    review_fixing: "⚡ **Leonidas** is reviewing and fixing issues on this PR...",
+    review_complete: "✅ **Leonidas** code review is complete.",
   },
   ko: {
     plan_header: "## 🏛️ 레오니다스 구현 계획",
-    plan_footer:
-      "---\n> 이 계획을 승인하고 구현을 시작하려면 이 이슈에 `/approve`를 댓글로 작성하세요.",
-    decomposed_plan_footer:
-      "---\n> 이 이슈는 하위 이슈로 분해되었습니다. 각 하위 이슈에 `/approve`를 댓글로 작성하여 개별적으로 승인하고 실행하세요.",
+    plan_footer: "---\n> 이 계획을 승인하고 구현을 시작하려면 이 이슈에 `/approve`를 댓글로 작성하세요.",
+    decomposed_plan_footer: "---\n> 이 이슈는 하위 이슈로 분해되었습니다. 각 하위 이슈에 `/approve`를 댓글로 작성하여 개별적으로 승인하고 실행하세요.",
+    review_header: "## 🔍 레오니다스 코드 리뷰",
+    review_footer: "---\n> **자동 수정 활성화:** 레오니다스가 리뷰 중 발견된 문제를 자동으로 커밋합니다.",
+    review_fixing: "⚡ **레오니다스**가 이 PR의 문제를 검토하고 수정하는 중입니다...",
+    review_complete: "✅ **레오니다스** 코드 리뷰가 완료되었습니다.",
   },
   ja: {
     plan_header: "## 🏛️ レオニダス実装計画",
-    plan_footer:
-      "---\n> この計画を承認して実装を開始するには、このissueに `/approve` とコメントしてください。",
-    decomposed_plan_footer:
-      "---\n> このissueはサブissueに分解されました。各サブissueに `/approve` とコメントして、個別に承認して実行してください。",
+    plan_footer: "---\n> この計画を承認して実装を開始するには、このissueに `/approve` とコメントしてください。",
+    decomposed_plan_footer: "---\n> このissueはサブissueに分解されました。各サブissueに `/approve` とコメントして、個別に承認して実行してください。",
+    review_header: "## 🔍 レオニダスコードレビュー",
+    review_footer: "---\n> **自動修正有効:** レオニダスがレビュー中に見つかった問題を自動的にコミットします。",
+    review_fixing: "⚡ **レオニダス**がこのPRの問題をレビューして修正しています...",
+    review_complete: "✅ **レオニダス**のコードレビューが完了しました。",
   },
   zh: {
     plan_header: "## 🏛️ 列奥尼达实施计划",
     plan_footer: "---\n> 要批准此计划并开始实施，请在此问题上评论 `/approve`。",
-    decomposed_plan_footer:
-      "---\n> 此问题已分解为子问题。请在每个子问题上评论 `/approve` 以分别批准和执行。",
+    decomposed_plan_footer: "---\n> 此问题已分解为子问题。请在每个子问题上评论 `/approve` 以分别批准和执行。",
+    review_header: "## 🔍 列奥尼达代码审查",
+    review_footer: "---\n> **启用自动修复：** 列奥尼达将自动提交审查期间发现的问题修复。",
+    review_fixing: "⚡ **列奥尼达**正在审查并修复此PR的问题...",
+    review_complete: "✅ **列奥尼达**代码审查已完成。",
   },
   es: {
     plan_header: "## 🏛️ Plan de Implementación de Leonidas",
-    plan_footer:
-      "---\n> Para aprobar este plan e iniciar la implementación, comenta `/approve` en este issue.",
-    decomposed_plan_footer:
-      "---\n> Este issue ha sido descompuesto en sub-issues. Aprueba y ejecuta cada sub-issue individualmente comentando `/approve` en cada uno.",
+    plan_footer: "---\n> Para aprobar este plan e iniciar la implementación, comenta `/approve` en este issue.",
+    decomposed_plan_footer: "---\n> Este issue ha sido descompuesto en sub-issues. Aprueba y ejecuta cada sub-issue individualmente comentando `/approve` en cada uno.",
+    review_header: "## 🔍 Revisión de Código de Leonidas",
+    review_footer: "---\n> **Corrección automática activada:** Leonidas confirmará automáticamente las correcciones de problemas encontrados durante la revisión.",
+    review_fixing: "⚡ **Leonidas** está revisando y corrigiendo problemas en este PR...",
+    review_complete: "✅ La revisión de código de **Leonidas** está completa.",
   },
 };
 
@@ -78,11 +89,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
  * @param args - Values to interpolate into the string (%d for numbers, %s for strings)
  * @returns The translated and interpolated string
  */
-export function t(
-  key: TranslationKey,
-  lang: SupportedLanguage = "en",
-  ...args: (string | number)[]
-): string {
+export function t(key: TranslationKey, lang: SupportedLanguage = "en", ...args: (string | number)[]): string {
   const resolvedLang = resolveLanguage(lang);
   const template = translations[resolvedLang][key];
 
