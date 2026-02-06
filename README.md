@@ -49,19 +49,25 @@ Create `leonidas.config.yml` in your repository root to customize:
 ```
 .github/
   workflows/
-    plan.yml          # Plan generation workflow
-    execute.yml       # Implementation workflow
-  leonidas.md         # System prompt for Claude
+    leonidas-plan.yml     # Plan generation workflow
+    leonidas-execute.yml  # Implementation workflow
+    leonidas-track.yml    # Sub-issue tracking workflow
   ISSUE_TEMPLATE/
     leonidas-request.yml  # Issue template
+prompts/
+  system.md               # Default system prompt for Claude
 src/
-  config.ts           # Configuration system
+  main.ts                 # Entry point (orchestrator)
+  config.ts               # Configuration system
+  github.ts               # GitHub API helpers
+  types.ts                # Type definitions
   prompts/
-    plan.ts           # Plan prompt builder
-    execute.ts        # Execute prompt builder
+    system.ts             # System prompt builder
+    plan.ts               # Plan prompt builder
+    execute.ts            # Execute prompt builder
   templates/
-    plan-comment.ts   # Comment formatting
-leonidas.config.yml   # Example configuration
+    plan_comment.ts       # Comment formatting
+leonidas.config.yml       # Example configuration
 ```
 
 ## Sub-Issue Decomposition
