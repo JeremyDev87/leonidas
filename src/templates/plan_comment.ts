@@ -11,6 +11,7 @@ export const PLAN_HEADER = "## 🏛️ Leonidas Implementation Plan";
 export const PLAN_FOOTER = `---
 > To approve this plan and start implementation, comment \`/approve\` on this issue.`;
 
+export const PLAN_MARKER = "<!-- leonidas-plan -->";
 export const DECOMPOSED_MARKER = "<!-- leonidas-decomposed -->";
 
 /**
@@ -57,7 +58,8 @@ export function formatPlanComment(
   const header = getPlanHeader(language);
   const footer = getPlanFooter(language);
 
-  return `${header}
+  return `${PLAN_MARKER}
+${header}
 
 ### Summary
 ${summary}
