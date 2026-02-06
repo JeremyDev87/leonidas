@@ -113,6 +113,7 @@ PRBODY
    - When all steps complete, convert draft to ready: \`gh pr ready\`
 
 ## Important Rules
+- To create new files in new directories, use the Write tool directly — it auto-creates parent directories. Do NOT use mkdir.
 - Do NOT run \`npm install\` or install dependencies unless the plan explicitly requires adding new packages
 - Do NOT run typecheck or build commands unless the project already has dependencies installed
 - Focus only on implementing the changes described in the plan

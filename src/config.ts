@@ -22,7 +22,6 @@ const DEFAULT_CONFIG: LeonidasConfig = {
     "Bash(gh:*)",
     "Bash(npx:*)",
     "Bash(node:*)",
-    "Bash(mkdir:*)",
     "Bash(ls:*)",
     "Bash(cat:*)",
   ],
