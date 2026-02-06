@@ -35,14 +35,14 @@ See the [Setup Guide](docs/setup-guide.md) for detailed instructions.
 
 Create `leonidas.config.yml` in your repository root to customize:
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `label` | `leonidas` | Trigger label name |
-| `model` | `claude-sonnet-4-5-20250929` | Claude model to use |
-| `branch_prefix` | `claude/issue-` | Branch prefix for PRs |
-| `base_branch` | `main` | Base branch for PRs |
-| `max_turns` | `30` | Max Claude Code turns |
-| `language` | `en` | Plan comment language |
+| Option          | Default                      | Description           |
+| --------------- | ---------------------------- | --------------------- |
+| `label`         | `leonidas`                   | Trigger label name    |
+| `model`         | `claude-sonnet-4-5-20250929` | Claude model to use   |
+| `branch_prefix` | `claude/issue-`              | Branch prefix for PRs |
+| `base_branch`   | `main`                       | Base branch for PRs   |
+| `max_turns`     | `30`                         | Max Claude Code turns |
+| `language`      | `en`                         | Plan comment language |
 
 ## Project Structure
 
@@ -108,7 +108,7 @@ By default, GitHub Actions workflows triggered by `GITHUB_TOKEN` cannot trigger 
 # In your workflow file
 - uses: ./
   with:
-    github_token: ${{ secrets.PAT }}  # Instead of github.token
+    github_token: ${{ secrets.PAT }} # Instead of github.token
 ```
 
 Without a PAT, sub-issues will be created but you will need to manually remove and re-add the `leonidas` label to trigger planning.

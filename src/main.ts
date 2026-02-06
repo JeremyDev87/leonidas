@@ -7,13 +7,20 @@ import { resolveConfig } from "./config";
 import { buildSystemPrompt } from "./prompts/system";
 import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
-import { findPlanComment, postComment, parseSubIssueMetadata, isDecomposedPlan, isIssueClosed } from "./github";
+import {
+  findPlanComment,
+  postComment,
+  parseSubIssueMetadata,
+  isDecomposedPlan,
+  isIssueClosed,
+} from "./github";
 
 function readInputs(): ActionInputs {
-  const mode = core.getInput("mode", { required: true }) as LeonidasMode;
-  if (mode !== "plan" && mode !== "execute") {
-    throw new Error(`Invalid mode: ${mode}. Must be "plan" or "execute".`);
+  const modeRaw = core.getInput("mode", { required: true });
+  if (modeRaw !== "plan" && modeRaw !== "execute") {
+    throw new Error(`Invalid mode: ${modeRaw}. Must be "plan" or "execute".`);
   }
+  const mode: LeonidasMode = modeRaw;
 
   const maxTurnsRaw = core.getInput("max_turns");
 
@@ -38,7 +45,15 @@ function readGitHubContext(): GitHubContext {
     throw new Error("GITHUB_EVENT_PATH not set");
   }
 
-  const event = JSON.parse(fs.readFileSync(eventPath, "utf-8"));
+  const event = JSON.parse(fs.readFileSync(eventPath, "utf-8")) as {
+    issue?: {
+      number: number;
+      title: string;
+      body?: string;
+      labels?: { name: string }[];
+      user?: { login: string };
+    };
+  };
   const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? "").split("/");
 
   const issue = event.issue;
@@ -52,7 +67,7 @@ function readGitHubContext(): GitHubContext {
     issue_number: issue.number,
     issue_title: issue.title,
     issue_body: issue.body ?? "",
-    issue_labels: (issue.labels ?? []).map((l: { name: string }) => l.name),
+    issue_labels: (issue.labels ?? []).map((l) => l.name),
     issue_author: issue.user?.login ?? "",
   };
 }
@@ -99,7 +114,8 @@ async function run(): Promise<void> {
           systemPrompt,
           config.label,
         );
-        allowedTools = "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+        allowedTools =
+          "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
         maxTurns = REGULAR_PLAN_MAX_TURNS;
       }
     } else {
@@ -112,7 +128,9 @@ async function run(): Promise<void> {
       );
 
       if (!planComment) {
-        core.setFailed(`No plan comment found on issue #${context.issue_number}. Run plan mode first.`);
+        core.setFailed(
+          `No plan comment found on issue #${context.issue_number}. Run plan mode first.`,
+        );
         return;
       }
 
@@ -123,9 +141,11 @@ async function run(): Promise<void> {
           context.owner,
           context.repo,
           context.issue_number,
-          `⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.`,
+          "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
         );
-        core.setFailed("Cannot execute a decomposed parent issue. Execute sub-issues individually.");
+        core.setFailed(
+          "Cannot execute a decomposed parent issue. Execute sub-issues individually.",
+        );
         return;
       }
 
@@ -196,4 +216,4 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+void run();

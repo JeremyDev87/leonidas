@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 export function buildSystemPrompt(userOverridePath?: string): string {
-  const actionRoot = process.env.GITHUB_ACTION_PATH || path.join(__dirname, "..");
+  const actionRoot = process.env.GITHUB_ACTION_PATH ?? path.join(__dirname, "..");
   const defaultPromptPath = path.join(actionRoot, "prompts/system.md");
   let systemPrompt = "";
 
