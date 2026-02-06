@@ -20,7 +20,7 @@ const DEFAULT_CONFIG: LeonidasConfig = {
     "Bash(ls:*)",
     "Bash(cat:*)",
   ],
-  max_turns: 30,
+  max_turns: 50,
   language: "en",
 };
 
