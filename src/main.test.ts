@@ -960,7 +960,7 @@ describe("main", () => {
       const { parseSubIssueMetadata } = await import("./github");
       vi.mocked(parseSubIssueMetadata).mockReturnValue({
         parent_issue_number: 100,
-        order: "1/3",
+        order: 1,
         total: 3,
       });
 
@@ -975,7 +975,7 @@ describe("main", () => {
         "system prompt",
         {
           parent_issue_number: 100,
-          order: "1/3",
+          order: 1,
           total: 3,
         },
         "zh",
