@@ -829,7 +829,7 @@ describe("config", () => {
       vi.mocked(fs.readdirSync).mockReturnValue([
         "coding-standards.md",
         "security.md",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync)
         .mockReturnValueOnce("# Coding Standards\nContent here")
         .mockReturnValueOnce("# Security\nSecurity guidelines");
@@ -858,7 +858,7 @@ describe("config", () => {
       vi.mocked(fs.statSync).mockReturnValue({
         isDirectory: () => true,
       } as fs.Stats);
-      vi.mocked(fs.readdirSync).mockReturnValue([] as unknown as fs.Dirent[]);
+      vi.mocked(fs.readdirSync).mockReturnValue([] as any);
 
       const result = loadRules(".github/rules");
 
@@ -875,7 +875,7 @@ describe("config", () => {
         "readme.txt",
         "config.json",
         "other.MD",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync).mockReturnValue("# Rules Content");
 
       const result = loadRules(".github/rules");
@@ -894,7 +894,7 @@ describe("config", () => {
         "zebra.md",
         "alpha.md",
         "beta.md",
-      ] as unknown as fs.Dirent[]);
+      ] as any);
       vi.mocked(fs.readFileSync)
         .mockReturnValueOnce("alpha content")
         .mockReturnValueOnce("beta content")
