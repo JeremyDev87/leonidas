@@ -231,20 +231,149 @@ describe("config", () => {
       expect(result).toEqual(defaultConfig);
     });
 
-    it("should handle max_turns of 0", () => {
-      const fileConfig = {};
-      const inputs: ActionInputs = {
-        mode: "plan",
-        anthropic_api_key: "test-key",
-        github_token: "test-token",
-        config_path: ".leonidas.yml",
-        system_prompt_path: ".github/leonidas.md",
-        max_turns: 0,
-      };
+    describe("max_turns validation", () => {
+      it("should reject max_turns of 0 (below minimum)", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 0,
+        };
 
-      const result = mergeConfig(fileConfig, inputs);
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got 0",
+        );
+      });
 
-      expect(result.max_turns).toBe(0);
+      it("should reject negative max_turns", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: -10,
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got -10",
+        );
+      });
+
+      it("should reject max_turns below minimum boundary", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 9,
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got 9",
+        );
+      });
+
+      it("should reject max_turns above maximum boundary", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 201,
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got 201",
+        );
+      });
+
+      it("should reject excessively large max_turns", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 999999,
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got 999999",
+        );
+      });
+
+      it("should accept max_turns at minimum boundary (10)", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 10,
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.max_turns).toBe(10);
+      });
+
+      it("should accept max_turns at maximum boundary (200)", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 200,
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.max_turns).toBe(200);
+      });
+
+      it("should accept valid max_turns in normal range", () => {
+        const fileConfig = {};
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+          max_turns: 50,
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(result.max_turns).toBe(50);
+      });
+
+      it("should validate max_turns from file config", () => {
+        const fileConfig = { max_turns: 5 };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          "max_turns must be between 10 and 200, got 5",
+        );
+      });
     });
 
     describe("label validation", () => {
