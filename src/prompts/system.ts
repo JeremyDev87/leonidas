@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { SupportedLanguage } from "../i18n";
+import { SupportedLanguage, LANGUAGE_DISPLAY_NAMES } from "../i18n";
 import { wrapRepoConfiguration } from "../utils/sanitize";
 
 /**
@@ -13,15 +13,7 @@ function getLanguageDirective(lang: SupportedLanguage): string {
     return "";
   }
 
-  const languageNames: Record<SupportedLanguage, string> = {
-    en: "English",
-    ko: "Korean",
-    ja: "Japanese",
-    zh: "Chinese",
-    es: "Spanish",
-  };
-
-  const languageName = languageNames[lang];
+  const languageName = LANGUAGE_DISPLAY_NAMES[lang];
 
   return `
 
