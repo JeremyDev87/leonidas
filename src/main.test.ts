@@ -339,7 +339,7 @@ describe("main", () => {
     });
 
     it("should handle undefined optional fields", async () => {
-      vi.mocked(core.getInput).mockImplementation((name: string, options?: any) => {
+      vi.mocked(core.getInput).mockImplementation((name: string, options?: InputOptions) => {
         if (options?.required) {
           const required: Record<string, string> = {
             mode: "plan",
