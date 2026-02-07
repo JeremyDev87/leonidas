@@ -137,8 +137,6 @@ export function cleanupTestEnvironment() {
  * Setup common mocks for tests
  */
 export function setupCommonMocks() {
-  const os = require("os");
-  vi.mocked(os.tmpdir).mockReturnValue("/tmp");
   vi.mocked(fs.writeFileSync).mockImplementation(() => {});
   vi.mocked(core.setOutput).mockImplementation(() => {});
   vi.mocked(core.setFailed).mockImplementation(() => {});
