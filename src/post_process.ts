@@ -1,15 +1,36 @@
+import * as fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { resolveLanguage } from "./i18n";
 import {
   buildCompletionComment,
   buildFailureComment,
+  buildPartialProgressComment,
+  buildRescuePRTitle,
+  buildRescuePRBody,
   extractSubIssueNumbers,
+  extractParentIssueNumber,
 } from "./post_processing";
-import { findPlanComment, postComment, linkSubIssues, isDecomposedPlan } from "./github";
+import {
+  findPlanComment,
+  postComment,
+  linkSubIssues,
+  isDecomposedPlan,
+  getPRForBranch,
+  branchExistsOnRemote,
+  createDraftPR,
+  postProcessPR,
+  triggerCI,
+} from "./github";
 import { LeonidasMode } from "./types";
 
-type Command = "link-subissues" | "post-completion" | "post-failure";
+type Command =
+  | "link-subissues"
+  | "post-completion"
+  | "post-failure"
+  | "rescue"
+  | "post-process-pr"
+  | "trigger-ci";
 
 export function getEnvRequired(name: string): string {
   const value = process.env[name];
@@ -99,6 +120,104 @@ async function runPostFailure(): Promise<void> {
   await postComment(token, owner, repo, issueNumber, comment);
 }
 
+async function runRescue(): Promise<void> {
+  const token = getEnvRequired("GH_TOKEN");
+  const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
+  const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
+  const branchPrefix = getEnvRequired("BRANCH_PREFIX");
+  const baseBranch = getEnvRequired("BASE_BRANCH");
+  const language = resolveLanguage(getEnvOptional("LANGUAGE"));
+  const runUrl = getEnvRequired("RUN_URL");
+  const githubOutput = process.env.GITHUB_OUTPUT;
+
+  const branchName = `${branchPrefix}${issueNumber}`;
+  const exists = await branchExistsOnRemote(token, owner, repo, branchName);
+
+  if (githubOutput) {
+    fs.appendFileSync(githubOutput, `branch_exists=${exists ? "true" : "false"}\n`);
+  }
+
+  if (!exists) {
+    core.info(`Branch ${branchName} not found on remote, skipping rescue.`);
+    return;
+  }
+
+  const prNumber = await getPRForBranch(token, owner, repo, branchName);
+
+  if (prNumber) {
+    if (githubOutput) {
+      fs.appendFileSync(githubOutput, "pr_exists=true\n");
+      fs.appendFileSync(githubOutput, `pr_number=${prNumber}\n`);
+    }
+
+    const comment = buildPartialProgressComment({
+      issueNumber,
+      existingPR: String(prNumber),
+      language,
+      runUrl,
+    });
+    await postComment(token, owner, repo, issueNumber, comment);
+  } else {
+    const octokit = github.getOctokit(token);
+    const { data: issue } = await octokit.rest.issues.get({
+      owner,
+      repo,
+      issue_number: issueNumber,
+    });
+
+    const parentNumber = extractParentIssueNumber(issue.body ?? "");
+    const title = buildRescuePRTitle({
+      issueNumber,
+      issueTitle: issue.title,
+      parentNumber,
+      language,
+      runUrl,
+    });
+    const body = buildRescuePRBody({
+      issueNumber,
+      issueTitle: issue.title,
+      parentNumber,
+      language,
+      runUrl,
+    });
+
+    const prUrl = await createDraftPR(token, owner, repo, branchName, baseBranch, title, body);
+
+    if (prUrl) {
+      if (githubOutput) {
+        fs.appendFileSync(githubOutput, "pr_created=true\n");
+      }
+
+      const comment = buildPartialProgressComment({
+        issueNumber,
+        draftPRUrl: prUrl,
+        language,
+        runUrl,
+      });
+      await postComment(token, owner, repo, issueNumber, comment);
+    }
+  }
+}
+
+async function runPostProcessPR(): Promise<void> {
+  const token = getEnvRequired("GH_TOKEN");
+  const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
+  const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
+  const branchPrefix = getEnvRequired("BRANCH_PREFIX");
+
+  await postProcessPR(token, owner, repo, issueNumber, branchPrefix);
+}
+
+async function runTriggerCI(): Promise<void> {
+  const token = getEnvRequired("GH_TOKEN");
+  const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
+  const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
+  const branchPrefix = getEnvRequired("BRANCH_PREFIX");
+
+  const branchName = `${branchPrefix}${issueNumber}`;
+  await triggerCI(token, owner, repo, branchName);
+}
+
 export async function run(): Promise<void> {
   const command = process.argv[2] as Command;
   switch (command) {
@@ -108,6 +227,12 @@ export async function run(): Promise<void> {
       return runPostCompletion();
     case "post-failure":
       return runPostFailure();
+    case "rescue":
+      return runRescue();
+    case "post-process-pr":
+      return runPostProcessPR();
+    case "trigger-ci":
+      return runTriggerCI();
     default:
       throw new Error(`Unknown post-process command: ${String(command)}`);
   }

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import * as fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getEnvRequired, getEnvOptional, parseRepo, run } from "./post_process";
 import * as githubModule from "./github";
 import * as postProcessingModule from "./post_processing";
 
+vi.mock("fs");
 vi.mock("@actions/core");
 vi.mock("@actions/github");
 vi.mock("./github");
@@ -289,6 +291,208 @@ describe("post_process", () => {
         language: "ja",
         runUrl: "https://example.com/run",
       });
+    });
+  });
+
+  describe("run — rescue command", () => {
+    let mockOctokit: any;
+
+    beforeEach(() => {
+      mockOctokit = {
+        rest: {
+          issues: {
+            get: vi.fn(),
+          },
+        },
+      };
+      vi.mocked(github.getOctokit).mockReturnValue(mockOctokit);
+    });
+
+    it("sets branch_exists=false and skips when branch does not exist", async () => {
+      process.argv = ["node", "post_process.js", "rescue"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.BASE_BRANCH = "main";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.GITHUB_OUTPUT = "/tmp/test-output";
+
+      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(false);
+
+      await run();
+
+      expect(githubModule.branchExistsOnRemote).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        "leonidas/issue-42",
+      );
+      expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "branch_exists=false\n");
+      expect(core.info).toHaveBeenCalledWith(
+        "Branch leonidas/issue-42 not found on remote, skipping rescue.",
+      );
+    });
+
+    it("posts partial progress comment when branch exists and PR exists", async () => {
+      process.argv = ["node", "post_process.js", "rescue"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.BASE_BRANCH = "main";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.GITHUB_OUTPUT = "/tmp/test-output";
+
+      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(true);
+      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(99);
+      vi.mocked(postProcessingModule.buildPartialProgressComment).mockReturnValue("partial msg");
+
+      await run();
+
+      expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "branch_exists=true\n");
+      expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "pr_exists=true\n");
+      expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "pr_number=99\n");
+      expect(postProcessingModule.buildPartialProgressComment).toHaveBeenCalledWith({
+        issueNumber: 42,
+        existingPR: "99",
+        language: "en",
+        runUrl: "https://example.com/run",
+      });
+      expect(githubModule.postComment).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        42,
+        "partial msg",
+      );
+    });
+
+    it("creates draft PR when branch exists but no PR exists", async () => {
+      process.argv = ["node", "post_process.js", "rescue"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.BASE_BRANCH = "main";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.GITHUB_OUTPUT = "/tmp/test-output";
+
+      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(true);
+      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(undefined);
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          title: "Fix bug",
+          body: "<!-- leonidas-parent: #10 -->\nSome body",
+        },
+      });
+      vi.mocked(postProcessingModule.extractParentIssueNumber).mockReturnValue(10);
+      vi.mocked(postProcessingModule.buildRescuePRTitle).mockReturnValue("#10 Fix bug [partial]");
+      vi.mocked(postProcessingModule.buildRescuePRBody).mockReturnValue("PR body content");
+      vi.mocked(githubModule.createDraftPR).mockResolvedValue(
+        "https://github.com/owner/repo/pull/55",
+      );
+      vi.mocked(postProcessingModule.buildPartialProgressComment).mockReturnValue("draft msg");
+
+      await run();
+
+      expect(postProcessingModule.extractParentIssueNumber).toHaveBeenCalledWith(
+        "<!-- leonidas-parent: #10 -->\nSome body",
+      );
+      expect(postProcessingModule.buildRescuePRTitle).toHaveBeenCalledWith({
+        issueNumber: 42,
+        issueTitle: "Fix bug",
+        parentNumber: 10,
+        language: "en",
+        runUrl: "https://example.com/run",
+      });
+      expect(githubModule.createDraftPR).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        "leonidas/issue-42",
+        "main",
+        "#10 Fix bug [partial]",
+        "PR body content",
+      );
+      expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "pr_created=true\n");
+      expect(postProcessingModule.buildPartialProgressComment).toHaveBeenCalledWith({
+        issueNumber: 42,
+        draftPRUrl: "https://github.com/owner/repo/pull/55",
+        language: "en",
+        runUrl: "https://example.com/run",
+      });
+      expect(githubModule.postComment).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        42,
+        "draft msg",
+      );
+    });
+
+    it("skips GITHUB_OUTPUT writes when GITHUB_OUTPUT is not set", async () => {
+      process.argv = ["node", "post_process.js", "rescue"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.BASE_BRANCH = "main";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      delete process.env.GITHUB_OUTPUT;
+
+      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(false);
+
+      await run();
+
+      expect(fs.appendFileSync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("run — post-process-pr command", () => {
+    it("delegates to postProcessPR with correct arguments", async () => {
+      process.argv = ["node", "post_process.js", "post-process-pr"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+
+      vi.mocked(githubModule.postProcessPR).mockResolvedValue();
+
+      await run();
+
+      expect(githubModule.postProcessPR).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        42,
+        "leonidas/issue-",
+      );
+    });
+  });
+
+  describe("run — trigger-ci command", () => {
+    it("delegates to triggerCI with constructed branch name", async () => {
+      process.argv = ["node", "post_process.js", "trigger-ci"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+
+      vi.mocked(githubModule.triggerCI).mockResolvedValue();
+
+      await run();
+
+      expect(githubModule.triggerCI).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        "leonidas/issue-42",
+      );
     });
   });
 
