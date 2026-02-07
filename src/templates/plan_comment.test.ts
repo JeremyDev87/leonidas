@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   PLAN_HEADER,
-  PLAN_FOOTER,
   formatPlanComment,
   getPlanHeader,
   getPlanFooter,
@@ -12,13 +11,6 @@ describe("templates/plan_comment", () => {
   describe("PLAN_HEADER", () => {
     it("should have the correct header text", () => {
       expect(PLAN_HEADER).toBe("## 🏛️ Leonidas Implementation Plan");
-    });
-  });
-
-  describe("PLAN_FOOTER", () => {
-    it("should have the correct footer text with approval instruction", () => {
-      expect(PLAN_FOOTER).toContain("To approve this plan and start implementation");
-      expect(PLAN_FOOTER).toContain("`/approve`");
     });
   });
 
@@ -39,7 +31,7 @@ describe("templates/plan_comment", () => {
       expect(result).toContain(considerations);
       expect(result).toContain("### Verification");
       expect(result).toContain(verification);
-      expect(result).toContain(PLAN_FOOTER);
+      expect(result).toContain(getPlanFooter());
     });
 
     it("should number steps starting from 1", () => {
@@ -131,7 +123,7 @@ describe("templates/plan_comment", () => {
       const stepsIndex = result.indexOf("### Implementation Steps");
       const considerationsIndex = result.indexOf("### Considerations");
       const verificationIndex = result.indexOf("### Verification");
-      const footerIndex = result.indexOf(PLAN_FOOTER);
+      const footerIndex = result.indexOf(getPlanFooter());
 
       expect(headerIndex).toBeLessThan(summaryIndex);
       expect(summaryIndex).toBeLessThan(stepsIndex);
@@ -162,7 +154,7 @@ describe("templates/plan_comment", () => {
       const result = formatPlanComment("Summary", ["Step one"], "Consider this", "Verify that");
 
       expect(result.startsWith("<!-- leonidas-plan -->")).toBe(true);
-      expect(result.endsWith(PLAN_FOOTER + "\n")).toBe(true);
+      expect(result.endsWith(getPlanFooter() + "\n")).toBe(true);
       expect(result).toContain("\n\n");
     });
 
