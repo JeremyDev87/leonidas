@@ -84,9 +84,10 @@ export function buildPartialProgressComment(params: PartialProgressCommentParams
 export function buildFailureComment(params: FailureCommentParams): string {
   const { mode, language, runUrl } = params;
   const header = t("failure_header", language);
-  const body = mode === "plan"
-    ? t("failure_plan_body", language, runUrl)
-    : t("failure_execute_body", language, runUrl);
+  const body =
+    mode === "plan"
+      ? t("failure_plan_body", language, runUrl)
+      : t("failure_execute_body", language, runUrl);
 
   return `${header}\n\n${body}`;
 }

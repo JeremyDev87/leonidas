@@ -141,8 +141,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
     plan_footer: "---\n> 要批准此计划并开始实施，请在此问题上评论 `/approve`。",
     decomposed_plan_footer:
       "---\n> 此问题已分解为子问题。请在每个子问题上评论 `/approve` 以分别批准和执行。",
-    completion_with_pr:
-      "✅ **Leonidas** 已完成问题 #%d 的实现。请查看拉取请求 #%s 了解详情。",
+    completion_with_pr: "✅ **Leonidas** 已完成问题 #%d 的实现。请查看拉取请求 #%s 了解详情。",
     completion_no_pr:
       "⚠️ **Leonidas** 执行已完成，但未能为问题 #%d 创建拉取请求。分支推送可能失败。\n\n**工作流运行:** [查看日志](%s)\n\n**重试:** 再次评论 `/approve`。",
     partial_header: "## ⚠️ Leonidas 部分进展",

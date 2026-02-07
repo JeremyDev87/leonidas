@@ -202,7 +202,12 @@ describe("post-processing translation keys", () => {
   });
 
   it("should interpolate partial_draft_created correctly", () => {
-    const result = t("partial_draft_created", "en", "https://github.com/pr/1", "https://example.com/run");
+    const result = t(
+      "partial_draft_created",
+      "en",
+      "https://github.com/pr/1",
+      "https://example.com/run",
+    );
     expect(result).toContain("https://github.com/pr/1");
     expect(result).toContain("https://example.com/run");
   });
