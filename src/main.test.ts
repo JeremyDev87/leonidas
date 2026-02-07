@@ -32,6 +32,7 @@ describe("main", () => {
     vi.restoreAllMocks();
     delete process.env.GITHUB_EVENT_PATH;
     delete process.env.GITHUB_REPOSITORY;
+    delete process.env.RUNNER_TEMP;
   });
 
   describe("readInputs (via run)", () => {
@@ -616,6 +617,64 @@ describe("main", () => {
         "plan prompt content",
         "utf-8",
       );
+    });
+
+    it("should use RUNNER_TEMP when available", async () => {
+      process.env.RUNNER_TEMP = "/runner/tmp";
+
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [],
+            user: { login: "testuser" },
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-opus-4",
+        branch_prefix: "bot/issue-",
+        base_branch: "develop",
+        allowed_tools: ["Read"],
+        max_turns: 100,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
+      });
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildPlanPrompt } = await import("./prompts/plan");
+      vi.mocked(buildPlanPrompt).mockReturnValue("prompt content");
+
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+
+      await import("./main");
+
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/runner\/tmp\/leonidas-prompt-\d+\.md$/),
+        "prompt content",
+        "utf-8",
+      );
+
+      delete process.env.RUNNER_TEMP;
     });
   });
 
