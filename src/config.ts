@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { LeonidasConfig, ActionInputs } from "./types";
@@ -35,7 +36,11 @@ export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
   try {
     const content = fs.readFileSync(configPath, "utf-8");
     return (yaml.load(content, { schema: yaml.JSON_SCHEMA }) as Partial<LeonidasConfig>) ?? {};
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return {};
+    }
+    core.warning(`Failed to load config file "${configPath}": ${error instanceof Error ? error.message : String(error)}`);
     return {};
   }
 }
@@ -128,8 +133,8 @@ export function loadRules(rulesPath: string): Record<string, string> {
       try {
         const content = fs.readFileSync(filePath, "utf-8");
         rules[ruleName] = content;
-      } catch {
-        // Skip files that can't be read
+      } catch (error) {
+        core.warning(`Failed to read rule file "${filePath}": ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
