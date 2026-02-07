@@ -45,7 +45,7 @@ Create `leonidas.config.yml` in your repository root to customize:
 | `model`                | `claude-sonnet-4-5-20250929`          | Claude model to use                       |
 | `branch_prefix`        | `claude/issue-`                       | Branch prefix for PRs                     |
 | `base_branch`          | `main`                                | Base branch for PRs                       |
-| `max_turns`            | `30`                                  | Max Claude Code turns                     |
+| `max_turns`            | `50`                                  | Max Claude Code turns                     |
 | `language`             | `en`                                  | Plan comment language                     |
 | `authorized_approvers` | `["OWNER", "MEMBER", "COLLABORATOR"]` | Who can trigger execution with `/approve` |
 
