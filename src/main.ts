@@ -61,6 +61,9 @@ function readGitHubContext(): GitHubContext {
       labels?: { name: string }[];
       user?: { login: string };
     };
+    comment?: {
+      author_association?: string;
+    };
   };
   const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? "").split("/");
   if (!owner || !repo) {
@@ -80,6 +83,7 @@ function readGitHubContext(): GitHubContext {
     issue_body: issue.body ?? "",
     issue_labels: (issue.labels ?? []).map((l) => l.name),
     issue_author: issue.user?.login ?? "",
+    comment_author_association: event.comment?.author_association ?? "",
   };
 }
 
@@ -133,7 +137,24 @@ async function run(): Promise<void> {
         maxTurns = REGULAR_PLAN_MAX_TURNS;
       }
     } else {
-      // execute mode
+      // execute mode — authorization check (defense-in-depth)
+      if (
+        config.authorized_approvers.length > 0 &&
+        !config.authorized_approvers.includes(context.comment_author_association)
+      ) {
+        await postComment(
+          inputs.github_token,
+          context.owner,
+          context.repo,
+          context.issue_number,
+          `⛔ **Leonidas**: Unauthorized approver. Only users with roles [${config.authorized_approvers.join(", ")}] can approve execution. Your role: \`${context.comment_author_association || "NONE"}\`.`,
+        );
+        core.setFailed(
+          `Unauthorized: comment author_association "${context.comment_author_association}" is not in authorized_approvers [${config.authorized_approvers.join(", ")}].`,
+        );
+        return;
+      }
+
       const planComment = await findPlanComment(
         inputs.github_token,
         context.owner,
