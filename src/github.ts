@@ -145,15 +145,12 @@ export async function linkSubIssues(
         issue_number: subNum,
       });
 
-      await octokit.request(
-        "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
-        {
-          owner,
-          repo,
-          issue_number: parentIssueNumber,
-          sub_issue_id: issue.id,
-        },
-      );
+      await octokit.request("POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues", {
+        owner,
+        repo,
+        issue_number: parentIssueNumber,
+        sub_issue_id: issue.id,
+      });
       linked++;
     } catch {
       failed++;

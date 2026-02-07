@@ -131,6 +131,6 @@ export function extractSubIssueNumbers(commentBody: string): number[] {
  * Parses "<!-- leonidas-parent: #170 -->" format
  */
 export function extractParentIssueNumber(issueBody: string): number | undefined {
-  const match = issueBody.match(/<!--\s*leonidas-parent:\s*#(\d+)/);
+  const match = /<!--\s*leonidas-parent:\s*#(\d+)/.exec(issueBody);
   return match ? parseInt(match[1], 10) : undefined;
 }

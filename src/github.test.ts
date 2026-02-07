@@ -585,7 +585,8 @@ Plan content`;
 
   describe("linkSubIssues", () => {
     it("links sub-issues to parent via API", async () => {
-      mockOctokit.rest.issues.get = vi.fn()
+      mockOctokit.rest.issues.get = vi
+        .fn()
         .mockResolvedValueOnce({ data: { id: 1001 } })
         .mockResolvedValueOnce({ data: { id: 1002 } });
       mockOctokit.request = vi.fn().mockResolvedValue({});
@@ -607,7 +608,8 @@ Plan content`;
     });
 
     it("counts failures when API call fails", async () => {
-      mockOctokit.rest.issues.get = vi.fn()
+      mockOctokit.rest.issues.get = vi
+        .fn()
         .mockResolvedValueOnce({ data: { id: 1001 } })
         .mockRejectedValueOnce(new Error("Not found"));
       mockOctokit.request = vi.fn().mockResolvedValue({});
@@ -618,10 +620,8 @@ Plan content`;
     });
 
     it("handles already-linked sub-issues gracefully", async () => {
-      mockOctokit.rest.issues.get = vi.fn()
-        .mockResolvedValueOnce({ data: { id: 1001 } });
-      mockOctokit.request = vi.fn()
-        .mockRejectedValueOnce(new Error("Already linked"));
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValueOnce({ data: { id: 1001 } });
+      mockOctokit.request = vi.fn().mockRejectedValueOnce(new Error("Already linked"));
 
       const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36]);
 
