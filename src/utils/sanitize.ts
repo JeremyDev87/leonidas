@@ -15,11 +15,49 @@
  * ```
  */
 export function wrapUserContent(content: string): string {
-  // Handle the case where user content already contains the delimiter
-  // by replacing any existing delimiter tags to prevent escaping
+  // Escape delimiter tags — case-insensitive and whitespace-tolerant to prevent bypass
   const escapedContent = content
-    .replace(/<user-supplied-content>/g, "&lt;user-supplied-content&gt;")
-    .replace(/<\/user-supplied-content>/g, "&lt;/user-supplied-content&gt;");
+    .replace(/<\s*user-supplied-content\s*>/gi, "&lt;user-supplied-content&gt;")
+    .replace(/<\s*\/\s*user-supplied-content\s*>/gi, "&lt;/user-supplied-content&gt;");
 
   return `<user-supplied-content>\n${escapedContent}\n</user-supplied-content>`;
+}
+
+/**
+ * Wraps repository-provided configuration content in delimiters.
+ *
+ * Used for content from trusted-but-not-system sources like repository rules
+ * and custom system prompt files. These come from the repo (not directly from
+ * users via issues/comments), but could be modified by contributors.
+ *
+ * @param content - Repository configuration content
+ * @returns The content wrapped in <repository-configuration> delimiters
+ */
+export function wrapRepoConfiguration(content: string): string {
+  const escapedContent = content
+    .replace(/<\s*repository-configuration\s*>/gi, "&lt;repository-configuration&gt;")
+    .replace(/<\s*\/\s*repository-configuration\s*>/gi, "&lt;/repository-configuration&gt;");
+
+  return `<repository-configuration>\n${escapedContent}\n</repository-configuration>`;
+}
+
+/**
+ * Escapes shell metacharacters in a string for safe interpolation into
+ * shell command templates within prompts.
+ *
+ * This prevents command injection when user-controlled values (like issue titles)
+ * are embedded in shell commands that the LLM is instructed to execute.
+ *
+ * @param value - The value to escape for shell interpolation
+ * @returns The shell-safe escaped string
+ */
+export function escapeForShellArg(value: string): string {
+  // Replace double quotes, backticks, dollar signs, backslashes, semicolons,
+  // and other shell metacharacters that could break out of a quoted string
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/`/g, "\\`")
+    .replace(/\$/g, "\\$")
+    .replace(/!/g, "\\!");
 }
