@@ -14,6 +14,17 @@ const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh", "es"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 /**
+ * Display names for supported languages
+ */
+export const LANGUAGE_DISPLAY_NAMES = {
+  en: "English",
+  ko: "Korean",
+  ja: "Japanese",
+  zh: "Chinese",
+  es: "Spanish",
+} as const satisfies Record<SupportedLanguage, string>;
+
+/**
  * Type guard to check if a string is a supported language code
  * @param lang - The language code to check
  * @returns true if the language is supported, false otherwise
