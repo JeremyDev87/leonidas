@@ -1237,9 +1237,7 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(core.setFailed).toHaveBeenCalledWith(
-        expect.stringContaining("Unauthorized"),
-      );
+      expect(core.setFailed).toHaveBeenCalledWith(expect.stringContaining("Unauthorized"));
       expect(postComment).toHaveBeenCalledWith(
         "test-github-token",
         "owner",

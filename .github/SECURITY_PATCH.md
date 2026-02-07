@@ -7,6 +7,7 @@
 **Severity:** HIGH
 
 **Status:** Authorization checks have been applied at two levels:
+
 1. **Workflow level:** `leonidas-execute.yml` `if` condition checks `author_association`
 2. **Runtime level:** `src/main.ts` validates against `config.authorized_approvers` (defense-in-depth)
 
@@ -54,6 +55,7 @@ github.event.comment.author_association == 'CONTRIBUTOR' ||
 The `authorized_approvers` field in `leonidas.config.yml` is used by the runtime check in `src/main.ts`. The workflow-level `if` condition cannot read config files due to GitHub Actions limitations, so it hardcodes the default values.
 
 To customize authorized roles, update both:
+
 1. `leonidas.config.yml` — `authorized_approvers` field (used at runtime)
 2. `.github/workflows/leonidas-execute.yml` — `if` condition (used at workflow level)
 
