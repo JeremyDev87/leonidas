@@ -121,22 +121,6 @@ export async function postComment(
   });
 }
 
-export async function getPRChangedFiles(
-  token: string,
-  owner: string,
-  repo: string,
-  prNumber: number,
-): Promise<string[]> {
-  const octokit = createOctokit(token);
-  const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
-    owner,
-    repo,
-    pull_number: prNumber,
-    per_page: 100,
-  });
-  return files.map((file) => file.filename);
-}
-
 export async function getPRDetails(
   token: string,
   owner: string,

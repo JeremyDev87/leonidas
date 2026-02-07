@@ -6,7 +6,6 @@ import {
   parseSubIssueMetadata,
   isDecomposedPlan,
   isIssueClosed,
-  getPRChangedFiles,
   getPRDetails,
 } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
@@ -581,73 +580,6 @@ Plan content`;
       const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(true);
-    });
-  });
-
-  describe("getPRChangedFiles", () => {
-    const mockPRNumber = 123;
-
-    it("should fetch list of changed files successfully", async () => {
-      const mockFiles = [
-        { filename: "src/file1.ts", status: "modified" },
-        { filename: "src/file2.ts", status: "added" },
-        { filename: "test/file1.test.ts", status: "modified" },
-      ];
-      mockOctokit.paginate.mockResolvedValue(mockFiles);
-      mockOctokit.rest.pulls = {
-        listFiles: vi.fn(),
-      };
-
-      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
-      expect(mockOctokit.paginate).toHaveBeenCalledWith(mockOctokit.rest.pulls.listFiles, {
-        owner: mockOwner,
-        repo: mockRepo,
-        pull_number: mockPRNumber,
-        per_page: 100,
-      });
-      expect(result).toEqual(["src/file1.ts", "src/file2.ts", "test/file1.test.ts"]);
-    });
-
-    it("should handle empty file list", async () => {
-      mockOctokit.paginate.mockResolvedValue([]);
-      mockOctokit.rest.pulls = {
-        listFiles: vi.fn(),
-      };
-
-      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(result).toEqual([]);
-    });
-
-    it("should handle pagination of many files", async () => {
-      const mockFiles = Array.from({ length: 250 }, (_, i) => ({
-        filename: `file${i}.ts`,
-        status: "modified",
-      }));
-      mockOctokit.paginate.mockResolvedValue(mockFiles);
-      mockOctokit.rest.pulls = {
-        listFiles: vi.fn(),
-      };
-
-      const result = await getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(result).toHaveLength(250);
-      expect(result[0]).toBe("file0.ts");
-      expect(result[249]).toBe("file249.ts");
-    });
-
-    it("should handle API errors", async () => {
-      const error = new Error("API error");
-      mockOctokit.paginate.mockRejectedValue(error);
-      mockOctokit.rest.pulls = {
-        listFiles: vi.fn(),
-      };
-
-      await expect(getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
-        "API error",
-      );
     });
   });
 
