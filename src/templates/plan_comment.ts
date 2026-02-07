@@ -1,24 +1,10 @@
 import { t, SupportedLanguage } from "../i18n";
 
-/**
- * @deprecated Use getPlanHeader() instead for i18n support
- */
+/** English plan header — used as backward-compat fallback in findPlanComment() */
 export const PLAN_HEADER = "## 🏛️ Leonidas Implementation Plan";
-
-/**
- * @deprecated Use getPlanFooter() instead for i18n support
- */
-export const PLAN_FOOTER = `---
-> To approve this plan and start implementation, comment \`/approve\` on this issue.`;
 
 export const PLAN_MARKER = "<!-- leonidas-plan -->";
 export const DECOMPOSED_MARKER = "<!-- leonidas-decomposed -->";
-
-/**
- * @deprecated Use getDecomposedPlanFooter() instead for i18n support
- */
-export const DECOMPOSED_PLAN_FOOTER = `---
-> This issue has been decomposed into sub-issues. Approve and execute each sub-issue individually by commenting \`/approve\` on each one.`;
 
 /**
  * Get the localized plan header

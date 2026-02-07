@@ -1,6 +1,6 @@
 import { SupportedLanguage } from "./i18n";
 
-export type LeonidasMode = "plan" | "execute" | "review";
+export type LeonidasMode = "plan" | "execute";
 
 export interface LeonidasConfig {
   label: string;
@@ -44,13 +44,4 @@ export interface GitHubContext {
   issue_body: string;
   issue_labels: string[];
   issue_author: string;
-}
-
-export interface ReviewContext {
-  prNumber: number;
-  prTitle: string;
-  baseBranch: string;
-  headBranch: string;
-  diff: string;
-  changedFiles: string[];
 }

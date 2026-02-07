@@ -742,7 +742,6 @@ describe("main", () => {
         "reporter",
         undefined,
         false,
-        "ja",
       );
 
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
@@ -1000,7 +999,6 @@ describe("main", () => {
         "testuser",
         undefined,
         false,
-        "es",
       );
       expect(core.setOutput).toHaveBeenCalledWith("language", "es");
     });

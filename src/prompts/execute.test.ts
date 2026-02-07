@@ -386,48 +386,6 @@ Step 3: Third thing`;
       expect(result).toContain(multilinePlan);
     });
 
-    it("should accept language parameter (default en)", () => {
-      const result = buildExecutePrompt(
-        issueTitle,
-        issueBody,
-        planComment,
-        issueNumber,
-        branchPrefix,
-        baseBranch,
-        systemPrompt,
-        maxTurns,
-        [],
-        "",
-        undefined,
-        false,
-        "en",
-      );
-
-      expect(result).toContain(systemPrompt);
-      expect(result).toContain("You are implementing code changes based on an approved plan.");
-    });
-
-    it("should accept language parameter for non-English languages", () => {
-      const result = buildExecutePrompt(
-        issueTitle,
-        issueBody,
-        planComment,
-        issueNumber,
-        branchPrefix,
-        baseBranch,
-        systemPrompt,
-        maxTurns,
-        [],
-        "",
-        undefined,
-        false,
-        "ko",
-      );
-
-      expect(result).toContain(systemPrompt);
-      expect(result).toContain("You are implementing code changes based on an approved plan.");
-    });
-
     it("should wrap issue title in user-supplied-content delimiters", () => {
       const result = buildExecutePrompt(
         issueTitle,
