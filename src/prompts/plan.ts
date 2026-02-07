@@ -124,7 +124,7 @@ Part of #${issueNumber}: ${issueTitle}
 - [ ] Criterion 2")
 
 # Extract sub-issue number and link as native sub-issue
-SUB_NUM=\$(echo "$SUB_URL" | grep -oE '[0-9]+$')
+SUB_NUM=$(echo "$SUB_URL" | grep -oE '[0-9]+$')
 SUB_DB_ID=$(gh api "repos/${repoName}/issues/$SUB_NUM" --jq '.id')
 gh api "repos/${repoName}/issues/${issueNumber}/sub_issues" \\
   -X POST -F "sub_issue_id=$SUB_DB_ID" || true

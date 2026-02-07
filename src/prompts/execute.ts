@@ -51,8 +51,10 @@ ${subIssueMetadata.depends_on ? `- Dependency: #${subIssueMetadata.depends_on} s
     : "";
 
   // Wrap user-supplied content to prevent prompt injection
+  // planComment is read from GitHub comments and could be spoofed by any commenter
   const safeTitle = wrapUserContent(issueTitle);
   const safeBody = wrapUserContent(issueBody);
+  const safePlan = wrapUserContent(planComment);
 
   return `${systemPrompt}
 
@@ -66,7 +68,7 @@ ${safeBody}
 ${subIssueContext}
 ## Approved Plan
 
-${planComment}
+${safePlan}
 
 ## Turn Budget
 
