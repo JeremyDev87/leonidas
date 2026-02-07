@@ -15,7 +15,7 @@ import {
   isIssueClosed,
 } from "./github";
 
-function readInputs(): ActionInputs {
+export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
   if (modeRaw !== "plan" && modeRaw !== "execute") {
     throw new Error(`Invalid mode: ${modeRaw}. Must be "plan" or "execute".`);
@@ -47,7 +47,7 @@ function readInputs(): ActionInputs {
   };
 }
 
-function readGitHubContext(): GitHubContext {
+export function readGitHubContext(): GitHubContext {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (!eventPath) {
     throw new Error("GITHUB_EVENT_PATH not set");
