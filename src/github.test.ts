@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
+import * as core from "@actions/core";
 import {
   findPlanComment,
   postComment,
@@ -7,9 +8,15 @@ import {
   isDecomposedPlan,
   isIssueClosed,
   linkSubIssues,
+  getPRForBranch,
+  branchExistsOnRemote,
+  createDraftPR,
+  postProcessPR,
+  triggerCI,
 } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
+vi.mock("@actions/core");
 vi.mock("@actions/github");
 
 describe("github", () => {
@@ -29,6 +36,19 @@ describe("github", () => {
         issues: {
           listComments: vi.fn(),
           createComment: vi.fn(),
+          get: vi.fn(),
+          addLabels: vi.fn(),
+          addAssignees: vi.fn(),
+        },
+        pulls: {
+          list: vi.fn(),
+          create: vi.fn(),
+        },
+        repos: {
+          getBranch: vi.fn(),
+        },
+        actions: {
+          createWorkflowDispatch: vi.fn(),
         },
       },
     };
@@ -632,6 +652,272 @@ Plan content`;
       const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, []);
 
       expect(result).toEqual({ linked: 0, failed: 0 });
+    });
+  });
+
+  describe("getPRForBranch", () => {
+    it("returns PR number when PR exists", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 99 }],
+      });
+
+      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        head: `${mockOwner}:feature/branch`,
+        state: "all",
+      });
+      expect(result).toBe(99);
+    });
+
+    it("returns undefined when no PR exists", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+
+      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(result).toBeUndefined();
+    });
+
+    it("returns first PR number when multiple PRs exist", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 50 }, { number: 51 }],
+      });
+
+      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(result).toBe(50);
+    });
+  });
+
+  describe("branchExistsOnRemote", () => {
+    it("returns true when branch exists", async () => {
+      mockOctokit.rest.repos.getBranch.mockResolvedValue({
+        data: { name: "feature/branch" },
+      });
+
+      const result = await branchExistsOnRemote(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(mockOctokit.rest.repos.getBranch).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        branch: "feature/branch",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("returns false when branch does not exist", async () => {
+      mockOctokit.rest.repos.getBranch.mockRejectedValue(new Error("Not found"));
+
+      const result = await branchExistsOnRemote(
+        mockToken,
+        mockOwner,
+        mockRepo,
+        "feature/nonexistent",
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("createDraftPR", () => {
+    it("creates draft PR and returns URL", async () => {
+      mockOctokit.rest.pulls.create.mockResolvedValue({
+        data: { html_url: "https://github.com/owner/repo/pull/10" },
+      });
+
+      const result = await createDraftPR(
+        mockToken,
+        mockOwner,
+        mockRepo,
+        "feature/branch",
+        "main",
+        "PR Title",
+        "PR Body",
+      );
+
+      expect(mockOctokit.rest.pulls.create).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        head: "feature/branch",
+        base: "main",
+        title: "PR Title",
+        body: "PR Body",
+        draft: true,
+      });
+      expect(result).toBe("https://github.com/owner/repo/pull/10");
+    });
+
+    it("returns undefined on failure", async () => {
+      mockOctokit.rest.pulls.create.mockRejectedValue(new Error("Conflict"));
+
+      const result = await createDraftPR(
+        mockToken,
+        mockOwner,
+        mockRepo,
+        "feature/branch",
+        "main",
+        "PR Title",
+        "PR Body",
+      );
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("postProcessPR", () => {
+    it("copies labels and adds assignee from issue to PR", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 77 }],
+      });
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          labels: [{ name: "bug" }, { name: "leonidas" }, { name: "enhancement" }],
+          user: { login: "author-user" },
+        },
+      });
+      mockOctokit.rest.issues.addLabels.mockResolvedValue({});
+      mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
+
+      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+
+      expect(mockOctokit.rest.issues.addLabels).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: 77,
+        labels: ["bug", "enhancement"],
+      });
+      expect(mockOctokit.rest.issues.addAssignees).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: 77,
+        assignees: ["author-user"],
+      });
+    });
+
+    it("skips when no PR found for branch", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+
+      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+
+      expect(core.info).toHaveBeenCalledWith(
+        "No PR found for branch leonidas/issue-42, skipping post-processing.",
+      );
+      expect(mockOctokit.rest.issues.get).not.toHaveBeenCalled();
+    });
+
+    it("handles label add failure gracefully", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 77 }],
+      });
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          labels: [{ name: "bug" }],
+          user: { login: "author-user" },
+        },
+      });
+      mockOctokit.rest.issues.addLabels.mockRejectedValue(new Error("Forbidden"));
+      mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
+
+      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+
+      expect(core.warning).toHaveBeenCalledWith("Failed to add labels to PR #77");
+      expect(mockOctokit.rest.issues.addAssignees).toHaveBeenCalled();
+    });
+
+    it("handles assignee add failure gracefully", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 77 }],
+      });
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          labels: [],
+          user: { login: "author-user" },
+        },
+      });
+      mockOctokit.rest.issues.addAssignees.mockRejectedValue(new Error("Forbidden"));
+
+      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+
+      expect(core.warning).toHaveBeenCalledWith("Failed to add assignee to PR #77");
+    });
+
+    it("skips labels when issue has no labels besides leonidas", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 77 }],
+      });
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          labels: [{ name: "leonidas" }],
+          user: { login: "author-user" },
+        },
+      });
+      mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
+
+      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+
+      expect(mockOctokit.rest.issues.addLabels).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("triggerCI", () => {
+    it("triggers workflow dispatch on existing branch", async () => {
+      mockOctokit.rest.repos.getBranch.mockResolvedValue({
+        data: { name: "feature/branch" },
+      });
+      mockOctokit.rest.actions.createWorkflowDispatch.mockResolvedValue({});
+
+      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(mockOctokit.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        workflow_id: "ci.yml",
+        ref: "feature/branch",
+      });
+    });
+
+    it("skips when branch does not exist", async () => {
+      mockOctokit.rest.repos.getBranch.mockRejectedValue(new Error("Not found"));
+
+      await triggerCI(mockToken, mockOwner, mockRepo, "feature/nonexistent");
+
+      expect(core.info).toHaveBeenCalledWith(
+        "Branch feature/nonexistent not found on remote, skipping CI trigger.",
+      );
+      expect(mockOctokit.rest.actions.createWorkflowDispatch).not.toHaveBeenCalled();
+    });
+
+    it("handles workflow dispatch failure gracefully", async () => {
+      mockOctokit.rest.repos.getBranch.mockResolvedValue({
+        data: { name: "feature/branch" },
+      });
+      mockOctokit.rest.actions.createWorkflowDispatch.mockRejectedValue(
+        new Error("Workflow not found"),
+      );
+
+      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch");
+
+      expect(core.info).toHaveBeenCalledWith(
+        "Note: Could not trigger CI via workflow_dispatch. CI may need to be triggered manually.",
+      );
+    });
+
+    it("uses custom workflow file when specified", async () => {
+      mockOctokit.rest.repos.getBranch.mockResolvedValue({
+        data: { name: "feature/branch" },
+      });
+      mockOctokit.rest.actions.createWorkflowDispatch.mockResolvedValue({});
+
+      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch", "test.yml");
+
+      expect(mockOctokit.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        workflow_id: "test.yml",
+        ref: "feature/branch",
+      });
     });
   });
 });
