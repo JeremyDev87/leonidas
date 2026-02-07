@@ -125,105 +125,19 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         REPO: ${{ github.repository }}
-      run: |
-        # Find decomposed plan comment on this issue
-        COMMENT_BODY=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" \
-          --paginate \
-          --jq '[.[] | select(.body | contains("<!-- leonidas-decomposed -->"))] | last | .body // empty')
-
-        if [ -z "$COMMENT_BODY" ]; then
-          echo "No decomposed plan found, skipping sub-issue linking."
-          exit 0
-        fi
-
-        echo "Decomposed plan found. Linking sub-issues to parent #$ISSUE_NUMBER..."
-
-        # Extract sub-issue numbers from checklist (e.g., "- [ ] #36 — ...")
-        # Use grep -oE (ERE) instead of grep -oP (PCRE) for portability across non-GNU environments
-        SUB_ISSUES=$(echo "$COMMENT_BODY" | grep -oE '- \[[ x]\] #[0-9]+' | grep -oE '[0-9]+$' || true)
-
-        if [ -z "$SUB_ISSUES" ]; then
-          echo "No sub-issue numbers found in checklist."
-          exit 0
-        fi
-
-        LINKED=0
-        FAILED=0
-        for SUB_NUM in $SUB_ISSUES; do
-          # Get database ID (not node_id) of sub-issue
-          DB_ID=$(gh api "repos/$REPO/issues/$SUB_NUM" --jq '.id' 2>/dev/null)
-
-          if [ -z "$DB_ID" ]; then
-            echo "Warning: Could not get DB ID for #$SUB_NUM"
-            FAILED=$((FAILED + 1))
-            continue
-          fi
-
-          echo "Linking #$SUB_NUM (DB ID: $DB_ID) as sub-issue of #$ISSUE_NUMBER"
-
-          # Link as native sub-issue (idempotent — skip if already linked)
-          if gh api "repos/$REPO/issues/$ISSUE_NUMBER/sub_issues" \
-            -X POST -F "sub_issue_id=$DB_ID" 2>/dev/null; then
-            LINKED=$((LINKED + 1))
-          else
-            echo "Warning: Failed to link #$SUB_NUM (may already be linked)"
-            FAILED=$((FAILED + 1))
-          fi
-        done
-
-        echo "Sub-issue linking complete: $LINKED linked, $FAILED skipped/failed."
+      run: node dist/post_process/index.js link-subissues
 
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         LANGUAGE: ${{ steps.prepare.outputs.language }}
         BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      run: |
-        BRANCH_NAME="${BRANCH_PREFIX}${ISSUE_NUMBER}"
-        PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
-
-        if [ -n "$PR_NUMBER" ]; then
-          case "$LANGUAGE" in
-            ko)
-              MESSAGE="✅ **레오니다스**가 이슈 #${ISSUE_NUMBER}에 대한 구현을 완료했습니다. 자세한 내용은 풀 리퀘스트 #${PR_NUMBER}을 확인하세요."
-              ;;
-            ja)
-              MESSAGE="✅ **Leonidas**がイシュー #${ISSUE_NUMBER} の実装を完了しました。詳細はプルリクエスト #${PR_NUMBER} をご確認ください。"
-              ;;
-            zh)
-              MESSAGE="✅ **Leonidas** 已完成问题 #${ISSUE_NUMBER} 的实现。请查看拉取请求 #${PR_NUMBER} 了解详情。"
-              ;;
-            es)
-              MESSAGE="✅ **Leonidas** ha completado la implementación del issue #${ISSUE_NUMBER}. Consulta el pull request #${PR_NUMBER} para más detalles."
-              ;;
-            *)
-              MESSAGE="✅ **Leonidas** has completed the implementation for issue #${ISSUE_NUMBER}. Check pull request #${PR_NUMBER} for details."
-              ;;
-          esac
-        else
-          case "$LANGUAGE" in
-            ko)
-              MESSAGE="⚠️ **레오니다스** 실행이 완료되었지만 이슈 #${ISSUE_NUMBER}에 대한 풀 리퀘스트를 생성하지 못했습니다. 브랜치 push에 실패했을 수 있습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** \`/approve\`를 다시 댓글로 다세요."
-              ;;
-            ja)
-              MESSAGE="⚠️ **Leonidas** の実行は完了しましたが、イシュー #${ISSUE_NUMBER} のプルリクエストを作成できませんでした。ブランチのpushに失敗した可能性があります。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** \`/approve\` を再度コメントしてください。"
-              ;;
-            zh)
-              MESSAGE="⚠️ **Leonidas** 执行已完成，但未能为问题 #${ISSUE_NUMBER} 创建拉取请求。分支推送可能失败。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 再次评论 \`/approve\`。"
-              ;;
-            es)
-              MESSAGE="⚠️ **Leonidas** completó la ejecución pero no pudo crear un pull request para el issue #${ISSUE_NUMBER}. Es posible que el push de la rama haya fallado.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Comenta \`/approve\` nuevamente."
-              ;;
-            *)
-              MESSAGE="⚠️ **Leonidas** execution completed but failed to create a pull request for issue #${ISSUE_NUMBER}. The branch push may have failed.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Comment \`/approve\` again."
-              ;;
-          esac
-        fi
-        gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE"
+      run: node dist/post_process/index.js post-completion
 
     - name: Rescue partial progress
       id: rescue
@@ -334,56 +248,12 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         LANGUAGE: ${{ steps.prepare.outputs.language }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         MODE: ${{ inputs.mode }}
-      run: |
-        case "$LANGUAGE" in
-          ko)
-            HEADER="## ⚠️ 레오니다스 실패"
-            if [ "$MODE" = "plan" ]; then
-              BODY="자동화된 계획이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** \`leonidas\` 레이블을 제거한 후 다시 추가하세요."
-            else
-              BODY="자동화된 실행이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기]($RUN_URL)\n\n**재시도하려면:** 이 이슈에 \`/approve\`를 다시 댓글로 다세요."
-            fi
-            ;;
-          ja)
-            HEADER="## ⚠️ Leonidas 失敗"
-            if [ "$MODE" = "plan" ]; then
-              BODY="自動計画でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** \`leonidas\` ラベルを削除してから再度追加してください。"
-            else
-              BODY="自動実行でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示]($RUN_URL)\n\n**再試行するには:** このイシューに \`/approve\` を再度コメントしてください。"
-            fi
-            ;;
-          zh)
-            HEADER="## ⚠️ Leonidas 失败"
-            if [ "$MODE" = "plan" ]; then
-              BODY="自动计划遇到错误。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 移除 \`leonidas\` 标签，然后重新添加。"
-            else
-              BODY="自动执行遇到错误。\n\n**工作流运行:** [查看日志]($RUN_URL)\n\n**重试:** 在此问题上再次评论 \`/approve\`。"
-            fi
-            ;;
-          es)
-            HEADER="## ⚠️ Leonidas Falló"
-            if [ "$MODE" = "plan" ]; then
-              BODY="El plan automatizado encontró un error.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Elimina la etiqueta \`leonidas\` y agrégala nuevamente."
-            else
-              BODY="La ejecución automatizada encontró un error.\n\n**Ejecución del workflow:** [Ver logs]($RUN_URL)\n\n**Para reintentar:** Comenta \`/approve\` nuevamente en este issue."
-            fi
-            ;;
-          *)
-            HEADER="## ⚠️ Leonidas Failed"
-            if [ "$MODE" = "plan" ]; then
-              BODY="The automated plan encountered an error.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Remove the \`leonidas\` label and re-add it."
-            else
-              BODY="The automated execution encountered an error.\n\n**Workflow run:** [View logs]($RUN_URL)\n\n**To retry:** Comment \`/approve\` again on this issue."
-            fi
-            ;;
-        esac
-        gh issue comment "$ISSUE_NUMBER" --body "${HEADER}
-
-        ${BODY}"
+      run: node dist/post_process/index.js post-failure
 
     - name: Post-process PR
       if: always() && inputs.mode == 'execute'
