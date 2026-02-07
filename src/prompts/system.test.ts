@@ -78,7 +78,7 @@ describe("prompts/system", () => {
       expect(fs.readFileSync).toHaveBeenCalledWith("/action/path/prompts/system.md", "utf-8");
       expect(fs.readFileSync).toHaveBeenCalledWith("/repo/.leonidas/system.md", "utf-8");
       expect(result).toBe(
-        "Default instructions.\n\n## Repository-Specific Instructions\n\nUser-specific instructions.",
+        "Default instructions.\n\n## Repository-Specific Instructions\n\n<repository-configuration>\nUser-specific instructions.\n</repository-configuration>",
       );
     });
 
@@ -150,7 +150,7 @@ describe("prompts/system", () => {
 
       const result = buildSystemPrompt("/repo/override.md");
 
-      expect(result).toBe("Default instructions.\n\n## Repository-Specific Instructions\n\n");
+      expect(result).toBe("Default instructions.\n\n## Repository-Specific Instructions\n\n<repository-configuration>\n\n</repository-configuration>");
     });
 
     it("should handle multiline user override", () => {
@@ -182,7 +182,7 @@ describe("prompts/system", () => {
       const result = buildSystemPrompt("/repo/override.md");
 
       expect(result).toBe(
-        "You are an automated implementation agent.\n\n## Repository-Specific Instructions\n\nCustom instructions",
+        "You are an automated implementation agent.\n\n## Repository-Specific Instructions\n\n<repository-configuration>\nCustom instructions\n</repository-configuration>",
       );
     });
 
