@@ -16,10 +16,13 @@ describe("i18n", () => {
       expect(LANGUAGE_DISPLAY_NAMES.ja).toBe("Japanese");
       expect(LANGUAGE_DISPLAY_NAMES.zh).toBe("Chinese");
       expect(LANGUAGE_DISPLAY_NAMES.es).toBe("Spanish");
+      expect(LANGUAGE_DISPLAY_NAMES.de).toBe("German");
+      expect(LANGUAGE_DISPLAY_NAMES.fr).toBe("French");
+      expect(LANGUAGE_DISPLAY_NAMES.pt).toBe("Portuguese");
     });
 
-    it("should have exactly 5 language entries", () => {
-      expect(Object.keys(LANGUAGE_DISPLAY_NAMES)).toHaveLength(5);
+    it("should have exactly 8 language entries", () => {
+      expect(Object.keys(LANGUAGE_DISPLAY_NAMES)).toHaveLength(8);
     });
   });
 
@@ -30,11 +33,14 @@ describe("i18n", () => {
       expect(isSupportedLanguage("ja")).toBe(true);
       expect(isSupportedLanguage("zh")).toBe(true);
       expect(isSupportedLanguage("es")).toBe(true);
+      expect(isSupportedLanguage("de")).toBe(true);
+      expect(isSupportedLanguage("fr")).toBe(true);
+      expect(isSupportedLanguage("pt")).toBe(true);
     });
 
     it("should return false for invalid language codes", () => {
-      expect(isSupportedLanguage("fr")).toBe(false);
-      expect(isSupportedLanguage("de")).toBe(false);
+      expect(isSupportedLanguage("it")).toBe(false);
+      expect(isSupportedLanguage("ru")).toBe(false);
       expect(isSupportedLanguage("")).toBe(false);
       expect(isSupportedLanguage("invalid")).toBe(false);
     });
@@ -55,11 +61,14 @@ describe("i18n", () => {
       expect(resolveLanguage("ja")).toBe("ja");
       expect(resolveLanguage("zh")).toBe("zh");
       expect(resolveLanguage("es")).toBe("es");
+      expect(resolveLanguage("de")).toBe("de");
+      expect(resolveLanguage("fr")).toBe("fr");
+      expect(resolveLanguage("pt")).toBe("pt");
     });
 
     it("should return 'en' as fallback for invalid language codes", () => {
-      expect(resolveLanguage("fr")).toBe("en");
-      expect(resolveLanguage("de")).toBe("en");
+      expect(resolveLanguage("it")).toBe("en");
+      expect(resolveLanguage("ru")).toBe("en");
       expect(resolveLanguage("")).toBe("en");
       expect(resolveLanguage("invalid")).toBe("en");
     });
@@ -125,11 +134,41 @@ describe("i18n", () => {
         );
       });
 
+      it("should return German translation for 'de' language", () => {
+        expect(t("plan_header", "de")).toBe("## 🏛️ Leonidas Implementierungsplan");
+        expect(t("plan_footer", "de")).toBe(
+          "---\n> Um diesen Plan zu genehmigen und mit der Implementierung zu beginnen, kommentieren Sie `/approve` in diesem Issue.",
+        );
+        expect(t("decomposed_plan_footer", "de")).toBe(
+          "---\n> Dieses Issue wurde in Unter-Issues aufgeteilt. Genehmigen und führen Sie jedes Unter-Issue einzeln aus, indem Sie `/approve` in jedem kommentieren.",
+        );
+      });
+
+      it("should return French translation for 'fr' language", () => {
+        expect(t("plan_header", "fr")).toBe("## 🏛️ Plan d'Implémentation Leonidas");
+        expect(t("plan_footer", "fr")).toBe(
+          "---\n> Pour approuver ce plan et commencer l'implémentation, commentez `/approve` sur ce ticket.",
+        );
+        expect(t("decomposed_plan_footer", "fr")).toBe(
+          "---\n> Ce ticket a été décomposé en sous-tickets. Approuvez et exécutez chaque sous-ticket individuellement en commentant `/approve` sur chacun.",
+        );
+      });
+
+      it("should return Portuguese translation for 'pt' language", () => {
+        expect(t("plan_header", "pt")).toBe("## 🏛️ Plano de Implementação Leonidas");
+        expect(t("plan_footer", "pt")).toBe(
+          "---\n> Para aprovar este plano e iniciar a implementação, comente `/approve` neste issue.",
+        );
+        expect(t("decomposed_plan_footer", "pt")).toBe(
+          "---\n> Este issue foi decomposto em sub-issues. Aprove e execute cada sub-issue individualmente comentando `/approve` em cada um.",
+        );
+      });
+
       it("should fallback to English for invalid language codes", () => {
-        expect(t("plan_header", "fr" as SupportedLanguage)).toBe(
+        expect(t("plan_header", "it" as SupportedLanguage)).toBe(
           "## 🏛️ Leonidas Implementation Plan",
         );
-        expect(t("plan_footer", "de" as SupportedLanguage)).toBe(
+        expect(t("plan_footer", "ru" as SupportedLanguage)).toBe(
           "---\n> To approve this plan and start implementation, comment `/approve` on this issue.",
         );
       });
@@ -160,7 +199,7 @@ describe("i18n", () => {
 });
 
 describe("post-processing translation keys", () => {
-  const languages: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es"];
+  const languages: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es", "de", "fr", "pt"];
   const postProcessingKeys: TranslationKey[] = [
     "completion_with_pr",
     "completion_no_pr",
