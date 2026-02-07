@@ -6,7 +6,6 @@ import {
   parseSubIssueMetadata,
   isDecomposedPlan,
   isIssueClosed,
-  getPRDetails,
 } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
@@ -580,83 +579,6 @@ Plan content`;
       const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(true);
-    });
-  });
-
-  describe("getPRDetails", () => {
-    const mockPRNumber = 123;
-
-    it("should fetch PR details successfully", async () => {
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockResolvedValue({
-          data: {
-            title: "Add new feature",
-            base: { ref: "main" },
-            head: { ref: "feature-branch" },
-          },
-        }),
-      };
-
-      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
-      expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
-        owner: mockOwner,
-        repo: mockRepo,
-        pull_number: mockPRNumber,
-      });
-      expect(result).toEqual({
-        title: "Add new feature",
-        baseBranch: "main",
-        headBranch: "feature-branch",
-      });
-    });
-
-    it("should handle PR with different base and head branches", async () => {
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockResolvedValue({
-          data: {
-            title: "Fix bug in parser",
-            base: { ref: "develop" },
-            head: { ref: "bugfix/parser-issue" },
-          },
-        }),
-      };
-
-      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(result).toEqual({
-        title: "Fix bug in parser",
-        baseBranch: "develop",
-        headBranch: "bugfix/parser-issue",
-      });
-    });
-
-    it("should handle empty PR title", async () => {
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockResolvedValue({
-          data: {
-            title: "",
-            base: { ref: "main" },
-            head: { ref: "test-branch" },
-          },
-        }),
-      };
-
-      const result = await getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(result.title).toBe("");
-    });
-
-    it("should handle API errors", async () => {
-      const error = new Error("API error");
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockRejectedValue(error),
-      };
-
-      await expect(getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
-        "API error",
-      );
     });
   });
 });
