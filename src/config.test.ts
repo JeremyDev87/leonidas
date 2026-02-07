@@ -777,121 +777,106 @@ describe("config", () => {
       it("should warn and ignore non-string model from file config", () => {
         const fileConfig = { model: 123 } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("model"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("model"));
         expect(result.model).toBe("claude-sonnet-4-5-20250929");
       });
 
       it("should warn and ignore non-string label from file config", () => {
         const fileConfig = { label: 456 } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("label"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("label"));
         expect(result.label).toBe("leonidas");
       });
 
       it("should warn and ignore non-string branch_prefix from file config", () => {
         const fileConfig = { branch_prefix: true } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("branch_prefix"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("branch_prefix"));
         expect(result.branch_prefix).toBe("claude/issue-");
       });
 
       it("should warn and ignore non-string base_branch from file config", () => {
         const fileConfig = { base_branch: 42 } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("base_branch"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("base_branch"));
         expect(result.base_branch).toBe("main");
       });
 
       it("should warn and ignore non-string language from file config", () => {
         const fileConfig = { language: false } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("language"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("language"));
         expect(result.language).toBe("en");
       });
 
       it("should warn and ignore non-string rules_path from file config", () => {
         const fileConfig = { rules_path: 999 } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("rules_path"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("rules_path"));
         expect(result.rules_path).toBe(".github/leonidas-rules");
       });
 
       it("should warn and ignore non-number max_turns from file config", () => {
         const fileConfig = { max_turns: "fifty" } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("max_turns"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("max_turns"));
         expect(result.max_turns).toBe(50);
       });
 
       it("should warn and ignore NaN max_turns from file config", () => {
         const fileConfig = { max_turns: NaN } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("max_turns"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("max_turns"));
         expect(result.max_turns).toBe(50);
       });
 
       it("should warn and ignore non-array allowed_tools from file config", () => {
         const fileConfig = { allowed_tools: "not-array" } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("allowed_tools"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("allowed_tools"));
         expect(result.allowed_tools).toEqual([
-          "Read", "Write", "Edit",
-          "Bash(npm:*)", "Bash(git:*)", "Bash(gh:*)",
-          "Bash(npx:*)", "Bash(node:*)", "Bash(ls:*)", "Bash(cat:*)",
+          "Read",
+          "Write",
+          "Edit",
+          "Bash(npm:*)",
+          "Bash(git:*)",
+          "Bash(gh:*)",
+          "Bash(npx:*)",
+          "Bash(node:*)",
+          "Bash(ls:*)",
+          "Bash(cat:*)",
         ]);
       });
 
       it("should warn and ignore non-array authorized_approvers from file config", () => {
         const fileConfig = { authorized_approvers: "OWNER" } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("authorized_approvers"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("authorized_approvers"));
         expect(result.authorized_approvers).toEqual(["OWNER", "MEMBER", "COLLABORATOR"]);
       });
 
       it("should warn and filter non-string elements in allowed_tools array", () => {
-        const fileConfig = { allowed_tools: ["Read", 123, true] } as unknown as Partial<LeonidasConfig>;
+        const fileConfig = {
+          allowed_tools: ["Read", 123, true],
+        } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("allowed_tools"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("allowed_tools"));
         expect(result.allowed_tools).toEqual(["Read"]);
       });
 
       it("should warn and filter non-string elements in authorized_approvers array", () => {
-        const fileConfig = { authorized_approvers: ["OWNER", 123, true] } as unknown as Partial<LeonidasConfig>;
+        const fileConfig = {
+          authorized_approvers: ["OWNER", 123, true],
+        } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("authorized_approvers"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("authorized_approvers"));
         expect(result.authorized_approvers).toEqual(["OWNER"]);
       });
 
       it("should handle null values in string fields", () => {
         const fileConfig = { model: null } as unknown as Partial<LeonidasConfig>;
         const result = mergeConfig(fileConfig, baseInputs);
-        expect(core.warning).toHaveBeenCalledWith(
-          expect.stringContaining("model"),
-        );
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("model"));
         expect(result.model).toBe("claude-sonnet-4-5-20250929");
       });
 
@@ -914,9 +899,16 @@ describe("config", () => {
         expect(result.model).toBe("claude-sonnet-4-5-20250929");
         expect(result.max_turns).toBe(50);
         expect(result.allowed_tools).toEqual([
-          "Read", "Write", "Edit",
-          "Bash(npm:*)", "Bash(git:*)", "Bash(gh:*)",
-          "Bash(npx:*)", "Bash(node:*)", "Bash(ls:*)", "Bash(cat:*)",
+          "Read",
+          "Write",
+          "Edit",
+          "Bash(npm:*)",
+          "Bash(git:*)",
+          "Bash(gh:*)",
+          "Bash(npx:*)",
+          "Bash(node:*)",
+          "Bash(ls:*)",
+          "Bash(cat:*)",
         ]);
       });
     });

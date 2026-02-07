@@ -47,9 +47,7 @@ export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
   }
 }
 
-function validateConfigTypes(
-  fileConfig: Partial<LeonidasConfig>,
-): Partial<LeonidasConfig> {
+function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<LeonidasConfig> {
   const validated = { ...fileConfig };
 
   // Validate string fields
@@ -72,10 +70,7 @@ function validateConfigTypes(
 
   // Validate number field: max_turns
   if ("max_turns" in validated) {
-    if (
-      typeof validated.max_turns !== "number" ||
-      isNaN(validated.max_turns)
-    ) {
+    if (typeof validated.max_turns !== "number" || isNaN(validated.max_turns)) {
       core.warning(
         `Config "max_turns" must be a number, got ${typeof validated.max_turns}. Using default.`,
       );
