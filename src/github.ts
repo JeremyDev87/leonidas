@@ -120,3 +120,45 @@ export async function postComment(
     body,
   });
 }
+
+export interface LinkSubIssuesResult {
+  linked: number;
+  failed: number;
+}
+
+export async function linkSubIssues(
+  token: string,
+  owner: string,
+  repo: string,
+  parentIssueNumber: number,
+  subIssueNumbers: number[],
+): Promise<LinkSubIssuesResult> {
+  const octokit = createOctokit(token);
+  let linked = 0;
+  let failed = 0;
+
+  for (const subNum of subIssueNumbers) {
+    try {
+      const { data: issue } = await octokit.rest.issues.get({
+        owner,
+        repo,
+        issue_number: subNum,
+      });
+
+      await octokit.request(
+        "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
+        {
+          owner,
+          repo,
+          issue_number: parentIssueNumber,
+          sub_issue_id: issue.id,
+        },
+      );
+      linked++;
+    } catch {
+      failed++;
+    }
+  }
+
+  return { linked, failed };
+}

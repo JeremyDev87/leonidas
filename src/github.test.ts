@@ -6,6 +6,7 @@ import {
   parseSubIssueMetadata,
   isDecomposedPlan,
   isIssueClosed,
+  linkSubIssues,
 } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
@@ -579,6 +580,58 @@ Plan content`;
       const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe("linkSubIssues", () => {
+    it("links sub-issues to parent via API", async () => {
+      mockOctokit.rest.issues.get = vi.fn()
+        .mockResolvedValueOnce({ data: { id: 1001 } })
+        .mockResolvedValueOnce({ data: { id: 1002 } });
+      mockOctokit.request = vi.fn().mockResolvedValue({});
+
+      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36, 37]);
+
+      expect(result).toEqual({ linked: 2, failed: 0 });
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledTimes(2);
+      expect(mockOctokit.request).toHaveBeenCalledTimes(2);
+      expect(mockOctokit.request).toHaveBeenCalledWith(
+        "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
+        {
+          owner: mockOwner,
+          repo: mockRepo,
+          issue_number: 10,
+          sub_issue_id: 1001,
+        },
+      );
+    });
+
+    it("counts failures when API call fails", async () => {
+      mockOctokit.rest.issues.get = vi.fn()
+        .mockResolvedValueOnce({ data: { id: 1001 } })
+        .mockRejectedValueOnce(new Error("Not found"));
+      mockOctokit.request = vi.fn().mockResolvedValue({});
+
+      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36, 37]);
+
+      expect(result).toEqual({ linked: 1, failed: 1 });
+    });
+
+    it("handles already-linked sub-issues gracefully", async () => {
+      mockOctokit.rest.issues.get = vi.fn()
+        .mockResolvedValueOnce({ data: { id: 1001 } });
+      mockOctokit.request = vi.fn()
+        .mockRejectedValueOnce(new Error("Already linked"));
+
+      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36]);
+
+      expect(result).toEqual({ linked: 0, failed: 1 });
+    });
+
+    it("returns zero counts for empty array", async () => {
+      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, []);
+
+      expect(result).toEqual({ linked: 0, failed: 0 });
     });
   });
 });
