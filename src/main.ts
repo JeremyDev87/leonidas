@@ -63,6 +63,9 @@ function readGitHubContext(): GitHubContext {
     };
   };
   const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? "").split("/");
+  if (!owner || !repo) {
+    throw new Error("GITHUB_REPOSITORY is not set or malformed (expected 'owner/repo')");
+  }
 
   const issue = event.issue;
   if (!issue) {

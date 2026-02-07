@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import * as core from "@actions/core";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { loadConfigFile, mergeConfig, resolveConfig, loadRules } from "./config";
 import { ActionInputs, LeonidasConfig } from "./types";
 
+vi.mock("@actions/core");
 vi.mock("fs");
 vi.mock("js-yaml");
 
@@ -32,17 +34,20 @@ describe("config", () => {
       expect(result).toEqual(mockConfig);
     });
 
-    it("should return empty object when file does not exist", () => {
+    it("should return empty object when file does not exist (ENOENT)", () => {
+      const error = new Error("ENOENT: no such file or directory") as NodeJS.ErrnoException;
+      error.code = "ENOENT";
       vi.mocked(fs.readFileSync).mockImplementation(() => {
-        throw new Error("ENOENT: no such file or directory");
+        throw error;
       });
 
       const result = loadConfigFile("nonexistent.yml");
 
       expect(result).toEqual({});
+      expect(core.warning).not.toHaveBeenCalled();
     });
 
-    it("should return empty object when YAML is invalid", () => {
+    it("should warn and return empty object when YAML is invalid", () => {
       vi.mocked(fs.readFileSync).mockReturnValue("invalid: yaml: content:");
       vi.mocked(yaml.load).mockImplementation(() => {
         throw new Error("YAML parse error");
@@ -51,6 +56,9 @@ describe("config", () => {
       const result = loadConfigFile(".leonidas.yml");
 
       expect(result).toEqual({});
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining("YAML parse error"),
+      );
     });
 
     it("should return empty object when yaml.load returns null", () => {
@@ -782,8 +790,10 @@ describe("config", () => {
     });
 
     it("should handle missing config file", () => {
+      const error = new Error("ENOENT") as NodeJS.ErrnoException;
+      error.code = "ENOENT";
       vi.mocked(fs.readFileSync).mockImplementation(() => {
-        throw new Error("ENOENT");
+        throw error;
       });
 
       const inputs: ActionInputs = {
@@ -801,8 +811,10 @@ describe("config", () => {
     });
 
     it("should include rules_path default", () => {
+      const error = new Error("ENOENT") as NodeJS.ErrnoException;
+      error.code = "ENOENT";
       vi.mocked(fs.readFileSync).mockImplementation(() => {
-        throw new Error("ENOENT");
+        throw error;
       });
 
       const inputs: ActionInputs = {
