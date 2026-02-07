@@ -32,33 +32,3 @@ export function getPlanFooter(lang: SupportedLanguage = "en"): string {
 export function getDecomposedPlanFooter(lang: SupportedLanguage = "en"): string {
   return t("decomposed_plan_footer", lang);
 }
-
-export function formatPlanComment(
-  summary: string,
-  steps: string[],
-  considerations: string,
-  verification: string,
-  language: SupportedLanguage = "en",
-): string {
-  const stepsList = steps.map((step, i) => `- [ ] **Step ${i + 1}:** ${step}`).join("\n");
-  const header = getPlanHeader(language);
-  const footer = getPlanFooter(language);
-
-  return `${PLAN_MARKER}
-${header}
-
-### Summary
-${summary}
-
-### Implementation Steps
-${stepsList}
-
-### Considerations
-${considerations}
-
-### Verification
-${verification}
-
-${footer}
-`;
-}
