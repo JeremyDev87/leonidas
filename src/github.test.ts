@@ -6,7 +6,6 @@ import {
   parseSubIssueMetadata,
   isDecomposedPlan,
   isIssueClosed,
-  getPRDiff,
   getPRChangedFiles,
   getPRDetails,
 } from "./github";
@@ -582,56 +581,6 @@ Plan content`;
       const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(true);
-    });
-  });
-
-  describe("getPRDiff", () => {
-    const mockPRNumber = 123;
-
-    it("should fetch PR diff successfully", async () => {
-      const mockDiff =
-        "diff --git a/file.ts b/file.ts\n--- a/file.ts\n+++ b/file.ts\n@@ -1,3 +1,4 @@";
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockResolvedValue({
-          data: mockDiff,
-        }),
-      };
-
-      const result = await getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
-      expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
-        owner: mockOwner,
-        repo: mockRepo,
-        pull_number: mockPRNumber,
-        mediaType: {
-          format: "diff",
-        },
-      });
-      expect(result).toBe(mockDiff);
-    });
-
-    it("should handle empty diff", async () => {
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockResolvedValue({
-          data: "",
-        }),
-      };
-
-      const result = await getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber);
-
-      expect(result).toBe("");
-    });
-
-    it("should handle API errors", async () => {
-      const error = new Error("API error");
-      mockOctokit.rest.pulls = {
-        get: vi.fn().mockRejectedValue(error),
-      };
-
-      await expect(getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
-        "API error",
-      );
     });
   });
 
