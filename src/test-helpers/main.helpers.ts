@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
 import type { LeonidasConfig } from "../types";
+import type { SupportedLanguage } from "../i18n";
 
 /**
  * Factory for creating mock inputs for core.getInput
@@ -24,7 +25,7 @@ export function mockInputs(overrides: Partial<Record<string, string>> = {}) {
 
   const inputs = { ...defaults, ...overrides };
 
-  vi.mocked(core.getInput).mockImplementation((name: string, _options?: unknown) => {
+  vi.mocked(core.getInput).mockImplementation((name: string, _options?: core.InputOptions) => {
     return inputs[name] ?? "";
   });
 
@@ -82,7 +83,7 @@ export function mockConfig(overrides: Partial<LeonidasConfig> = {}): LeonidasCon
     base_branch: "main",
     allowed_tools: ["Read"],
     max_turns: 50,
-    language: "en",
+    language: "en" as SupportedLanguage,
     rules_path: ".github/leonidas-rules",
     authorized_approvers: [],
     ...overrides,
