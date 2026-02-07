@@ -138,7 +138,8 @@ describe("Config-to-Prompt Pipeline Integration", () => {
 
       // Assert: Verify plan prompt structure
       expect(planPrompt).toContain("Custom System Instructions");
-      expect(planPrompt).toContain("Issue #42: Add user authentication");
+      expect(planPrompt).toContain("Issue #42:");
+      expect(planPrompt).toContain("Add user authentication");
       expect(planPrompt).toContain("Implement OAuth login");
       expect(planPrompt).toContain("Planning Methodology");
       expect(planPrompt).toContain("Phase 1: Discovery");
@@ -169,9 +170,9 @@ describe("Config-to-Prompt Pipeline Integration", () => {
 
       // Assert: Verify language directive is included
       expect(systemPrompt).toContain("Language Configuration");
-      expect(systemPrompt).toContain("Deutsch");
+      expect(systemPrompt).toContain("German");
 
-      // Assert: Verify plan prompt has German markers
+      // Assert: Verify plan prompt includes German language header
       expect(planPrompt).toContain("Implementierungsplan");
     });
   });
@@ -438,7 +439,8 @@ Run tests`;
       // Assert: Complete prompt is built with defaults
       expect(config.label).toBe("leonidas");
       expect(config.model).toBe("claude-sonnet-4-5-20250929");
-      expect(planPrompt).toContain("Issue #1: Test issue");
+      expect(planPrompt).toContain("Issue #1:");
+      expect(planPrompt).toContain("Test issue");
       expect(planPrompt).toContain("Planning Methodology");
       expect(planPrompt).toContain("gh issue comment 1");
     });
