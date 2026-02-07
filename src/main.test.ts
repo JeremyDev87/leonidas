@@ -729,20 +729,20 @@ describe("main", () => {
 
       await import("./main");
 
-      expect(buildExecutePrompt).toHaveBeenCalledWith(
-        "Execute Issue",
-        "Execute body",
-        "Plan content",
-        10,
-        "feature/issue-",
-        "staging",
-        "system prompt",
-        75,
-        ["bug", "urgent"],
-        "reporter",
-        undefined,
-        false,
-      );
+      expect(buildExecutePrompt).toHaveBeenCalledWith({
+        issueTitle: "Execute Issue",
+        issueBody: "Execute body",
+        planComment: "Plan content",
+        issueNumber: 10,
+        branchPrefix: "feature/issue-",
+        baseBranch: "staging",
+        systemPrompt: "system prompt",
+        maxTurns: 75,
+        issueLabels: ["bug", "urgent"],
+        issueAuthor: "reporter",
+        subIssueMetadata: undefined,
+        hasRules: false,
+      });
 
       expect(core.setOutput).toHaveBeenCalledWith("model", "claude-opus-4");
       expect(core.setOutput).toHaveBeenCalledWith("max_turns", "75");
@@ -986,20 +986,20 @@ describe("main", () => {
       await import("./main");
 
       expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es", {});
-      expect(buildExecutePrompt).toHaveBeenCalledWith(
-        "Test Issue",
-        "Test body",
-        "Plan content",
-        1,
-        "claude/issue-",
-        "main",
-        "system prompt",
-        50,
-        [],
-        "testuser",
-        undefined,
-        false,
-      );
+      expect(buildExecutePrompt).toHaveBeenCalledWith({
+        issueTitle: "Test Issue",
+        issueBody: "Test body",
+        planComment: "Plan content",
+        issueNumber: 1,
+        branchPrefix: "claude/issue-",
+        baseBranch: "main",
+        systemPrompt: "system prompt",
+        maxTurns: 50,
+        issueLabels: [],
+        issueAuthor: "testuser",
+        subIssueMetadata: undefined,
+        hasRules: false,
+      });
       expect(core.setOutput).toHaveBeenCalledWith("language", "es");
     });
 

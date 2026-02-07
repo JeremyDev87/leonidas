@@ -1,20 +1,36 @@
 import { SubIssueMetadata } from "../types";
 import { wrapUserContent } from "../utils/sanitize";
 
-export function buildExecutePrompt(
-  issueTitle: string,
-  issueBody: string,
-  planComment: string,
-  issueNumber: number,
-  branchPrefix: string,
-  baseBranch: string,
-  systemPrompt: string,
-  maxTurns: number,
-  issueLabels: string[] = [],
-  issueAuthor = "",
-  subIssueMetadata?: SubIssueMetadata,
-  hasRules = false,
-): string {
+export interface ExecutePromptOptions {
+  issueTitle: string;
+  issueBody: string;
+  planComment: string;
+  issueNumber: number;
+  branchPrefix: string;
+  baseBranch: string;
+  systemPrompt: string;
+  maxTurns: number;
+  issueLabels?: string[];
+  issueAuthor?: string;
+  subIssueMetadata?: SubIssueMetadata;
+  hasRules?: boolean;
+}
+
+export function buildExecutePrompt(options: ExecutePromptOptions): string {
+  const {
+    issueTitle,
+    issueBody,
+    planComment,
+    issueNumber,
+    branchPrefix,
+    baseBranch,
+    systemPrompt,
+    maxTurns,
+    issueLabels = [],
+    issueAuthor = "",
+    subIssueMetadata,
+    hasRules = false,
+  } = options;
   const branchName = `${branchPrefix}${issueNumber}`;
   const reservedTurns = 5;
   const pushDeadline = maxTurns - reservedTurns;
