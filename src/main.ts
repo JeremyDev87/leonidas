@@ -189,20 +189,20 @@ async function run(): Promise<void> {
         `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
       );
 
-      prompt = buildExecutePrompt(
-        context.issue_title,
-        context.issue_body,
+      prompt = buildExecutePrompt({
+        issueTitle: context.issue_title,
+        issueBody: context.issue_body,
         planComment,
-        context.issue_number,
-        config.branch_prefix,
-        config.base_branch,
+        issueNumber: context.issue_number,
+        branchPrefix: config.branch_prefix,
+        baseBranch: config.base_branch,
         systemPrompt,
-        config.max_turns,
-        context.issue_labels,
-        context.issue_author,
+        maxTurns: config.max_turns,
+        issueLabels: context.issue_labels,
+        issueAuthor: context.issue_author,
         subIssueMetadata,
-        Object.keys(rules).length > 0,
-      );
+        hasRules: Object.keys(rules).length > 0,
+      });
       allowedTools = config.allowed_tools.join(",");
       maxTurns = config.max_turns;
     }
