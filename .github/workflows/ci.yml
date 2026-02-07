@@ -80,6 +80,19 @@ jobs:
       - name: Test
         run: npm run test:coverage
 
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/coverage-final.json
+          fail_ci_if_error: false
+
   build:
     needs: install
     runs-on: ubuntu-latest
