@@ -13,3 +13,14 @@ CLAUDE.md
 
 # Planning artifacts
 plan.md
+
+# Test coverage
+coverage/
+
+# AI tools local state
+.codingbuddy/
+docs/codingbuddy/
+.omc/
+
+# TypeScript build cache
+*.tsbuildinfo
