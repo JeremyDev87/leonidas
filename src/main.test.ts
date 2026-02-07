@@ -1190,4 +1190,249 @@ describe("main", () => {
       expect(core.setOutput).toHaveBeenCalledWith("language", "zh");
     });
   });
+
+  describe("run() - execute mode authorization", () => {
+    it("should reject unauthorized user when authorized_approvers is configured", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "execute",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [{ name: "leonidas" }],
+            user: { login: "attacker" },
+          },
+          comment: {
+            author_association: "NONE",
+          },
+        }),
+      );
+
+      const { resolveConfig } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+        authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
+      });
+
+      const { postComment } = await import("./github");
+      vi.mocked(postComment).mockResolvedValue();
+
+      await import("./main");
+
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining("Unauthorized"),
+      );
+      expect(postComment).toHaveBeenCalledWith(
+        "test-github-token",
+        "owner",
+        "repo",
+        1,
+        expect.stringContaining("Unauthorized approver"),
+      );
+    });
+
+    it("should allow authorized user (OWNER) when authorized_approvers is configured", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "execute",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [{ name: "leonidas" }],
+            user: { login: "owner-user" },
+          },
+          comment: {
+            author_association: "OWNER",
+          },
+        }),
+      );
+
+      const { resolveConfig, loadRules } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+        authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
+      });
+      vi.mocked(loadRules).mockReturnValue({});
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildExecutePrompt } = await import("./prompts/execute");
+      vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
+
+      const { findPlanComment, postComment } = await import("./github");
+      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
+      vi.mocked(postComment).mockResolvedValue();
+
+      await import("./main");
+
+      // Should NOT have been rejected
+      expect(core.setFailed).not.toHaveBeenCalled();
+      // Should have proceeded to post the "starting implementation" comment
+      expect(postComment).toHaveBeenCalledWith(
+        "test-github-token",
+        "owner",
+        "repo",
+        1,
+        expect.stringContaining("starting implementation"),
+      );
+    });
+
+    it("should skip authorization check when authorized_approvers is empty", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "execute",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [{ name: "leonidas" }],
+            user: { login: "anyone" },
+          },
+          comment: {
+            author_association: "NONE",
+          },
+        }),
+      );
+
+      const { resolveConfig, loadRules } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+        authorized_approvers: [],
+      });
+      vi.mocked(loadRules).mockReturnValue({});
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildExecutePrompt } = await import("./prompts/execute");
+      vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
+
+      const { findPlanComment, postComment } = await import("./github");
+      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
+      vi.mocked(postComment).mockResolvedValue();
+
+      await import("./main");
+
+      // Should NOT have been rejected despite NONE association
+      expect(core.setFailed).not.toHaveBeenCalled();
+    });
+
+    it("should allow custom authorized_approvers including CONTRIBUTOR", async () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "execute",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+          config_path: "leonidas.config.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+        return inputs[name] || "";
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            labels: [{ name: "leonidas" }],
+            user: { login: "contributor-user" },
+          },
+          comment: {
+            author_association: "CONTRIBUTOR",
+          },
+        }),
+      );
+
+      const { resolveConfig, loadRules } = await import("./config");
+      vi.mocked(resolveConfig).mockReturnValue({
+        label: "leonidas",
+        model: "claude-sonnet-4-5-20250929",
+        branch_prefix: "claude/issue-",
+        base_branch: "main",
+        allowed_tools: ["Read"],
+        max_turns: 50,
+        language: "en",
+        rules_path: ".github/leonidas-rules",
+        authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"],
+      });
+      vi.mocked(loadRules).mockReturnValue({});
+
+      const { buildSystemPrompt } = await import("./prompts/system");
+      vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
+
+      const { buildExecutePrompt } = await import("./prompts/execute");
+      vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
+
+      const { findPlanComment, postComment } = await import("./github");
+      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
+      vi.mocked(postComment).mockResolvedValue();
+
+      await import("./main");
+
+      // CONTRIBUTOR should be allowed with custom config
+      expect(core.setFailed).not.toHaveBeenCalled();
+      expect(postComment).toHaveBeenCalledWith(
+        "test-github-token",
+        "owner",
+        "repo",
+        1,
+        expect.stringContaining("starting implementation"),
+      );
+    });
+  });
 });
