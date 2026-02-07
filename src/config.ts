@@ -47,11 +47,76 @@ export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
   }
 }
 
+function validateConfigTypes(
+  fileConfig: Partial<LeonidasConfig>,
+): Partial<LeonidasConfig> {
+  const validated = { ...fileConfig };
+
+  // Validate string fields
+  const stringFields = [
+    "label",
+    "model",
+    "branch_prefix",
+    "base_branch",
+    "language",
+    "rules_path",
+  ] as const;
+  for (const field of stringFields) {
+    if (field in validated && typeof validated[field] !== "string") {
+      core.warning(
+        `Config "${field}" must be a string, got ${typeof validated[field]}. Using default.`,
+      );
+      delete (validated as Record<string, unknown>)[field];
+    }
+  }
+
+  // Validate number field: max_turns
+  if ("max_turns" in validated) {
+    if (
+      typeof validated.max_turns !== "number" ||
+      isNaN(validated.max_turns)
+    ) {
+      core.warning(
+        `Config "max_turns" must be a number, got ${typeof validated.max_turns}. Using default.`,
+      );
+      delete (validated as Record<string, unknown>).max_turns;
+    }
+  }
+
+  // Validate array fields: allowed_tools, authorized_approvers
+  const arrayFields = ["allowed_tools", "authorized_approvers"] as const;
+  for (const field of arrayFields) {
+    if (field in validated) {
+      if (!Array.isArray(validated[field])) {
+        core.warning(
+          `Config "${field}" must be an array, got ${typeof validated[field]}. Using default.`,
+        );
+        delete (validated as Record<string, unknown>)[field];
+      } else {
+        const original = validated[field] as unknown[];
+        const filtered = original.filter((item) => {
+          if (typeof item !== "string") {
+            core.warning(
+              `Config "${field}" contains non-string element (${typeof item}). Filtering it out.`,
+            );
+            return false;
+          }
+          return true;
+        });
+        (validated as Record<string, unknown>)[field] = filtered;
+      }
+    }
+  }
+
+  return validated;
+}
+
 export function mergeConfig(
   fileConfig: Partial<LeonidasConfig>,
   inputs: ActionInputs,
 ): LeonidasConfig {
-  const merged = { ...DEFAULT_CONFIG, ...fileConfig };
+  const validatedFileConfig = validateConfigTypes(fileConfig);
+  const merged = { ...DEFAULT_CONFIG, ...validatedFileConfig };
 
   if (inputs.model) {
     merged.model = inputs.model;
