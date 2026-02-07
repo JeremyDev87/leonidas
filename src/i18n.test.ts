@@ -4,6 +4,7 @@ import {
   resolveLanguage,
   t,
   SupportedLanguage,
+  TranslationKey,
   LANGUAGE_DISPLAY_NAMES,
 } from "./i18n";
 
@@ -155,5 +156,70 @@ describe("i18n", () => {
         expect(result).toBe("[Missing translation: nonexistent_key]");
       });
     });
+  });
+});
+
+describe("post-processing translation keys", () => {
+  const languages: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es"];
+  const postProcessingKeys: TranslationKey[] = [
+    "completion_with_pr",
+    "completion_no_pr",
+    "partial_header",
+    "partial_pr_exists",
+    "partial_draft_created",
+    "partial_pr_body_header",
+    "partial_pr_body",
+    "failure_header",
+    "failure_plan_body",
+    "failure_execute_body",
+  ];
+
+  it("should have translations for all post-processing keys in all languages", () => {
+    for (const lang of languages) {
+      for (const key of postProcessingKeys) {
+        const result = t(key, lang);
+        expect(result).not.toBe(`[Missing translation: ${key}]`);
+        expect(result.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("should interpolate completion_with_pr correctly", () => {
+    expect(t("completion_with_pr", "en", 42, "123")).toContain("#42");
+    expect(t("completion_with_pr", "en", 42, "123")).toContain("#123");
+  });
+
+  it("should interpolate completion_no_pr correctly", () => {
+    const result = t("completion_no_pr", "en", 42, "https://example.com/run");
+    expect(result).toContain("#42");
+    expect(result).toContain("https://example.com/run");
+  });
+
+  it("should interpolate partial_pr_exists correctly", () => {
+    const result = t("partial_pr_exists", "en", "99", "https://example.com/run");
+    expect(result).toContain("#99");
+    expect(result).toContain("https://example.com/run");
+  });
+
+  it("should interpolate partial_draft_created correctly", () => {
+    const result = t("partial_draft_created", "en", "https://github.com/pr/1", "https://example.com/run");
+    expect(result).toContain("https://github.com/pr/1");
+    expect(result).toContain("https://example.com/run");
+  });
+
+  it("should interpolate partial_pr_body correctly", () => {
+    const result = t("partial_pr_body", "en", "https://example.com/run", 42);
+    expect(result).toContain("https://example.com/run");
+    expect(result).toContain("#42");
+  });
+
+  it("should interpolate failure_plan_body correctly", () => {
+    const result = t("failure_plan_body", "en", "https://example.com/run");
+    expect(result).toContain("https://example.com/run");
+  });
+
+  it("should interpolate failure_execute_body correctly", () => {
+    const result = t("failure_execute_body", "en", "https://example.com/run");
+    expect(result).toContain("https://example.com/run");
   });
 });
