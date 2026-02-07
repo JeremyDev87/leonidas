@@ -1,7 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { isSupportedLanguage, resolveLanguage, t, SupportedLanguage } from "./i18n";
+import { isSupportedLanguage, resolveLanguage, t, SupportedLanguage, LANGUAGE_DISPLAY_NAMES } from "./i18n";
 
 describe("i18n", () => {
+  describe("LANGUAGE_DISPLAY_NAMES", () => {
+    it("should contain display names for all supported languages", () => {
+      expect(LANGUAGE_DISPLAY_NAMES.en).toBe("English");
+      expect(LANGUAGE_DISPLAY_NAMES.ko).toBe("Korean");
+      expect(LANGUAGE_DISPLAY_NAMES.ja).toBe("Japanese");
+      expect(LANGUAGE_DISPLAY_NAMES.zh).toBe("Chinese");
+      expect(LANGUAGE_DISPLAY_NAMES.es).toBe("Spanish");
+    });
+
+    it("should have exactly 5 language entries", () => {
+      expect(Object.keys(LANGUAGE_DISPLAY_NAMES)).toHaveLength(5);
+    });
+  });
+
   describe("isSupportedLanguage", () => {
     it("should return true for valid language codes", () => {
       expect(isSupportedLanguage("en")).toBe(true);
