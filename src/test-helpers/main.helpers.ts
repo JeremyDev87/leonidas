@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
-import { ActionInputs, GitHubContext } from "../types";
+import type { LeonidasConfig } from "../types";
 
 /**
  * Factory for creating mock inputs for core.getInput
@@ -24,8 +24,8 @@ export function mockInputs(overrides: Partial<Record<string, string>> = {}) {
 
   const inputs = { ...defaults, ...overrides };
 
-  vi.mocked(core.getInput).mockImplementation((name: string, options?: any) => {
-    return inputs[name] || "";
+  vi.mocked(core.getInput).mockImplementation((name: string, _options?: unknown) => {
+    return inputs[name] ?? "";
   });
 
   return inputs;
@@ -34,18 +34,20 @@ export function mockInputs(overrides: Partial<Record<string, string>> = {}) {
 /**
  * Factory for creating mock GitHub event payloads
  */
-export function mockGitHubEvent(overrides: Partial<{
-  issue: {
-    number: number;
-    title: string;
-    body: string;
-    labels: { name: string }[];
-    user: { login: string };
-  };
-  comment: {
-    author_association: string;
-  };
-}> = {}) {
+export function mockGitHubEvent(
+  overrides: Partial<{
+    issue: {
+      number: number;
+      title: string;
+      body: string;
+      labels: { name: string }[];
+      user: { login: string };
+    };
+    comment: {
+      author_association: string;
+    };
+  }> = {},
+) {
   const defaults = {
     issue: {
       number: 1,
@@ -72,17 +74,7 @@ export function mockGitHubEvent(overrides: Partial<{
 /**
  * Factory for creating mock config objects
  */
-export function mockConfig(overrides: Partial<{
-  label: string;
-  model: string;
-  branch_prefix: string;
-  base_branch: string;
-  allowed_tools: string[];
-  max_turns: number;
-  language: string;
-  rules_path: string;
-  authorized_approvers: string[];
-}> = {}) {
+export function mockConfig(overrides: Partial<LeonidasConfig> = {}): LeonidasConfig {
   return {
     label: "leonidas",
     model: "claude-sonnet-4-5-20250929",
@@ -112,13 +104,15 @@ export function mockPromptBuilders() {
 /**
  * Setup environment variables for tests
  */
-export function setupTestEnvironment(overrides: {
-  GITHUB_EVENT_PATH?: string;
-  GITHUB_REPOSITORY?: string;
-  RUNNER_TEMP?: string;
-} = {}) {
-  process.env.GITHUB_EVENT_PATH = overrides.GITHUB_EVENT_PATH || "/tmp/event.json";
-  process.env.GITHUB_REPOSITORY = overrides.GITHUB_REPOSITORY || "owner/repo";
+export function setupTestEnvironment(
+  overrides: {
+    GITHUB_EVENT_PATH?: string;
+    GITHUB_REPOSITORY?: string;
+    RUNNER_TEMP?: string;
+  } = {},
+) {
+  process.env.GITHUB_EVENT_PATH = overrides.GITHUB_EVENT_PATH ?? "/tmp/event.json";
+  process.env.GITHUB_REPOSITORY = overrides.GITHUB_REPOSITORY ?? "owner/repo";
   if (overrides.RUNNER_TEMP) {
     process.env.RUNNER_TEMP = overrides.RUNNER_TEMP;
   }
@@ -137,7 +131,13 @@ export function cleanupTestEnvironment() {
  * Setup common mocks for tests
  */
 export function setupCommonMocks() {
-  vi.mocked(fs.writeFileSync).mockImplementation(() => {});
-  vi.mocked(core.setOutput).mockImplementation(() => {});
-  vi.mocked(core.setFailed).mockImplementation(() => {});
+  vi.mocked(fs.writeFileSync).mockImplementation(() => {
+    /* noop */
+  });
+  vi.mocked(core.setOutput).mockImplementation(() => {
+    /* noop */
+  });
+  vi.mocked(core.setFailed).mockImplementation(() => {
+    /* noop */
+  });
 }

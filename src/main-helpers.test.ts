@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import * as core from "@actions/core";
 import * as fs from "fs";
 import { readInputs, readGitHubContext } from "./main";
-import { mockInputs, mockGitHubEvent, setupTestEnvironment, cleanupTestEnvironment } from "./test-helpers/main.helpers";
+import {
+  mockInputs,
+  mockGitHubEvent,
+  setupTestEnvironment,
+  cleanupTestEnvironment,
+} from "./test-helpers/main.helpers";
 
 vi.mock("@actions/core");
 vi.mock("fs");
@@ -145,14 +149,18 @@ describe("readGitHubContext", () => {
     delete process.env.GITHUB_REPOSITORY;
     mockGitHubEvent();
 
-    expect(() => readGitHubContext()).toThrow("GITHUB_REPOSITORY is not set or malformed (expected 'owner/repo')");
+    expect(() => readGitHubContext()).toThrow(
+      "GITHUB_REPOSITORY is not set or malformed (expected 'owner/repo')",
+    );
   });
 
   it("should throw error when GITHUB_REPOSITORY is malformed", () => {
     process.env.GITHUB_REPOSITORY = "invalid";
     mockGitHubEvent();
 
-    expect(() => readGitHubContext()).toThrow("GITHUB_REPOSITORY is not set or malformed (expected 'owner/repo')");
+    expect(() => readGitHubContext()).toThrow(
+      "GITHUB_REPOSITORY is not set or malformed (expected 'owner/repo')",
+    );
   });
 
   it("should throw error when no issue in event payload", () => {

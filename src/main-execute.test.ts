@@ -2,7 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
-import { mockInputs, mockGitHubEvent, mockConfig, setupTestEnvironment, cleanupTestEnvironment, setupCommonMocks } from "./test-helpers/main.helpers";
+import {
+  mockInputs,
+  mockGitHubEvent,
+  mockConfig,
+  setupTestEnvironment,
+  cleanupTestEnvironment,
+} from "./test-helpers/main.helpers";
 
 vi.mock("@actions/core");
 vi.mock("fs");
@@ -84,7 +90,8 @@ describe("run() - execute mode edge cases", () => {
     const { buildSystemPrompt } = await import("./prompts/system");
     vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } = await import("./github");
+    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } =
+      await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: 101,
@@ -131,7 +138,8 @@ describe("run() - execute mode edge cases", () => {
     const { buildExecutePrompt } = await import("./prompts/execute");
     vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } = await import("./github");
+    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } =
+      await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: 101,
@@ -178,7 +186,8 @@ describe("run() - execute mode edge cases", () => {
     const { buildExecutePrompt } = await import("./prompts/execute");
     vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, parseSubIssueMetadata } = await import("./github");
+    const { findPlanComment, postComment, isDecomposedPlan, parseSubIssueMetadata } =
+      await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: undefined,

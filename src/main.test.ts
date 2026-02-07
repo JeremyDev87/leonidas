@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as core from "@actions/core";
-import type { InputOptions } from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
 
