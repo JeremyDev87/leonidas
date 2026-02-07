@@ -4,9 +4,14 @@
  */
 
 /**
- * Supported languages for the Leonidas system
+ * Supported languages for the Leonidas system (single source of truth)
  */
-export type SupportedLanguage = "en" | "ko" | "ja" | "zh" | "es";
+const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh", "es"] as const;
+
+/**
+ * Supported language type derived from the language array
+ */
+export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 /**
  * Type guard to check if a string is a supported language code
@@ -14,7 +19,7 @@ export type SupportedLanguage = "en" | "ko" | "ja" | "zh" | "es";
  * @returns true if the language is supported, false otherwise
  */
 export function isSupportedLanguage(lang: unknown): lang is SupportedLanguage {
-  return typeof lang === "string" && ["en", "ko", "ja", "zh", "es"].includes(lang);
+  return typeof lang === "string" && (SUPPORTED_LANGUAGES as readonly string[]).includes(lang);
 }
 
 /**
