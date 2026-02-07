@@ -2,13 +2,17 @@ import * as github from "@actions/github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 import { SubIssueMetadata } from "./types";
 
+function createOctokit(token: string) {
+  return github.getOctokit(token);
+}
+
 export async function findPlanComment(
   token: string,
   owner: string,
   repo: string,
   issueNumber: number,
 ): Promise<string | null> {
-  const octokit = github.getOctokit(token);
+  const octokit = createOctokit(token);
   const comments = await octokit.paginate(octokit.rest.issues.listComments, {
     owner,
     repo,
@@ -64,7 +68,7 @@ export async function isIssueClosed(
   issueNumber: number,
 ): Promise<boolean> {
   try {
-    const octokit = github.getOctokit(token);
+    const octokit = createOctokit(token);
     const { data: issue } = await octokit.rest.issues.get({
       owner,
       repo,
@@ -89,7 +93,7 @@ export async function postComment(
   issueNumber: number,
   body: string,
 ): Promise<void> {
-  const octokit = github.getOctokit(token);
+  const octokit = createOctokit(token);
   await octokit.rest.issues.createComment({
     owner,
     repo,
@@ -104,7 +108,7 @@ export async function getPRDiff(
   repo: string,
   prNumber: number,
 ): Promise<string> {
-  const octokit = github.getOctokit(token);
+  const octokit = createOctokit(token);
   const { data } = await octokit.rest.pulls.get({
     owner,
     repo,
@@ -122,7 +126,7 @@ export async function getPRChangedFiles(
   repo: string,
   prNumber: number,
 ): Promise<string[]> {
-  const octokit = github.getOctokit(token);
+  const octokit = createOctokit(token);
   const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
     owner,
     repo,
@@ -138,7 +142,7 @@ export async function getPRDetails(
   repo: string,
   prNumber: number,
 ): Promise<{ title: string; baseBranch: string; headBranch: string }> {
-  const octokit = github.getOctokit(token);
+  const octokit = createOctokit(token);
   const { data } = await octokit.rest.pulls.get({
     owner,
     repo,
