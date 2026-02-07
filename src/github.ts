@@ -121,24 +121,6 @@ export async function postComment(
   });
 }
 
-export async function getPRDiff(
-  token: string,
-  owner: string,
-  repo: string,
-  prNumber: number,
-): Promise<string> {
-  const octokit = createOctokit(token);
-  const { data } = await octokit.rest.pulls.get({
-    owner,
-    repo,
-    pull_number: prNumber,
-    mediaType: {
-      format: "diff",
-    },
-  });
-  return data as unknown as string;
-}
-
 export async function getPRChangedFiles(
   token: string,
   owner: string,
