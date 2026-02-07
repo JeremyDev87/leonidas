@@ -10,7 +10,7 @@ import {
   getPRChangedFiles,
   getPRDetails,
 } from "./github";
-import { PLAN_HEADER, DECOMPOSED_MARKER } from "./templates/plan_comment";
+import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/github");
 
@@ -115,6 +115,59 @@ describe("github", () => {
       const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(`Some text before\n${PLAN_HEADER}\nSome text after`);
+    });
+
+    it("should find plan comment by PLAN_MARKER", async () => {
+      const comments = [
+        { id: 1, body: "Regular comment" },
+        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nContent here` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nContent here`);
+    });
+
+    it("should prefer PLAN_MARKER over PLAN_HEADER when both exist", async () => {
+      const comments = [
+        { id: 1, body: `${PLAN_HEADER}\n\nOld style plan` },
+        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nNew style plan` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nNew style plan`);
+    });
+
+    it("should return latest PLAN_MARKER comment when multiple exist", async () => {
+      const comments = [
+        { id: 1, body: `${PLAN_MARKER}\n## Plan\n\nFirst plan` },
+        { id: 2, body: "Regular comment" },
+        { id: 3, body: `${PLAN_MARKER}\n## Plan\n\nLatest plan` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nLatest plan`);
+    });
+
+    it("should fallback to PLAN_HEADER when no PLAN_MARKER found", async () => {
+      const comments = [
+        { id: 1, body: "Regular comment" },
+        { id: 2, body: `${PLAN_HEADER}\n\nPlan without marker` },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_HEADER}\n\nPlan without marker`);
     });
   });
 

@@ -375,5 +375,73 @@ Step 3: Third thing`;
       expect(planSection).toContain("<user-supplied-content>");
       expect(planSection).toContain("SYSTEM OVERRIDE");
     });
+
+    it("should generate sub-issue PR title with parent reference and order", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        subIssueMetadata: {
+          parent_issue_number: 42,
+          order: 1,
+          total: 3,
+        },
+      });
+
+      expect(result).toContain("#42 [1/3]: Add new feature");
+    });
+
+    it("should generate sub-issue PR body referencing parent issue", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        subIssueMetadata: {
+          parent_issue_number: 42,
+          order: 1,
+          total: 3,
+        },
+      });
+
+      expect(result).toContain("Part of #42");
+      expect(result).toContain(`Closes #${defaultOptions.issueNumber}`);
+    });
+
+    it("should include Sub-Issue Context section", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        subIssueMetadata: {
+          parent_issue_number: 42,
+          order: 1,
+          total: 3,
+        },
+      });
+
+      expect(result).toContain("## Sub-Issue Context");
+      expect(result).toContain("sub-issue **[1/3]** of parent issue #42");
+    });
+
+    it("should include dependency info in sub-issue context", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        subIssueMetadata: {
+          parent_issue_number: 42,
+          order: 2,
+          total: 3,
+          depends_on: 100,
+        },
+      });
+
+      expect(result).toContain("Dependency: #100 should already be merged");
+    });
+
+    it("should not include dependency info when depends_on is not set", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        subIssueMetadata: {
+          parent_issue_number: 42,
+          order: 1,
+          total: 3,
+        },
+      });
+
+      expect(result).not.toContain("Dependency:");
+    });
   });
 });
