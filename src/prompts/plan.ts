@@ -6,7 +6,7 @@ import {
 } from "../templates/plan_comment";
 import { SubIssueMetadata } from "../types";
 import { SupportedLanguage } from "../i18n";
-import { wrapUserContent } from "../utils/sanitize";
+import { wrapUserContent, escapeForShellArg } from "../utils/sanitize";
 
 function getPlanningMethodology(): string {
   return `## Planning Methodology
@@ -110,6 +110,8 @@ export function buildPlanPrompt(
   // Wrap user-supplied content to prevent prompt injection
   const safeTitle = wrapUserContent(issueTitle);
   const safeBody = wrapUserContent(issueBody);
+  // Escape shell metacharacters for use in gh CLI command templates
+  const shellSafeTitle = escapeForShellArg(issueTitle);
 
   return `${systemPrompt}
 
@@ -157,7 +159,7 @@ SUB_URL=$(gh issue create \\
 <!-- leonidas-depends: #PREV_ISSUE (if applicable) -->
 
 ## Context
-Part of #${issueNumber}: ${issueTitle}
+Part of #${issueNumber}: ${shellSafeTitle}
 
 ## Task
 <What this sub-issue should accomplish>

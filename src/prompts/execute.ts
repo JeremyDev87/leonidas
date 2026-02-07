@@ -1,5 +1,5 @@
 import { SubIssueMetadata } from "../types";
-import { wrapUserContent } from "../utils/sanitize";
+import { wrapUserContent, escapeForShellArg } from "../utils/sanitize";
 
 export interface ExecutePromptOptions {
   issueTitle: string;
@@ -44,9 +44,12 @@ export function buildExecutePrompt(options: ExecutePromptOptions): string {
     ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
     : "";
 
+  // Escape shell metacharacters in issueTitle to prevent command injection
+  // when prTitle is interpolated into `gh pr create --title "..."` shell templates
+  const shellSafeTitle = escapeForShellArg(issueTitle);
   const prTitle = subIssueMetadata
-    ? `#${subIssueMetadata.parent_issue_number} [${subIssueMetadata.order}/${subIssueMetadata.total}]: ${issueTitle}`
-    : `#${issueNumber}: ${issueTitle}`;
+    ? `#${subIssueMetadata.parent_issue_number} [${subIssueMetadata.order}/${subIssueMetadata.total}]: ${shellSafeTitle}`
+    : `#${issueNumber}: ${shellSafeTitle}`;
 
   const prBodyLines = subIssueMetadata
     ? [`Part of #${subIssueMetadata.parent_issue_number}`, "", `Closes #${issueNumber}`]
