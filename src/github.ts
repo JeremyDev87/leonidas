@@ -120,22 +120,3 @@ export async function postComment(
     body,
   });
 }
-
-export async function getPRDetails(
-  token: string,
-  owner: string,
-  repo: string,
-  prNumber: number,
-): Promise<{ title: string; baseBranch: string; headBranch: string }> {
-  const octokit = createOctokit(token);
-  const { data } = await octokit.rest.pulls.get({
-    owner,
-    repo,
-    pull_number: prNumber,
-  });
-  return {
-    title: data.title,
-    baseBranch: data.base.ref,
-    headBranch: data.head.ref,
-  };
-}
