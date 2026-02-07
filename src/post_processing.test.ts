@@ -5,6 +5,8 @@ import {
   buildFailureComment,
   buildRescuePRTitle,
   buildRescuePRBody,
+  extractSubIssueNumbers,
+  extractParentIssueNumber,
 } from "./post_processing";
 import { SupportedLanguage } from "./i18n";
 
@@ -215,5 +217,55 @@ describe("buildRescuePRBody", () => {
       expect(result).toContain("Closes #42");
       expect(result).toContain("https://example.com/run");
     }
+  });
+});
+
+describe("extractSubIssueNumbers", () => {
+  it("extracts issue numbers from checklist format", () => {
+    const body = "- [ ] #36 — Implement auth\n- [x] #37 — Add tests\n- [ ] #38 — Deploy";
+    expect(extractSubIssueNumbers(body)).toEqual([36, 37, 38]);
+  });
+
+  it("returns empty array when no checklist items found", () => {
+    expect(extractSubIssueNumbers("Some regular text without checklist")).toEqual([]);
+  });
+
+  it("returns empty array for empty string", () => {
+    expect(extractSubIssueNumbers("")).toEqual([]);
+  });
+
+  it("handles mixed checked and unchecked items", () => {
+    const body = "- [x] #10 — Done\n- [ ] #20 — Pending";
+    expect(extractSubIssueNumbers(body)).toEqual([10, 20]);
+  });
+
+  it("ignores non-checklist issue references", () => {
+    const body = "See #42 for details\n- [ ] #36 — Task";
+    expect(extractSubIssueNumbers(body)).toEqual([36]);
+  });
+});
+
+describe("extractParentIssueNumber", () => {
+  it("extracts parent number from leonidas metadata comment", () => {
+    const body = "<!-- leonidas-parent: #170 -->\n<!-- leonidas-order: 1/4 -->\n\nContent";
+    expect(extractParentIssueNumber(body)).toBe(170);
+  });
+
+  it("returns undefined when no parent metadata", () => {
+    expect(extractParentIssueNumber("Just a regular issue body")).toBeUndefined();
+  });
+
+  it("returns undefined for empty string", () => {
+    expect(extractParentIssueNumber("")).toBeUndefined();
+  });
+
+  it("handles extra whitespace in metadata comment", () => {
+    const body = "<!--   leonidas-parent:   #42   -->";
+    expect(extractParentIssueNumber(body)).toBe(42);
+  });
+
+  it("extracts first parent number when multiple exist", () => {
+    const body = "<!-- leonidas-parent: #100 -->\n<!-- leonidas-parent: #200 -->";
+    expect(extractParentIssueNumber(body)).toBe(100);
   });
 });

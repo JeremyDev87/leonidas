@@ -116,3 +116,21 @@ export function buildRescuePRBody(params: RescuePRParams): string {
   }
   return `${header}\n\n${content}`;
 }
+
+/**
+ * Extracts sub-issue numbers from a decomposed plan comment's checklist
+ * Parses "- [ ] #36 — ..." or "- [x] #37 — ..." patterns
+ */
+export function extractSubIssueNumbers(commentBody: string): number[] {
+  const matches = commentBody.matchAll(/- \[[ x]\] #(\d+)/g);
+  return [...matches].map((m) => parseInt(m[1], 10));
+}
+
+/**
+ * Extracts the parent issue number from leonidas metadata in issue body
+ * Parses "<!-- leonidas-parent: #170 -->" format
+ */
+export function extractParentIssueNumber(issueBody: string): number | undefined {
+  const match = issueBody.match(/<!--\s*leonidas-parent:\s*#(\d+)/);
+  return match ? parseInt(match[1], 10) : undefined;
+}
