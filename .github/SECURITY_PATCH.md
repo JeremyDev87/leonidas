@@ -1,18 +1,18 @@
 # SECURITY PATCH: Authorization Check for /approve Command
 
-## ⚠️ CRITICAL - Manual Action Required
+## ✅ APPLIED
 
-**Issue:** [#69] No authorization check on `/approve` command - allows any GitHub user to trigger code execution.
+**Issue:** [#69], [#108] No authorization check on `/approve` command - allows any GitHub user to trigger code execution.
 
 **Severity:** HIGH
 
-## Required Changes
+**Status:** Authorization checks have been applied at two levels:
+1. **Workflow level:** `leonidas-execute.yml` `if` condition checks `author_association`
+2. **Runtime level:** `src/main.ts` validates against `config.authorized_approvers` (defense-in-depth)
 
-You **MUST** manually update `.github/workflows/leonidas-execute.yml` to add authorization checks.
+## Reference: Workflow Condition
 
-### Step 1: Update leonidas-execute.yml
-
-Open `.github/workflows/leonidas-execute.yml` and replace the `if` condition (lines 9-11) with:
+The `leonidas-execute.yml` workflow uses this `if` condition:
 
 ```yaml
 jobs:
@@ -27,13 +27,9 @@ jobs:
       )
 ```
 
-### Step 2: Verify the Change
+## For Existing Users
 
-After updating the workflow file:
-
-1. Commit the change to your main/master branch
-2. Test with an authorized user (OWNER/MEMBER/COLLABORATOR) - should work
-3. Test with an unauthorized user - should be silently ignored
+If you installed Leonidas before this patch was applied, update your workflow file to match the condition above.
 
 ## Customizing Authorized Roles
 
@@ -55,29 +51,11 @@ github.event.comment.author_association == 'CONTRIBUTOR' ||
 
 ## Configuration File
 
-While `leonidas.config.yml` now includes an `authorized_approvers` field, it cannot be used directly in GitHub Actions workflow conditions due to platform limitations.
+The `authorized_approvers` field in `leonidas.config.yml` is used by the runtime check in `src/main.ts`. The workflow-level `if` condition cannot read config files due to GitHub Actions limitations, so it hardcodes the default values.
 
-The config field serves to:
-
-1. Document the security settings
-2. Validate configuration consistency
-3. Enable potential future enhancements
-
-To keep your config file in sync with the workflow, update both files when changing authorization rules.
-
-## Verification Checklist
-
-- [ ] Updated `.github/workflows/leonidas-execute.yml` with authorization check
-- [ ] Committed changes to main/master branch
-- [ ] Tested with authorized user (works)
-- [ ] Tested with unauthorized user (ignored)
-- [ ] Updated `leonidas.config.yml` if using custom roles
-
-## Why This is Manual
-
-GitHub Actions workflows cannot read YAML config files in `if` conditions. This is a platform limitation that requires the authorization logic to be hardcoded in the workflow file.
-
-GitHub Apps also cannot modify workflow files without the `workflows` permission, which is not granted by default for security reasons.
+To customize authorized roles, update both:
+1. `leonidas.config.yml` — `authorized_approvers` field (used at runtime)
+2. `.github/workflows/leonidas-execute.yml` — `if` condition (used at workflow level)
 
 ## Further Reading
 
