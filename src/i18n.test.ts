@@ -114,27 +114,25 @@ describe("i18n", () => {
       });
     });
 
-    describe("string interpolation", () => {
-      // Note: Current translation keys don't include placeholders, but we test the interpolation logic
-      // by creating a hypothetical scenario where a translation might have placeholders
-
-      it("should return string without modification when no arguments provided", () => {
+    describe("t() interpolation", () => {
+      it("should return template unchanged when no placeholders and no args", () => {
         const result = t("plan_header", "en");
         expect(result).toBe("## 🏛️ Leonidas Implementation Plan");
       });
 
-      // The current translation keys don't have %d or %s placeholders, so we're testing
-      // the function's ability to handle interpolation even if the template doesn't have placeholders
-      it("should handle extra arguments gracefully when template has no placeholders", () => {
-        const result = t("plan_header", "en", 1, "test");
+      it("should return template unchanged when args provided but no placeholders in template", () => {
+        const result = t("plan_header", "en", 42, "test");
         expect(result).toBe("## 🏛️ Leonidas Implementation Plan");
       });
-    });
 
-    describe("edge cases", () => {
-      it("should return missing translation message for invalid keys", () => {
-        const result = t("invalid_key" as any, "en");
-        expect(result).toBe("[Missing translation: invalid_key]");
+      it("should handle missing translation key", () => {
+        const result = t("nonexistent_key" as any, "en");
+        expect(result).toBe("[Missing translation: nonexistent_key]");
+      });
+
+      it("should handle missing translation key with args", () => {
+        const result = t("nonexistent_key" as any, "en", 42);
+        expect(result).toBe("[Missing translation: nonexistent_key]");
       });
     });
   });
