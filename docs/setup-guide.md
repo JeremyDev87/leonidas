@@ -57,7 +57,7 @@ branch_prefix: "claude/issue-"
 base_branch: "main"
 
 # Maximum Claude Code turns
-max_turns: 30
+max_turns: 50
 
 # Plan comment language
 language: "en"
@@ -76,7 +76,7 @@ Copy `.github/ISSUE_TEMPLATE/leonidas-request.yml` to your repository. This prov
 | `branch_prefix` | `claude/issue-`              | Prefix for implementation branches           |
 | `base_branch`   | `main`                       | Target branch for pull requests              |
 | `allowed_tools` | (see config file)            | Tools Claude can use during execution        |
-| `max_turns`     | `30`                         | Maximum API round-trips per workflow run     |
+| `max_turns`     | `50`                         | Maximum API round-trips per workflow run     |
 | `language`      | `en`                         | Language for plan comments                   |
 
 ## Troubleshooting
