@@ -185,6 +185,78 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
     failure_execute_body:
       "La ejecución automatizada encontró un error.\n\n**Ejecución del workflow:** [Ver logs](%s)\n\n**Para reintentar:** Comenta `/approve` nuevamente en este issue.",
   },
+  de: {
+    plan_header: "## 🏛️ Leonidas Implementierungsplan",
+    plan_footer:
+      "---\n> Um diesen Plan zu genehmigen und mit der Implementierung zu beginnen, kommentieren Sie `/approve` in diesem Issue.",
+    decomposed_plan_footer:
+      "---\n> Dieses Issue wurde in Unter-Issues aufgeteilt. Genehmigen und führen Sie jedes Unter-Issue einzeln aus, indem Sie `/approve` in jedem kommentieren.",
+    completion_with_pr:
+      "✅ **Leonidas** hat die Implementierung für Issue #%d abgeschlossen. Weitere Details finden Sie im Pull Request #%s.",
+    completion_no_pr:
+      "⚠️ **Leonidas** Ausführung abgeschlossen, aber der Pull Request für Issue #%d konnte nicht erstellt werden. Der Branch-Push ist möglicherweise fehlgeschlagen.\n\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Wiederholen:** Kommentieren Sie erneut `/approve`.",
+    partial_header: "## ⚠️ Leonidas Teilfortschritt",
+    partial_pr_exists:
+      "Die Implementierung wurde unterbrochen (wahrscheinlich maximale Anzahl von Durchläufen erreicht), aber ein PR existiert.\n\n**Pull Request:** #%s\n**Status:** Teilimplementierung — überprüfen Sie den PR für die abgeschlossene Arbeit.\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Fortfahren:** Kommentieren Sie erneut `/approve`, um von einem sauberen Branch aus zu wiederholen, oder schließen Sie den PR manuell ab.",
+    partial_draft_created:
+      "Die Implementierung wurde unterbrochen, aber ein Entwurfs-PR wurde erstellt, um den Fortschritt zu bewahren.\n\n**Entwurfs-PR:** %s\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Fortfahren:** Kommentieren Sie `/approve`, um zu wiederholen, oder schließen Sie den Entwurfs-PR manuell ab.",
+    partial_pr_body_header: "## Teilimplementierung",
+    partial_pr_body:
+      "Dieser PR wurde automatisch von Leonidas erstellt, um den Teilfortschritt nach Unterbrechung der Ausführung zu bewahren (wahrscheinlich maximale Anzahl von Durchläufen erreicht).\n\n**Status:** Unvollständig — überprüfen und manuell fortfahren oder wiederholen.\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\nCloses #%d",
+    failure_header: "## ⚠️ Leonidas Fehlgeschlagen",
+    failure_plan_body:
+      "Der automatisierte Plan ist auf einen Fehler gestoßen.\n\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Wiederholen:** Entfernen Sie das `leonidas` Label und fügen Sie es erneut hinzu.",
+    failure_execute_body:
+      "Die automatisierte Ausführung ist auf einen Fehler gestoßen.\n\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Wiederholen:** Kommentieren Sie erneut `/approve` in diesem Issue.",
+  },
+  fr: {
+    plan_header: "## 🏛️ Plan d'Implémentation Leonidas",
+    plan_footer:
+      "---\n> Pour approuver ce plan et commencer l'implémentation, commentez `/approve` sur ce ticket.",
+    decomposed_plan_footer:
+      "---\n> Ce ticket a été décomposé en sous-tickets. Approuvez et exécutez chaque sous-ticket individuellement en commentant `/approve` sur chacun.",
+    completion_with_pr:
+      "✅ **Leonidas** a terminé l'implémentation du ticket #%d. Consultez la pull request #%s pour plus de détails.",
+    completion_no_pr:
+      "⚠️ **Leonidas** a terminé l'exécution mais n'a pas pu créer de pull request pour le ticket #%d. Le push de la branche a peut-être échoué.\n\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour réessayer :** Commentez à nouveau `/approve`.",
+    partial_header: "## ⚠️ Progrès Partiel de Leonidas",
+    partial_pr_exists:
+      "L'implémentation a été interrompue (probablement atteint le nombre maximum de tours), mais une PR existe.\n\n**Pull Request :** #%s\n**Statut :** Implémentation partielle — consultez la PR pour le travail terminé.\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour continuer :** Commentez à nouveau `/approve` pour réessayer depuis une branche propre, ou complétez la PR manuellement.",
+    partial_draft_created:
+      "L'implémentation a été interrompue, mais une PR brouillon a été créée pour préserver les progrès.\n\n**PR Brouillon :** %s\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour continuer :** Commentez `/approve` pour réessayer, ou complétez la PR brouillon manuellement.",
+    partial_pr_body_header: "## Implémentation Partielle",
+    partial_pr_body:
+      "Cette PR a été créée automatiquement par Leonidas pour préserver les progrès partiels après l'interruption de l'exécution (probablement atteint le nombre maximum de tours).\n\n**Statut :** Incomplet — examinez et continuez manuellement ou réessayez.\n**Exécution du workflow :** [Voir les logs](%s)\n\nCloses #%d",
+    failure_header: "## ⚠️ Échec de Leonidas",
+    failure_plan_body:
+      "Le plan automatisé a rencontré une erreur.\n\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour réessayer :** Retirez le label `leonidas` puis rajoutez-le.",
+    failure_execute_body:
+      "L'exécution automatisée a rencontré une erreur.\n\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour réessayer :** Commentez à nouveau `/approve` sur ce ticket.",
+  },
+  pt: {
+    plan_header: "## 🏛️ Plano de Implementação Leonidas",
+    plan_footer:
+      "---\n> Para aprovar este plano e iniciar a implementação, comente `/approve` neste issue.",
+    decomposed_plan_footer:
+      "---\n> Este issue foi decomposto em sub-issues. Aprove e execute cada sub-issue individualmente comentando `/approve` em cada um.",
+    completion_with_pr:
+      "✅ **Leonidas** concluiu a implementação do issue #%d. Consulte o pull request #%s para mais detalhes.",
+    completion_no_pr:
+      "⚠️ **Leonidas** concluiu a execução mas não conseguiu criar um pull request para o issue #%d. O push do branch pode ter falhado.\n\n**Execução do workflow:** [Ver logs](%s)\n\n**Para tentar novamente:** Comente `/approve` novamente.",
+    partial_header: "## ⚠️ Progresso Parcial do Leonidas",
+    partial_pr_exists:
+      "A implementação foi interrompida (provavelmente atingiu o número máximo de turnos), mas existe um PR.\n\n**Pull Request:** #%s\n**Status:** Implementação parcial — revise o PR para ver o trabalho concluído.\n**Execução do workflow:** [Ver logs](%s)\n\n**Para continuar:** Comente `/approve` novamente para tentar novamente a partir de um branch limpo, ou complete o PR manualmente.",
+    partial_draft_created:
+      "A implementação foi interrompida, mas um PR rascunho foi criado para preservar o progresso.\n\n**PR Rascunho:** %s\n**Execução do workflow:** [Ver logs](%s)\n\n**Para continuar:** Comente `/approve` para tentar novamente, ou complete o PR rascunho manualmente.",
+    partial_pr_body_header: "## Implementação Parcial",
+    partial_pr_body:
+      "Este PR foi criado automaticamente pelo Leonidas para preservar o progresso parcial após a execução ser interrompida (provavelmente atingiu o número máximo de turnos).\n\n**Status:** Incompleto — revise e continue manualmente ou tente novamente.\n**Execução do workflow:** [Ver logs](%s)\n\nCloses #%d",
+    failure_header: "## ⚠️ Leonidas Falhou",
+    failure_plan_body:
+      "O plano automatizado encontrou um erro.\n\n**Execução do workflow:** [Ver logs](%s)\n\n**Para tentar novamente:** Remova o label `leonidas` e adicione-o novamente.",
+    failure_execute_body:
+      "A execução automatizada encontrou um erro.\n\n**Execução do workflow:** [Ver logs](%s)\n\n**Para tentar novamente:** Comente `/approve` novamente neste issue.",
+  },
 };
 
 /**
