@@ -257,10 +257,10 @@ ${metadata.depends_on ? `- This sub-issue depends on #${metadata.depends_on} whi
 ${getPlanningMethodology()}
 
 ${getPlanFormatInstructions(
-    planHeader,
-    planFooter,
-    issueNumber,
-    "Read key files relevant to this sub-issue's scope",
-  )}
+  planHeader,
+  planFooter,
+  issueNumber,
+  "Read key files relevant to this sub-issue's scope",
+)}
 `;
 }

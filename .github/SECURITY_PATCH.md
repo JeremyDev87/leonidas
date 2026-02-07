@@ -38,6 +38,7 @@ After updating the workflow file:
 ## Customizing Authorized Roles
 
 The default authorized roles are:
+
 - `OWNER` - Repository owner
 - `MEMBER` - Organization member (for org-owned repos)
 - `COLLABORATOR` - Direct repository collaborator
@@ -57,6 +58,7 @@ github.event.comment.author_association == 'CONTRIBUTOR' ||
 While `leonidas.config.yml` now includes an `authorized_approvers` field, it cannot be used directly in GitHub Actions workflow conditions due to platform limitations.
 
 The config field serves to:
+
 1. Document the security settings
 2. Validate configuration consistency
 3. Enable potential future enhancements

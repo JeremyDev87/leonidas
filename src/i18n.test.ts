@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { isSupportedLanguage, resolveLanguage, t, SupportedLanguage, LANGUAGE_DISPLAY_NAMES } from "./i18n";
+import {
+  isSupportedLanguage,
+  resolveLanguage,
+  t,
+  SupportedLanguage,
+  LANGUAGE_DISPLAY_NAMES,
+} from "./i18n";
 
 describe("i18n", () => {
   describe("LANGUAGE_DISPLAY_NAMES", () => {

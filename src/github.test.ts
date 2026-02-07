@@ -589,7 +589,8 @@ Plan content`;
     const mockPRNumber = 123;
 
     it("should fetch PR diff successfully", async () => {
-      const mockDiff = "diff --git a/file.ts b/file.ts\n--- a/file.ts\n+++ b/file.ts\n@@ -1,3 +1,4 @@";
+      const mockDiff =
+        "diff --git a/file.ts b/file.ts\n--- a/file.ts\n+++ b/file.ts\n@@ -1,3 +1,4 @@";
       mockOctokit.rest.pulls = {
         get: vi.fn().mockResolvedValue({
           data: mockDiff,
@@ -628,7 +629,9 @@ Plan content`;
         get: vi.fn().mockRejectedValue(error),
       };
 
-      await expect(getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
+      await expect(getPRDiff(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
+        "API error",
+      );
     });
   });
 
@@ -693,7 +696,9 @@ Plan content`;
         listFiles: vi.fn(),
       };
 
-      await expect(getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
+      await expect(getPRChangedFiles(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
+        "API error",
+      );
     });
   });
 
@@ -768,7 +773,9 @@ Plan content`;
         get: vi.fn().mockRejectedValue(error),
       };
 
-      await expect(getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow("API error");
+      await expect(getPRDetails(mockToken, mockOwner, mockRepo, mockPRNumber)).rejects.toThrow(
+        "API error",
+      );
     });
   });
 });

@@ -27,10 +27,9 @@ describe("config", () => {
       const result = loadConfigFile(".leonidas.yml");
 
       expect(fs.readFileSync).toHaveBeenCalledWith(".leonidas.yml", "utf-8");
-      expect(yaml.load).toHaveBeenCalledWith(
-        "model: claude-opus-4\nmax_turns: 100",
-        { schema: yaml.JSON_SCHEMA }
-      );
+      expect(yaml.load).toHaveBeenCalledWith("model: claude-opus-4\nmax_turns: 100", {
+        schema: yaml.JSON_SCHEMA,
+      });
       expect(result).toEqual(mockConfig);
     });
 
@@ -56,9 +55,7 @@ describe("config", () => {
       const result = loadConfigFile(".leonidas.yml");
 
       expect(result).toEqual({});
-      expect(core.warning).toHaveBeenCalledWith(
-        expect.stringContaining("YAML parse error"),
-      );
+      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("YAML parse error"));
     });
 
     it("should return empty object when yaml.load returns null", () => {
@@ -732,7 +729,9 @@ describe("config", () => {
           system_prompt_path: ".github/leonidas.md",
         };
 
-        expect(() => mergeConfig(fileConfig, inputs)).toThrow('Invalid authorized_approvers value: ""');
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid authorized_approvers value: ""',
+        );
       });
 
       it("should use default authorized_approvers when not specified", () => {

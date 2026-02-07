@@ -40,7 +40,9 @@ export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return {};
     }
-    core.warning(`Failed to load config file "${configPath}": ${error instanceof Error ? error.message : String(error)}`);
+    core.warning(
+      `Failed to load config file "${configPath}": ${error instanceof Error ? error.message : String(error)}`,
+    );
     return {};
   }
 }
@@ -134,7 +136,9 @@ export function loadRules(rulesPath: string): Record<string, string> {
         const content = fs.readFileSync(filePath, "utf-8");
         rules[ruleName] = content;
       } catch (error) {
-        core.warning(`Failed to read rule file "${filePath}": ${error instanceof Error ? error.message : String(error)}`);
+        core.warning(
+          `Failed to read rule file "${filePath}": ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
 

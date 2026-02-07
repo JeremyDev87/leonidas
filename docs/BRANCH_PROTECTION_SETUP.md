@@ -7,6 +7,7 @@ This guide explains how to configure post-execution validation for Leonidas PRs 
 Leonidas's `execute` mode generates code changes and creates PRs automatically. To prevent broken code from being merged, we use **branch protection rules** that require all CI checks to pass before a PR can be merged.
 
 This approach is simpler and more maintainable than adding validation steps directly in the workflow, because:
+
 - CI logic stays in one place (`.github/workflows/ci.yml`)
 - No duplication of validation commands
 - GitHub automatically blocks PRs with failing checks
@@ -196,6 +197,7 @@ chmod +x configure-branch-protection.sh
 4. Click **Create** or **Save changes**
 
 **Note on "Require a pull request before merging":**
+
 - **Checked**: All changes (including from Leonidas automation) must go through PRs
 - **Unchecked**: Allows direct pushes to `main` (useful for automation, hotfixes)
 - **Recommendation**: Leave checked for better code review practices
@@ -205,6 +207,7 @@ chmod +x configure-branch-protection.sh
 Create a test PR to confirm the protection rules work:
 
 1. Create a test branch:
+
    ```bash
    git checkout -b test-branch-protection
    echo "// test" >> src/main.ts
@@ -265,6 +268,7 @@ The same validation applies to all PRs, ensuring consistent quality regardless o
 **Cause:** `npm audit` found vulnerabilities in dependencies.
 
 **Solution:**
+
 ```bash
 npm audit fix
 npm audit fix --force  # if needed for breaking changes
@@ -277,6 +281,7 @@ Then commit the updated `package-lock.json`.
 **Cause:** Emergency hotfix or one-time exception needed.
 
 **Solution:**
+
 - Repository admins can temporarily disable protection or use "Include administrators" exception
 - Or push to a different branch and merge later after checks pass
 
