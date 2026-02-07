@@ -148,14 +148,14 @@ echo "test"
   });
 
   it("handles content with multiple nested delimiter attempts", () => {
-    const content = `First <user-supplied-content>nested</user-supplied-content> and second <user-supplied-content>attempt</user-supplied-content>`;
+    const content = "First <user-supplied-content>nested</user-supplied-content> and second <user-supplied-content>attempt</user-supplied-content>";
     const result = wrapUserContent(content);
 
     // Count escaped delimiters
-    const openingCount = (result.match(/&lt;user-supplied-content&gt;/g) || [])
+    const openingCount = (result.match(/&lt;user-supplied-content&gt;/g) ?? [])
       .length;
     const closingCount = (
-      result.match(/&lt;\/user-supplied-content&gt;/g) || []
+      result.match(/&lt;\/user-supplied-content&gt;/g) ?? []
     ).length;
 
     expect(openingCount).toBe(2);

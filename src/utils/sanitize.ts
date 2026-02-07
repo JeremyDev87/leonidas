@@ -18,8 +18,8 @@ export function wrapUserContent(content: string): string {
   // Handle the case where user content already contains the delimiter
   // by replacing any existing delimiter tags to prevent escaping
   const escapedContent = content
-    .replace(/<user-supplied-content>/g, '&lt;user-supplied-content&gt;')
-    .replace(/<\/user-supplied-content>/g, '&lt;/user-supplied-content&gt;');
+    .replace(/<user-supplied-content>/g, "&lt;user-supplied-content&gt;")
+    .replace(/<\/user-supplied-content>/g, "&lt;/user-supplied-content&gt;");
 
   return `<user-supplied-content>\n${escapedContent}\n</user-supplied-content>`;
 }
