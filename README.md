@@ -59,13 +59,16 @@ Leonidas supports internationalization (i18n) for plan comments and status messa
 
 ### Supported Languages
 
-| Language Code | Language |
-| ------------- | -------- |
-| `en`          | English  |
-| `ko`          | Korean   |
-| `ja`          | Japanese |
-| `zh`          | Chinese  |
-| `es`          | Spanish  |
+| Language Code | Language   |
+| ------------- | ---------- |
+| `en`          | English    |
+| `ko`          | Korean     |
+| `ja`          | Japanese   |
+| `zh`          | Chinese    |
+| `es`          | Spanish    |
+| `de`          | German     |
+| `fr`          | French     |
+| `pt`          | Portuguese |
 
 ### Configuration Examples
 
