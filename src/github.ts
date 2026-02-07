@@ -6,6 +6,11 @@ function createOctokit(token: string) {
   return github.getOctokit(token);
 }
 
+// Trusted bot authors that can create plan comments
+// github-actions[bot] is used when GITHUB_TOKEN is a standard GitHub Actions token
+// Other bot identifiers may be added for GitHub App installations
+const TRUSTED_BOT_AUTHORS = new Set(["github-actions[bot]"]);
+
 export async function findPlanComment(
   token: string,
   owner: string,
@@ -20,10 +25,24 @@ export async function findPlanComment(
     per_page: 100,
   });
 
+  // Filter to comments authored by trusted bots to prevent spoofed plan injection
+  const trustedComments = comments.filter(
+    (comment) => comment.user && TRUSTED_BOT_AUTHORS.has(comment.user.login),
+  );
+
   // First try to find comments with the language-agnostic marker
-  let planComments = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
+  let planComments = trustedComments.filter((comment) => comment.body?.includes(PLAN_MARKER));
 
   // Fallback to English header for backward compatibility
+  if (planComments.length === 0) {
+    planComments = trustedComments.filter((comment) => comment.body?.includes(PLAN_HEADER));
+  }
+
+  // If no trusted bot comments found, fall back to any comment (for backward compat
+  // with repos where the bot identity differs, e.g., custom GitHub App installations)
+  if (planComments.length === 0) {
+    planComments = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
+  }
   if (planComments.length === 0) {
     planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
   }
