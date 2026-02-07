@@ -44,4 +44,5 @@ export interface GitHubContext {
   issue_body: string;
   issue_labels: string[];
   issue_author: string;
+  comment_author_association: string;
 }
