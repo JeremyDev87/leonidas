@@ -11,6 +11,7 @@
 ## Module System
 
 This project uses **CommonJS** (no `"type": "module"` in package.json).
+
 - Config files that need ESM syntax MUST use `.mjs` extension (e.g., `eslint.config.mjs`, NOT `eslint.config.js`)
 - Do NOT add `"type": "module"` to package.json
 
@@ -187,13 +188,13 @@ src/
 
 ```typescript
 // Example test structure
-describe('UserService', () => {
-  describe('getUserById', () => {
-    it('returns user when ID exists', () => {
+describe("UserService", () => {
+  describe("getUserById", () => {
+    it("returns user when ID exists", () => {
       // test implementation
     });
 
-    it('throws error when ID does not exist', () => {
+    it("throws error when ID does not exist", () => {
       // test implementation
     });
   });
@@ -233,6 +234,7 @@ describe('UserService', () => {
 Format: `<type>: <description>`
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `refactor`: Code refactoring (no behavior change)
@@ -243,6 +245,7 @@ Format: `<type>: <description>`
 - `style`: Code style/formatting changes
 
 **Examples:**
+
 - `feat: add user authentication endpoint`
 - `fix: resolve race condition in file processor`
 - `docs: update API documentation for webhooks`

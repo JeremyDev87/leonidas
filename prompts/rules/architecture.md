@@ -7,12 +7,14 @@ Good architecture makes code easier to understand, test, and modify. These princ
 ## Dependency Direction
 
 ### High-Level Modules Don't Depend on Low-Level Modules
+
 Dependencies should flow toward abstractions, not implementations:
 
 ❌ **Bad:**
+
 ```javascript
 // high-level business logic
-import { PostgresUserRepository } from './postgres-user-repository.js';
+import { PostgresUserRepository } from "./postgres-user-repository.js";
 
 class UserService {
   constructor() {
@@ -22,6 +24,7 @@ class UserService {
 ```
 
 ✅ **Good:**
+
 ```javascript
 // high-level business logic
 class UserService {
@@ -32,11 +35,14 @@ class UserService {
 
 // low-level implementation
 class PostgresUserRepository {
-  async findById(id) { /* postgres-specific code */ }
+  async findById(id) {
+    /* postgres-specific code */
+  }
 }
 ```
 
 ### Stable Dependencies
+
 Depend on things that change less frequently than you do:
 
 - ✅ Depend on interfaces/abstractions
@@ -47,6 +53,7 @@ Depend on things that change less frequently than you do:
 ## Layer Separation
 
 ### Organize by Technical Concern
+
 Separate different technical responsibilities:
 
 ```
@@ -58,6 +65,7 @@ src/
 ```
 
 ### Keep Layers Decoupled
+
 Each layer should only know about the layer directly below it:
 
 - Routes call Services
@@ -66,10 +74,11 @@ Each layer should only know about the layer directly below it:
 - No skipping layers (Routes shouldn't call Repositories directly)
 
 ### Example: User Management
+
 ```javascript
 // routes/user-routes.js
 // Handles HTTP concerns only
-router.get('/users/:id', async (req, res) => {
+router.get("/users/:id", async (req, res) => {
   const user = await userService.getUserById(req.params.id);
   res.json(user);
 });
@@ -78,29 +87,32 @@ router.get('/users/:id', async (req, res) => {
 // Contains business logic
 export async function getUserById(id) {
   const user = await userRepository.findById(id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new NotFoundError("User not found");
   return sanitizeUser(user);
 }
 
 // repositories/user-repository.js
 // Handles data access only
 export async function findById(id) {
-  return database.query('SELECT * FROM users WHERE id = ?', [id]);
+  return database.query("SELECT * FROM users WHERE id = ?", [id]);
 }
 ```
 
 ## Single Responsibility Principle
 
 ### Modules Should Have One Reason to Change
+
 Each module should focus on a single concern:
 
 ❌ **Bad:** `user-handler.js` that validates, saves, sends emails, and logs
 ✅ **Good:** Separate modules for validation, persistence, notifications, and logging
 
 ### High Cohesion
+
 Group related functionality together:
 
 ✅ **Good:**
+
 ```
 auth/
 ├── password-hasher.js
@@ -111,6 +123,7 @@ auth/
 ❌ **Bad:** Password hashing in `utils.js`, token generation in `helpers.js`, middleware in `middleware.js`
 
 ### Low Coupling
+
 Minimize dependencies between modules:
 
 - ✅ Pass dependencies explicitly (dependency injection)
@@ -121,9 +134,11 @@ Minimize dependencies between modules:
 ## File Organization
 
 ### Group by Feature, Not Type
+
 Organize around features rather than technical categories:
 
 ✅ **Good (Feature-based):**
+
 ```
 src/
 ├── user/
@@ -137,6 +152,7 @@ src/
 ```
 
 ❌ **Bad (Type-based):**
+
 ```
 src/
 ├── services/
@@ -148,6 +164,7 @@ src/
 ```
 
 ### Colocate Related Files
+
 Keep test files and related code together:
 
 ```
@@ -160,16 +177,17 @@ src/
 ```
 
 ### Index Files for Clean Imports
+
 Use `index.js` to expose public APIs:
 
 ```javascript
 // user/index.js
-export { UserService } from './user-service.js';
-export { UserRepository } from './user-repository.js';
+export { UserService } from "./user-service.js";
+export { UserRepository } from "./user-repository.js";
 // user-routes.js is internal, not exported
 
 // other files can import cleanly
-import { UserService } from './user/index.js';
+import { UserService } from "./user/index.js";
 ```
 
 ## Avoid Circular Dependencies
@@ -177,65 +195,71 @@ import { UserService } from './user/index.js';
 ### Circular dependencies cause problems:
 
 ❌ **Bad:**
+
 ```javascript
 // a.js
-import { b } from './b.js';
+import { b } from "./b.js";
 export const a = () => b();
 
 // b.js
-import { a } from './a.js';
+import { a } from "./a.js";
 export const b = () => a();
 ```
 
 ✅ **Good:** Extract shared logic to a third module:
+
 ```javascript
 // shared.js
-export const shared = () => { };
+export const shared = () => {};
 
 // a.js
-import { shared } from './shared.js';
+import { shared } from "./shared.js";
 export const a = () => shared();
 
 // b.js
-import { shared } from './shared.js';
+import { shared } from "./shared.js";
 export const b = () => shared();
 ```
 
 ## Interface Segregation
 
 ### Don't Force Clients to Depend on Unused Methods
+
 Keep interfaces focused:
 
 ❌ **Bad:**
+
 ```javascript
 class Repository {
-  findById(id) { }
-  findAll() { }
-  create(data) { }
-  update(id, data) { }
-  delete(id) { }
-  search(query) { }
-  paginate(page, size) { }
+  findById(id) {}
+  findAll() {}
+  create(data) {}
+  update(id, data) {}
+  delete(id) {}
+  search(query) {}
+  paginate(page, size) {}
 }
 ```
 
 ✅ **Good:**
+
 ```javascript
 class ReadRepository {
-  findById(id) { }
-  findAll() { }
+  findById(id) {}
+  findAll() {}
 }
 
 class WriteRepository {
-  create(data) { }
-  update(id, data) { }
-  delete(id) { }
+  create(data) {}
+  update(id, data) {}
+  delete(id) {}
 }
 ```
 
 ## Keep It Simple
 
 ### Avoid Premature Abstraction
+
 Don't create abstractions until you need them:
 
 - ❌ Abstract factory patterns for one implementation
@@ -244,6 +268,7 @@ Don't create abstractions until you need them:
 - ✅ Simple, direct code that's easy to understand
 
 ### YAGNI: You Aren't Gonna Need It
+
 Build what's needed now, not what might be needed later:
 
 - ✅ Start simple; refactor when requirements change
@@ -251,6 +276,7 @@ Build what's needed now, not what might be needed later:
 - ❌ Add configuration for hypothetical future needs
 
 ### Rule of Three
+
 Wait until you have three similar cases before abstracting:
 
 - First time: Just write it

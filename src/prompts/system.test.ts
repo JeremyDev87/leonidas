@@ -150,7 +150,9 @@ describe("prompts/system", () => {
 
       const result = buildSystemPrompt("/repo/override.md");
 
-      expect(result).toBe("Default instructions.\n\n## Repository-Specific Instructions\n\n<repository-configuration>\n\n</repository-configuration>");
+      expect(result).toBe(
+        "Default instructions.\n\n## Repository-Specific Instructions\n\n<repository-configuration>\n\n</repository-configuration>",
+      );
     });
 
     it("should handle multiline user override", () => {

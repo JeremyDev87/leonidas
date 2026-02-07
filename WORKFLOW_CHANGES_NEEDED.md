@@ -8,13 +8,13 @@ These changes need to be manually applied by a repository maintainer with approp
 Add the `language` input parameter to pass through `vars.LEONIDAS_LANGUAGE`:
 
 ```yaml
-      - name: Generate implementation plan
-        uses: ./
-        with:
-          mode: plan
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ github.token }}
-          language: ${{ vars.LEONIDAS_LANGUAGE }}  # ADD THIS LINE
+- name: Generate implementation plan
+  uses: ./
+  with:
+    mode: plan
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    github_token: ${{ github.token }}
+    language: ${{ vars.LEONIDAS_LANGUAGE }} # ADD THIS LINE
 ```
 
 ## .github/workflows/leonidas-execute.yml
@@ -22,13 +22,13 @@ Add the `language` input parameter to pass through `vars.LEONIDAS_LANGUAGE`:
 Add the `language` input parameter to pass through `vars.LEONIDAS_LANGUAGE`:
 
 ```yaml
-      - name: Execute implementation
-        uses: ./
-        with:
-          mode: execute
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ github.token }}
-          language: ${{ vars.LEONIDAS_LANGUAGE }}  # ADD THIS LINE
+- name: Execute implementation
+  uses: ./
+  with:
+    mode: execute
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    github_token: ${{ github.token }}
+    language: ${{ vars.LEONIDAS_LANGUAGE }} # ADD THIS LINE
 ```
 
 ## Why These Changes Are Needed
@@ -38,6 +38,7 @@ to the action inputs, allowing users to configure the language globally for thei
 repository or organization without modifying workflow files.
 
 Without these changes, the language configuration will still work via:
+
 1. Repository config file (`leonidas.config.yml`)
 2. Direct action input (requires modifying workflow files)
 

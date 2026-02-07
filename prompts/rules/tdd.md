@@ -7,11 +7,12 @@ Test-Driven Development (TDD) improves code quality by writing tests before impl
 ## Red-Green-Refactor Cycle
 
 ### 1. Red: Write a Failing Test
+
 Write a test for the next small piece of functionality:
 
 ```javascript
-describe('calculateTotal', () => {
-  it('returns 0 for empty array', () => {
+describe("calculateTotal", () => {
+  it("returns 0 for empty array", () => {
     const result = calculateTotal([]);
     expect(result).toBe(0);
   });
@@ -21,6 +22,7 @@ describe('calculateTotal', () => {
 Run the test. It should fail because the function doesn't exist yet.
 
 ### 2. Green: Make It Pass
+
 Write the simplest code to make the test pass:
 
 ```javascript
@@ -32,6 +34,7 @@ function calculateTotal(items) {
 Run the test. It should pass.
 
 ### 3. Refactor: Improve the Code
+
 Improve the implementation without changing behavior:
 
 ```javascript
@@ -46,38 +49,38 @@ Add more tests and repeat the cycle.
 ## Test Organization
 
 ### Use Descriptive Names
+
 Test names should describe the behavior being tested:
 
 ❌ **Bad:** `it('works', () => { })`
 ✅ **Good:** `it('returns 0 for empty array', () => { })`
 
 ### Group Related Tests
+
 Use `describe` blocks to organize related tests:
 
 ```javascript
-describe('UserService', () => {
-  describe('getUserById', () => {
-    it('returns user when ID exists', () => { });
-    it('throws NotFoundError when ID does not exist', () => { });
+describe("UserService", () => {
+  describe("getUserById", () => {
+    it("returns user when ID exists", () => {});
+    it("throws NotFoundError when ID does not exist", () => {});
   });
 
-  describe('createUser', () => {
-    it('creates user with valid data', () => { });
-    it('throws ValidationError for invalid email', () => { });
+  describe("createUser", () => {
+    it("creates user with valid data", () => {});
+    it("throws ValidationError for invalid email", () => {});
   });
 });
 ```
 
 ### Structure: Arrange-Act-Assert
+
 Organize test code into three sections:
 
 ```javascript
-it('calculates total correctly', () => {
+it("calculates total correctly", () => {
   // Arrange: Set up test data
-  const items = [
-    { price: 10 },
-    { price: 20 },
-  ];
+  const items = [{ price: 10 }, { price: 20 }];
 
   // Act: Execute the function
   const result = calculateTotal(items);
@@ -90,6 +93,7 @@ it('calculates total correctly', () => {
 ## Assertion Best Practices
 
 ### Be Specific
+
 Use the most specific assertion available:
 
 ❌ **Bad:** `expect(result).toBeTruthy()`
@@ -99,16 +103,18 @@ Use the most specific assertion available:
 ✅ **Good:** `expect(items).toHaveLength(3)`
 
 ### Test One Thing
+
 Each test should verify one behavior:
 
 ❌ **Bad:**
-```javascript
-it('user operations work', () => {
-  const user = createUser(data);
-  expect(user.name).toBe('Alice');
 
-  updateUser(user.id, { name: 'Bob' });
-  expect(getUser(user.id).name).toBe('Bob');
+```javascript
+it("user operations work", () => {
+  const user = createUser(data);
+  expect(user.name).toBe("Alice");
+
+  updateUser(user.id, { name: "Bob" });
+  expect(getUser(user.id).name).toBe("Bob");
 
   deleteUser(user.id);
   expect(getUser(user.id)).toBeNull();
@@ -116,18 +122,21 @@ it('user operations work', () => {
 ```
 
 ✅ **Good:**
+
 ```javascript
-it('creates user with provided name', () => { });
-it('updates user name', () => { });
-it('deletes user', () => { });
+it("creates user with provided name", () => {});
+it("updates user name", () => {});
+it("deletes user", () => {});
 ```
 
 ### Avoid Logic in Tests
+
 Tests should be simple and obvious:
 
 ❌ **Bad:**
+
 ```javascript
-it('processes items', () => {
+it("processes items", () => {
   const items = [];
   for (let i = 0; i < 10; i++) {
     items.push({ id: i, price: i * 10 });
@@ -138,8 +147,9 @@ it('processes items', () => {
 ```
 
 ✅ **Good:**
+
 ```javascript
-it('processes items and calculates total', () => {
+it("processes items and calculates total", () => {
   const items = [
     { id: 1, price: 10 },
     { id: 2, price: 20 },
@@ -152,69 +162,73 @@ it('processes items and calculates total', () => {
 ## Edge Cases and Error Handling
 
 ### Test Edge Cases
+
 Cover boundary conditions:
 
 ```javascript
-describe('divide', () => {
-  it('divides positive numbers', () => {
+describe("divide", () => {
+  it("divides positive numbers", () => {
     expect(divide(10, 2)).toBe(5);
   });
 
-  it('handles division by zero', () => {
-    expect(() => divide(10, 0)).toThrow('Division by zero');
+  it("handles division by zero", () => {
+    expect(() => divide(10, 0)).toThrow("Division by zero");
   });
 
-  it('handles negative numbers', () => {
+  it("handles negative numbers", () => {
     expect(divide(-10, 2)).toBe(-5);
   });
 
-  it('handles decimals', () => {
+  it("handles decimals", () => {
     expect(divide(10, 3)).toBeCloseTo(3.333, 2);
   });
 });
 ```
 
 ### Test Error Conditions
+
 Verify that errors are thrown correctly:
 
 ```javascript
-it('throws ValidationError for invalid email', () => {
+it("throws ValidationError for invalid email", () => {
   expect(() => {
-    createUser({ email: 'invalid' });
+    createUser({ email: "invalid" });
   }).toThrow(ValidationError);
 });
 
-it('includes helpful error message', () => {
+it("includes helpful error message", () => {
   expect(() => {
-    createUser({ email: 'invalid' });
-  }).toThrow('Email must contain @');
+    createUser({ email: "invalid" });
+  }).toThrow("Email must contain @");
 });
 ```
 
 ## Mocking and Isolation
 
 ### Mock External Dependencies
+
 Isolate the unit under test:
 
 ```javascript
-import { vi } from 'vitest';
-import * as database from './database.js';
+import { vi } from "vitest";
+import * as database from "./database.js";
 
-vi.mock('./database.js');
+vi.mock("./database.js");
 
-describe('UserService', () => {
-  it('fetches user from database', async () => {
-    vi.mocked(database.query).mockResolvedValue({ id: 1, name: 'Alice' });
+describe("UserService", () => {
+  it("fetches user from database", async () => {
+    vi.mocked(database.query).mockResolvedValue({ id: 1, name: "Alice" });
 
     const user = await getUserById(1);
 
-    expect(user.name).toBe('Alice');
-    expect(database.query).toHaveBeenCalledWith('SELECT * FROM users WHERE id = ?', [1]);
+    expect(user.name).toBe("Alice");
+    expect(database.query).toHaveBeenCalledWith("SELECT * FROM users WHERE id = ?", [1]);
   });
 });
 ```
 
 ### Don't Mock What You Don't Own
+
 Mock your own modules, not external libraries:
 
 ❌ **Bad:** Mocking `bcrypt.hash()` to return a specific string
@@ -223,6 +237,7 @@ Mock your own modules, not external libraries:
 ## Test Coverage
 
 ### Aim for Meaningful Coverage
+
 Focus on testing behavior, not just hitting coverage targets:
 
 - ✅ Test all code paths (if/else branches)
@@ -232,6 +247,7 @@ Focus on testing behavior, not just hitting coverage targets:
 - ❌ Don't test framework code or external libraries
 
 ### 90%+ Coverage Goal
+
 Maintain high coverage while avoiding meaningless tests:
 
 ```bash

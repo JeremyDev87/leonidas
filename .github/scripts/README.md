@@ -9,6 +9,7 @@ This directory contains utility scripts for managing GitHub repository settings.
 Configures branch protection rules for the `main` branch to enforce CI checks before merge.
 
 **Required status checks:**
+
 - `lint` - ESLint and Prettier checks
 - `typecheck` - TypeScript type checking
 - `test` - Vitest test suite
@@ -16,6 +17,7 @@ Configures branch protection rules for the `main` branch to enforce CI checks be
 - `security` - npm audit for vulnerabilities
 
 **Protection settings:**
+
 - Requires branches to be up to date before merge
 - Prevents force pushes to main
 - Prevents branch deletion
@@ -31,6 +33,7 @@ chmod +x configure-branch-protection.sh
 ```
 
 **Prerequisites:**
+
 - GitHub CLI (`gh`) installed and authenticated
 - Repository admin or maintain permissions
 - At least one successful CI run to establish the status checks

@@ -14,6 +14,7 @@ Plans must reference exact locations and components:
 - ❌ **Bad:** "Update the authentication system"
 
 **Requirements:**
+
 - Reference exact file paths (e.g., `src/utils/parser.ts:42-56`)
 - Name specific functions, classes, or variables to modify
 - Include line numbers for large files when helpful
@@ -26,6 +27,7 @@ Every step must have clear success criteria:
 - ❌ **Bad:** "Add error handling to API endpoints"
 
 **Requirements:**
+
 - Include explicit verification method for each step
 - Specify expected outcomes (e.g., "tests should pass", "build should succeed")
 - Define how to confirm the step worked correctly
@@ -39,6 +41,7 @@ Steps should be atomic but not overly granular:
 - ❌ **Too vague:** "Update authentication system"
 
 **Requirements:**
+
 - Each step represents one logical change (one potential commit)
 - Steps are independently understandable and verifiable
 - Avoid splitting trivial operations into multiple steps
@@ -52,6 +55,7 @@ Plans must address all acceptance criteria:
 - ❌ Missing requirements or skipping validation
 
 **Requirements:**
+
 - Map each acceptance criterion to specific plan steps
 - Include verification steps for all changes
 - Don't skip edge cases or error handling
@@ -64,6 +68,7 @@ Follow existing codebase patterns:
 - ❌ Introduces inconsistent patterns or ignores project conventions
 
 **Requirements:**
+
 - Study existing code patterns before planning
 - Match the project's architectural style
 - Follow established naming and organization conventions
@@ -71,30 +76,37 @@ Follow existing codebase patterns:
 ## Anti-Patterns to Avoid
 
 ### Too Vague
+
 ❌ "Update the authentication system"
 ✅ "Add password hashing using bcrypt in `src/auth/password.ts:validatePassword()`"
 
 ### Too Granular
+
 ❌ Step 1: Open file, Step 2: Add import, Step 3: Write function signature, Step 4: Add body
 ✅ Step 1: Implement password hashing function in `src/auth/password.ts` with bcrypt integration
 
 ### Missing Verification
+
 ❌ "Add error handling to API endpoints"
 ✅ "Add error handling to API endpoints, verify with `npm test` and manual testing of error cases"
 
 ### Ignoring Patterns
+
 ❌ Using classes when the entire codebase uses functional patterns
 ✅ Following the existing functional programming style with pure functions
 
 ### Over-Engineering
+
 ❌ "Create abstract factory pattern with dependency injection container"
 ✅ "Add simple helper function following existing utility pattern"
 
 ### Too Many Steps
+
 ❌ Plans with 10+ steps that exceed turn budget
 ✅ Plans with 5-7 well-scoped steps that fit within constraints
 
 ### Missing Dependencies
+
 ❌ Step 3 uses a function defined in Step 5
 ✅ Steps ordered so dependencies are created before use
 
