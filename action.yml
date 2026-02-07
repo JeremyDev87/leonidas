@@ -113,6 +113,11 @@ runs:
         show_full_output: "true"
         use_node_cache: "false"
 
+    - name: Cleanup prompt file
+      if: always()
+      shell: bash
+      run: rm -f "${{ steps.prepare.outputs.prompt_file }}"
+
     - name: Link native sub-issues (if decomposed)
       if: inputs.mode == 'plan' && !failure()
       shell: bash

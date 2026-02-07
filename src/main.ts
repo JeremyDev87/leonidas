@@ -211,7 +211,8 @@ async function run(): Promise<void> {
     }
 
     // Write prompt to temp file to avoid shell escaping issues
-    const tmpDir = os.tmpdir();
+    // Prefer RUNNER_TEMP (cleaned per-job by GitHub Actions) over os.tmpdir()
+    const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
     const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
     fs.writeFileSync(promptFile, prompt, "utf-8");
 
