@@ -139,7 +139,8 @@ runs:
         echo "Decomposed plan found. Linking sub-issues to parent #$ISSUE_NUMBER..."
 
         # Extract sub-issue numbers from checklist (e.g., "- [ ] #36 — ...")
-        SUB_ISSUES=$(echo "$COMMENT_BODY" | grep -oP '- \[[ x]\] #\K\d+' || true)
+        # Use grep -oE (ERE) instead of grep -oP (PCRE) for portability across non-GNU environments
+        SUB_ISSUES=$(echo "$COMMENT_BODY" | grep -oE '- \[[ x]\] #[0-9]+' | grep -oE '[0-9]+$' || true)
 
         if [ -z "$SUB_ISSUES" ]; then
           echo "No sub-issue numbers found in checklist."
