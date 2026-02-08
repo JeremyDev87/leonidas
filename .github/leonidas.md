@@ -22,17 +22,35 @@ This project uses **CommonJS** (no `"type": "module"` in package.json).
 
 ## Before Committing
 
-You MUST verify your changes pass before committing:
+You MUST verify your changes pass ALL checks before committing:
 
-1. `npm run build` — must succeed
-2. `npm test` — must succeed
+1. `npm run lint` — must succeed (ESLint + Prettier formatting)
+2. `npm run typecheck` — must succeed (TypeScript type validation)
+3. `npm run build` — must succeed
+4. `npm test` — must succeed
 
-If either fails, fix the issue before committing. Do NOT commit broken code.
+If ANY check fails, fix the issue before committing. Do NOT commit broken code.
+
+### Auto-fixing lint errors
+
+If `npm run lint` fails due to formatting, run:
+```bash
+npx prettier --write .
+npx eslint --fix .
+```
+Then re-run `npm run lint` to confirm the fix.
+
+### Common TypeScript mistakes to avoid
+
+- Do NOT use `any` type — use proper types or `unknown`
+- Do NOT use `string` where a union type is expected (e.g., use `"en" | "ko"` instead of `string`)
+- Do NOT leave unused imports or variables — remove them
+- Use `??` (nullish coalescing) instead of `||` for default values
 
 <!--
   This prevents broken code from entering the repository.
-  Adjust these commands based on your project's scripts (e.g., `yarn test`, `pnpm build`).
-  Remove checks that don't apply (e.g., if you don't have tests yet).
+  All four checks correspond to CI pipeline jobs (lint, typecheck, build, test).
+  Running them locally before committing avoids CI failures.
 -->
 
 ## Error Recovery

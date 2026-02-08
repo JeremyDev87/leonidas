@@ -4,9 +4,27 @@ on:
   push:
     branches-ignore:
       - main
+    paths:
+      - "src/**"
+      - "action.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "eslint.config.mjs"
+      - ".github/workflows/ci.yml"
+      - ".github/actions/**"
   pull_request:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "action.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "eslint.config.mjs"
+      - ".github/workflows/ci.yml"
+      - ".github/actions/**"
   workflow_dispatch:
 
 jobs:
