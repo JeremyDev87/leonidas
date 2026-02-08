@@ -97,7 +97,7 @@ describe("Config-to-Prompt Pipeline Integration", () => {
       // Create rules directory
       const rulesPath = createRulesDirectory({
         "coding-style": "# Coding Style\n\nUse TypeScript strict mode",
-        "testing": "# Testing\n\nWrite tests for all features",
+        testing: "# Testing\n\nWrite tests for all features",
       });
 
       const inputs = createMockInputs({
@@ -466,9 +466,7 @@ Run tests`;
       const inputs = createMockInputs();
 
       // Act & Assert: Should throw validation error
-      expect(() => resolveConfig(inputs)).toThrow(
-        "max_turns must be between 10 and 200, got 300",
-      );
+      expect(() => resolveConfig(inputs)).toThrow("max_turns must be between 10 and 200, got 300");
     });
 
     it("should handle config file that is not a directory for rules_path", () => {
