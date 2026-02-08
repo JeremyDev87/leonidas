@@ -34,10 +34,12 @@ If ANY check fails, fix the issue before committing. Do NOT commit broken code.
 ### Auto-fixing lint errors
 
 If `npm run lint` fails due to formatting, run:
+
 ```bash
 npx prettier --write .
 npx eslint --fix .
 ```
+
 Then re-run `npm run lint` to confirm the fix.
 
 ### Common TypeScript mistakes to avoid
