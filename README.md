@@ -128,17 +128,37 @@ If the language is not configured or set to an unsupported value, Leonidas defau
     leonidas-request.yml  # Issue template
 prompts/
   system.md               # Default system prompt for Claude
+  rules/                  # Bundled rule templates
+    plan-quality.md       # Plan quality standards
+    coding-standards.md   # Coding conventions
+    tdd.md                # Test-driven development
+    architecture.md       # Architecture principles
+    security.md           # Security guidelines
 src/
   main.ts                 # Entry point (orchestrator)
   config.ts               # Configuration system
   github.ts               # GitHub API helpers
   types.ts                # Type definitions
+  i18n.ts                 # Internationalization module
+  post_process.ts         # Post-processing CLI entry point
+  post_processing.ts      # Post-processing logic
   prompts/
     system.ts             # System prompt builder
     plan.ts               # Plan prompt builder
     execute.ts            # Execute prompt builder
   templates/
     plan_comment.ts       # Comment formatting
+  test-helpers/
+    main.helpers.ts       # Test utilities
+  utils/
+    sanitize.ts           # Content sanitization (prompt injection defense)
+examples/                 # User-facing workflow examples
+  plan.yml                # Example plan workflow
+  execute.yml             # Example execute workflow
+  leonidas.config.yml     # Example configuration
+docs/                     # Additional guides
+  setup-guide.md          # Setup instructions
+  BRANCH_PROTECTION_SETUP.md  # Branch protection guide
 leonidas.config.yml       # Example configuration
 ```
 
