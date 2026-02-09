@@ -267,17 +267,18 @@ We require a Test-Driven Development approach:
 
 ### Test Organization
 
+Tests are colocated with source files using the `.test.ts` extension:
+
 ```
-tests/
-  unit/
-    features/
-      user/
-        create_user_use_case_test.js
-  integration/
-    api/
-      user_endpoints_test.js
-  e2e/
-    user_flows_test.js
+src/
+  config.ts
+  config.test.ts          # Test colocated with source
+  main.ts
+  main.test.ts
+  prompts/
+    plan.ts
+    plan.test.ts
+  integration.test.ts      # Integration tests also in src/
 ```
 
 ## Questions?
