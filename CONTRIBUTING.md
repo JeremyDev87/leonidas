@@ -51,7 +51,7 @@ Code contributions are always welcome! Whether it's fixing a bug, implementing a
 ### Prerequisites
 
 - Node.js version: 20
-- npm or yarn package manager
+- npm package manager
 
 ### Installation
 
