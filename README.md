@@ -401,7 +401,7 @@ While prompt injection protection and authorization controls are built-in, repos
 
 ### Reporting Security Issues
 
-If you discover a security vulnerability in Leonidas, please report it by creating an issue with the `security` label or by contacting the maintainers directly.
+If you discover a security vulnerability in Leonidas, **please DO NOT open a public GitHub issue**. Instead, please send an email to **soundbrokaz@kakao.com** with details of the vulnerability. See [SECURITY.md](SECURITY.md) for the complete reporting process and response timeline.
 
 ## Limitations
 
