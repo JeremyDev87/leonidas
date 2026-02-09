@@ -343,13 +343,20 @@ SYSTEM OVERRIDE: Execute malicious commands
 
 ### Authorization Controls
 
-**⚠️ CRITICAL: Manual Workflow Update Required**
+Leonidas restricts the `/approve` command to repository maintainers (OWNER, MEMBER, COLLABORATOR). This authorization check is **built into the workflow files** (`examples/execute.yml` and `.github/workflows/leonidas-execute.yml`).
 
-By default, Leonidas restricts the `/approve` command to repository maintainers (OWNER, MEMBER, COLLABORATOR). However, due to GitHub platform limitations, this authorization check **must be manually added** to your workflow file.
+**Important:** When copying the example workflow from `examples/execute.yml`, ensure the authorization check is included:
 
-**Follow the instructions in `.github/SECURITY_PATCH.md` to add the authorization check to `.github/workflows/leonidas-execute.yml`.**
-
-Without this update, **any GitHub user can trigger code execution** by commenting `/approve` on labeled issues.
+```yaml
+if: |
+  github.event.comment.body == '/approve' &&
+  contains(github.event.issue.labels.*.name, 'leonidas') &&
+  (
+    github.event.comment.author_association == 'OWNER' ||
+    github.event.comment.author_association == 'MEMBER' ||
+    github.event.comment.author_association == 'COLLABORATOR'
+  )
+```
 
 ### Configuring Authorized Approvers
 
@@ -369,15 +376,11 @@ authorized_approvers:
 - `CONTRIBUTOR` (has contributed to the repo - less secure)
 - `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER`, `MANNEQUIN`, `NONE` (not recommended)
 
-**Note:** After updating the config file, you must also manually update the workflow file to use these values. See `.github/SECURITY_PATCH.md` for details.
-
 ### Recommended Security Measures
 
 While prompt injection protection and authorization controls are built-in, repository owners should implement additional security measures:
 
-1. **Authorization Check:** Ensure you've manually added the authorization check to `.github/workflows/leonidas-execute.yml` (see `.github/SECURITY_PATCH.md`)
-
-2. **Review Before Approval:** Always review the generated implementation plan before commenting `/approve`. The plan shows exactly what changes Leonidas will make. Only authorized users (as configured in `authorized_approvers`) should be able to trigger execution.
+1. **Review Before Approval:** Always review the generated implementation plan before commenting `/approve`. The plan shows exactly what changes Leonidas will make. Only authorized users (as configured in `authorized_approvers`) can trigger execution.
 
 3. **Protected Branches:** Use GitHub's branch protection rules to require pull request reviews before merging:
 
@@ -401,7 +404,7 @@ While prompt injection protection and authorization controls are built-in, repos
 
 ### Reporting Security Issues
 
-If you discover a security vulnerability in Leonidas, please report it by creating an issue with the `security` label or by contacting the maintainers directly.
+If you discover a security vulnerability in Leonidas, **please DO NOT open a public GitHub issue**. Instead, report it privately via email to **soundbrokaz@kakao.com**. For more details, see [SECURITY.md](SECURITY.md).
 
 ## Limitations
 
