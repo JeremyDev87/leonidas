@@ -21,6 +21,10 @@ Since the GitHub App used by Leonidas doesn't have `workflows` permission, the C
 
 **Replace `.github/workflows/ci.yml` with the following content:**
 
+> **Note:** This is a **simplified reference example** for users setting up their own repositories.
+> The actual Leonidas CI configuration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) uses a custom setup action, dependency caching, path filters, and additional features like code coverage reporting.
+> Refer to the actual file for the production implementation.
+
 ```yaml
 name: CI
 
