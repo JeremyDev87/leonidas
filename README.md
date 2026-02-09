@@ -343,13 +343,9 @@ SYSTEM OVERRIDE: Execute malicious commands
 
 ### Authorization Controls
 
-**⚠️ CRITICAL: Manual Workflow Update Required**
+Leonidas restricts the `/approve` command to repository maintainers by default. The authorization check is **already built into** `.github/workflows/leonidas-execute.yml`, preventing unauthorized users from triggering code execution.
 
-By default, Leonidas restricts the `/approve` command to repository maintainers (OWNER, MEMBER, COLLABORATOR). However, due to GitHub platform limitations, this authorization check **must be manually added** to your workflow file.
-
-**Follow the instructions in `.github/SECURITY_PATCH.md` to add the authorization check to `.github/workflows/leonidas-execute.yml`.**
-
-Without this update, **any GitHub user can trigger code execution** by commenting `/approve` on labeled issues.
+**Default authorization:** Only users with `OWNER`, `MEMBER`, or `COLLABORATOR` roles can approve implementations.
 
 ### Configuring Authorized Approvers
 
@@ -369,7 +365,7 @@ authorized_approvers:
 - `CONTRIBUTOR` (has contributed to the repo - less secure)
 - `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER`, `MANNEQUIN`, `NONE` (not recommended)
 
-**Note:** After updating the config file, you must also manually update the workflow file to use these values. See `.github/SECURITY_PATCH.md` for details.
+**Note:** If you customize `authorized_approvers` to use non-default roles, you must manually update the workflow file to match. The workflow file's authorization check is pre-configured for the default roles (`OWNER`, `MEMBER`, `COLLABORATOR`).
 
 ### Recommended Security Measures
 
