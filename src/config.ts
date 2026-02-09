@@ -203,7 +203,9 @@ export function loadRules(rulesPath: string): Record<string, string> {
     }
 
     return rules;
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    core.warning(`Failed to load rules from "${rulesPath}": ${message}`);
     return {};
   }
 }
