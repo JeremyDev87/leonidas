@@ -371,7 +371,7 @@ authorized_approvers:
 
 While prompt injection protection and authorization controls are built-in, repository owners should implement additional security measures:
 
-1. **Authorization Check:** Ensure you've manually added the authorization check to `.github/workflows/leonidas-execute.yml` (see `.github/SECURITY_PATCH.md`)
+1. **Authorization Configuration:** Authorization checks are already configured by default in `.github/workflows/leonidas-execute.yml`. If you customize `authorized_approvers` in your config file to use non-default roles, update the workflow file to match your configuration.
 
 2. **Review Before Approval:** Always review the generated implementation plan before commenting `/approve`. The plan shows exactly what changes Leonidas will make. Only authorized users (as configured in `authorized_approvers`) should be able to trigger execution.
 
