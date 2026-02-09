@@ -201,7 +201,7 @@ By default, GitHub Actions workflows triggered by `GITHUB_TOKEN` cannot trigger 
 
 ```yaml
 # In your workflow file
-- uses: ./
+- uses: JeremyDev87/leonidas@v1
   with:
     github_token: ${{ secrets.PAT }} # Instead of github.token
 ```
