@@ -124,27 +124,24 @@ We follow strict coding conventions to maintain consistency across the codebase:
 
 ### Architecture
 
-This project follows **Clean Architecture** principles:
+This project uses a **pragmatic, module-based structure**:
 
-- **Feature-based organization**: Code is organized by features/domains rather than technical layers
-- **Dependency Rule**: Dependencies point inward toward business logic
-- **Separation of Concerns**: Clear boundaries between layers (entities, use cases, interface adapters, frameworks)
+- **Flat organization**: Modules are organized by function rather than layered architecture
+- **Clear separation**: Each module handles a specific concern (config, GitHub API, prompts, etc.)
 - **Testability**: Business logic is independent of frameworks and external dependencies
 
-Example directory structure:
+Project structure:
 
 ```
 src/
-  features/
-    user/
-      domain/
-        user_entity.js
-      use_cases/
-        create_user_use_case.js
-      repositories/
-        user_repository.js
-      controllers/
-        user_controller.js
+  main.ts                  # Entry point (orchestrator)
+  config.ts                # Configuration system
+  github.ts                # GitHub API helpers
+  i18n.ts                  # Internationalization
+  types.ts                 # Type definitions
+  prompts/                 # Prompt builders
+  templates/               # Comment formatting
+  utils/                   # Utility functions
 ```
 
 ### Testing
