@@ -39,18 +39,18 @@ See the [Setup Guide](docs/setup-guide.md) for detailed instructions.
 
 Create `leonidas.config.yml` in your repository root to customize:
 
-| Option                 | Default                               | Description                                 |
-| ---------------------- | ------------------------------------- | ------------------------------------------- |
-| `label`                | `leonidas`                            | Trigger label name                          |
-| `model`                | `claude-sonnet-4-5-20250929`          | Claude model to use                         |
-| `branch_prefix`        | `claude/issue-`                       | Branch prefix for PRs                       |
-| `base_branch`          | `main`                                | Base branch for PRs                         |
-| `max_turns`            | `50`                                  | Max Claude Code turns                       |
-| `language`             | `en`                                  | Plan comment language                       |
-| `authorized_approvers` | `["OWNER", "MEMBER", "COLLABORATOR"]` | Who can trigger execution with `/approve`   |
+| Option                 | Default                               | Description                                      |
+| ---------------------- | ------------------------------------- | ------------------------------------------------ |
+| `label`                | `leonidas`                            | Trigger label name                               |
+| `model`                | `claude-sonnet-4-5-20250929`          | Claude model to use                              |
+| `branch_prefix`        | `claude/issue-`                       | Branch prefix for PRs                            |
+| `base_branch`          | `main`                                | Base branch for PRs                              |
+| `max_turns`            | `50`                                  | Max Claude Code turns                            |
+| `language`             | `en`                                  | Plan comment language                            |
+| `authorized_approvers` | `["OWNER", "MEMBER", "COLLABORATOR"]` | Who can trigger execution with `/approve`        |
 | `allowed_tools`        | (all tools)                           | Comma-separated allowed tools (overrides config) |
-| `system_prompt_path`   | `.github/leonidas.md`                 | Path to custom system prompt file           |
-| `rules_path`           | `.github/leonidas-rules`              | Path to rules directory containing .md files |
+| `system_prompt_path`   | `.github/leonidas.md`                 | Path to custom system prompt file                |
+| `rules_path`           | `.github/leonidas-rules`              | Path to rules directory containing .md files     |
 
 ## Language Configuration
 
