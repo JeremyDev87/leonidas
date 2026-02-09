@@ -89,7 +89,7 @@ gh variable set LEONIDAS_LANGUAGE --body "ko"
 Then reference it in your workflow:
 
 ```yaml
-- uses: ./
+- uses: JeremyDev87/leonidas@v1
   with:
     language: ${{ vars.LEONIDAS_LANGUAGE }}
 ```
@@ -104,7 +104,7 @@ language: ko
 **Option 3: Workflow Action Input**
 
 ```yaml
-- uses: ./
+- uses: JeremyDev87/leonidas@v1
   with:
     language: ko
 ```
