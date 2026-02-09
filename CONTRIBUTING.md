@@ -113,7 +113,7 @@ We follow strict coding conventions to maintain consistency across the codebase:
 ### File Naming
 
 - Use **snake_case** for all file names
-- Examples: `user_service.js`, `authentication_middleware.js`, `user_repository_test.js`
+- Examples: `user_service.ts`, `authentication_middleware.ts`, `user_repository_test.ts`
 
 ### Code Style
 
