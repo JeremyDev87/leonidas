@@ -61,6 +61,25 @@ max_turns: 50
 
 # Plan comment language
 language: "en"
+
+# Authorized approvers for /approve command
+# Only users with these GitHub author associations can trigger execution
+# Default: ["OWNER", "MEMBER", "COLLABORATOR"]
+# Note: To customize this, you must also update .github/workflows/leonidas-execute.yml
+# authorized_approvers:
+#   - "OWNER"
+#   - "MEMBER"
+#   - "COLLABORATOR"
+
+# Allowed tools for Claude Code during execution
+# Uncomment to restrict tools (default: all tools allowed)
+# allowed_tools:
+#   - "Read"
+#   - "Write"
+#   - "Edit"
+#   - "Bash(npm:*)"
+#   - "Bash(git:*)"
+#   - "Bash(gh:*)"
 ```
 
 ### Step 5: (Optional) Add Issue Template
