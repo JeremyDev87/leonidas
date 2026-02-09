@@ -2,6 +2,21 @@
   "name": "leonidas",
   "version": "1.0.0",
   "description": "GitHub Actions automation tool - Claude Code analyzes issues and implements code",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeremyDev87/leonidas.git"
+  },
+  "keywords": [
+    "github-actions",
+    "claude-code",
+    "automation",
+    "issue-to-pr",
+    "ai-developer"
+  ],
+  "bugs": {
+    "url": "https://github.com/JeremyDev87/leonidas/issues"
+  },
+  "homepage": "https://github.com/JeremyDev87/leonidas#readme",
   "engines": {
     "node": ">=20"
   },
