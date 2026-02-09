@@ -69,15 +69,18 @@ Copy `.github/ISSUE_TEMPLATE/leonidas-request.yml` to your repository. This prov
 
 ## Configuration Reference
 
-| Option          | Default                      | Description                                  |
-| --------------- | ---------------------------- | -------------------------------------------- |
-| `label`         | `leonidas`                   | Issue label that triggers the workflow       |
-| `model`         | `claude-sonnet-4-5-20250929` | Claude model for analysis and implementation |
-| `branch_prefix` | `claude/issue-`              | Prefix for implementation branches           |
-| `base_branch`   | `main`                       | Target branch for pull requests              |
-| `allowed_tools` | (see config file)            | Tools Claude can use during execution        |
-| `max_turns`     | `50`                         | Maximum API round-trips per workflow run     |
-| `language`      | `en`                         | Language for plan comments                   |
+| Option                 | Default                               | Description                                      |
+| ---------------------- | ------------------------------------- | ------------------------------------------------ |
+| `label`                | `leonidas`                            | Issue label that triggers the workflow           |
+| `model`                | `claude-sonnet-4-5-20250929`          | Claude model for analysis and implementation     |
+| `branch_prefix`        | `claude/issue-`                       | Prefix for implementation branches               |
+| `base_branch`          | `main`                                | Target branch for pull requests                  |
+| `max_turns`            | `50`                                  | Maximum API round-trips per workflow run         |
+| `language`             | `en`                                  | Language for plan comments                       |
+| `authorized_approvers` | `["OWNER", "MEMBER", "COLLABORATOR"]` | Who can trigger execution with `/approve`        |
+| `allowed_tools`        | (all tools)                           | Comma-separated allowed tools (overrides config) |
+| `system_prompt_path`   | `.github/leonidas.md`                 | Path to custom system prompt file                |
+| `rules_path`           | `.github/leonidas-rules`              | Path to rules directory containing .md files     |
 
 ## Troubleshooting
 
