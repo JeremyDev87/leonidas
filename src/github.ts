@@ -155,7 +155,9 @@ export async function linkSubIssues(
       linked++;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      core.warning(`Failed to link sub-issue #${subNum} to parent #${parentIssueNumber}: ${message}`);
+      core.warning(
+        `Failed to link sub-issue #${subNum} to parent #${parentIssueNumber}: ${message}`,
+      );
       failed++;
     }
   }
