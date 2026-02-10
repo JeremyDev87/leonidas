@@ -93,14 +93,14 @@ interface ModeResult {
   maxTurns: number;
 }
 
-export async function handlePlanMode(
+export function handlePlanMode(
   inputs: ActionInputs,
   config: ReturnType<typeof resolveConfig>,
   context: GitHubContext,
   systemPrompt: string,
   subIssueMetadata: ReturnType<typeof parseSubIssueMetadata>,
   repoFullName: string,
-): Promise<ModeResult> {
+): ModeResult {
   // Plan mode turn limits:
   // - Sub-issue plans: capped at 10 (scope is narrow, no decomposition)
   // - Regular plans with decomposition: capped at 20 (needs turns for analysis + gh issue create)
@@ -176,9 +176,7 @@ export async function handleExecuteMode(
   );
 
   if (!planComment) {
-    core.setFailed(
-      `No plan comment found on issue #${context.issue_number}. Run plan mode first.`,
-    );
+    core.setFailed(`No plan comment found on issue #${context.issue_number}. Run plan mode first.`);
     return null;
   }
 
@@ -191,9 +189,7 @@ export async function handleExecuteMode(
       context.issue_number,
       "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
     );
-    core.setFailed(
-      "Cannot execute a decomposed parent issue. Execute sub-issues individually.",
-    );
+    core.setFailed("Cannot execute a decomposed parent issue. Execute sub-issues individually.");
     return null;
   }
 
@@ -260,10 +256,12 @@ async function run(): Promise<void> {
     // Route to appropriate mode handler
     const result =
       inputs.mode === "plan"
-        ? await handlePlanMode(inputs, config, context, systemPrompt, subIssueMetadata, repoFullName)
+        ? handlePlanMode(inputs, config, context, systemPrompt, subIssueMetadata, repoFullName)
         : await handleExecuteMode(inputs, config, context, systemPrompt, subIssueMetadata, rules);
 
-    if (!result) return; // Early exit for execute mode failures
+    if (!result) {
+      return; // Early exit for execute mode failures
+    }
 
     const { prompt, allowedTools, maxTurns } = result;
 
