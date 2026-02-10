@@ -242,7 +242,7 @@ export async function handleExecuteMode(
   return { prompt, allowedTools, maxTurns };
 }
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
     const inputs = readInputs();
     const config = resolveConfig(inputs);
@@ -288,4 +288,6 @@ async function run(): Promise<void> {
   }
 }
 
-void run();
+run().catch((error: unknown) => {
+  core.setFailed(error instanceof Error ? error.message : String(error));
+});
