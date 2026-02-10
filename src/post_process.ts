@@ -79,6 +79,8 @@ export function readBaseContext(): PostProcessContext {
 }
 
 async function runLinkSubIssues(): Promise<void> {
+  // Note: This command uses REPO instead of GITHUB_REPOSITORY and doesn't need
+  // language, branchPrefix, or runUrl, so it reads env vars directly
   const token = getEnvRequired("GH_TOKEN");
   const { owner, repo } = parseRepo(getEnvRequired("REPO"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
