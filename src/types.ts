@@ -36,6 +36,12 @@ export interface SubIssueMetadata {
   depends_on?: number;
 }
 
+export interface GitHubRepo {
+  token: string;
+  owner: string;
+  repo: string;
+}
+
 export interface GitHubContext {
   owner: string;
   repo: string;
