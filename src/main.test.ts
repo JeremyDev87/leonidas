@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
+import { run } from "./main";
 
 vi.mock("@actions/core");
 vi.mock("fs");
@@ -15,7 +16,6 @@ vi.mock("./github");
 describe("main", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
 
     // Default environment
     process.env.GITHUB_EVENT_PATH = "/tmp/event.json";
@@ -81,7 +81,7 @@ describe("main", () => {
 
       vi.mocked(fs.writeFileSync).mockImplementation(() => {});
 
-      await import("./main");
+      await run();
 
       expect(buildPlanPrompt).toHaveBeenCalledWith(
         "Test Issue",
@@ -161,7 +161,7 @@ describe("main", () => {
 
       vi.mocked(fs.writeFileSync).mockImplementation(() => {});
 
-      await import("./main");
+      await run();
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         expect.stringMatching(/^\/runner\/tmp\/leonidas-prompt-\d+\.md$/),
@@ -221,7 +221,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("# Plan Comment\nDetailed plan");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       expect(findPlanComment).toHaveBeenCalledWith("test-github-token", "owner", "repo", 5);
       expect(postComment).toHaveBeenCalledWith(
@@ -281,7 +281,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("Plan content");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       expect(buildExecutePrompt).toHaveBeenCalledWith({
         issueTitle: "Execute Issue",
@@ -352,7 +352,7 @@ describe("main", () => {
       const { findPlanComment } = await import("./github");
       vi.mocked(findPlanComment).mockResolvedValue(null);
 
-      await import("./main");
+      await run();
 
       expect(core.setFailed).toHaveBeenCalledWith(
         "No plan comment found on issue #99. Run plan mode first.",
@@ -366,7 +366,7 @@ describe("main", () => {
         throw new Error("Input error");
       });
 
-      await import("./main");
+      await run();
 
       expect(core.setFailed).toHaveBeenCalledWith("Input error");
     });
@@ -376,7 +376,7 @@ describe("main", () => {
         throw "string error";
       });
 
-      await import("./main");
+      await run();
 
       expect(core.setFailed).toHaveBeenCalledWith("An unexpected error occurred");
     });
@@ -424,7 +424,7 @@ describe("main", () => {
       const { findPlanComment } = await import("./github");
       vi.mocked(findPlanComment).mockRejectedValue(new Error("GitHub API error"));
 
-      await import("./main");
+      await run();
 
       expect(core.setFailed).toHaveBeenCalledWith("GitHub API error");
     });
@@ -474,7 +474,7 @@ describe("main", () => {
       const { buildPlanPrompt } = await import("./prompts/plan");
       vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
 
-      await import("./main");
+      await run();
 
       expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "ko", undefined);
       expect(buildPlanPrompt).toHaveBeenCalledWith(
@@ -537,7 +537,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("Plan content");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "es", {});
       expect(buildExecutePrompt).toHaveBeenCalledWith({
@@ -600,7 +600,7 @@ describe("main", () => {
       const { buildPlanPrompt } = await import("./prompts/plan");
       vi.mocked(buildPlanPrompt).mockReturnValue("plan prompt");
 
-      await import("./main");
+      await run();
 
       expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "en", undefined);
       expect(buildPlanPrompt).toHaveBeenCalledWith(
@@ -665,7 +665,7 @@ describe("main", () => {
         total: 3,
       });
 
-      await import("./main");
+      await run();
 
       expect(buildSystemPrompt).toHaveBeenCalledWith(".github/leonidas.md", "zh", undefined);
       expect(buildSubIssuePlanPrompt).toHaveBeenCalledWith(
@@ -729,7 +729,7 @@ describe("main", () => {
       const { postComment } = await import("./github");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       expect(core.setFailed).toHaveBeenCalledWith(expect.stringContaining("Unauthorized"));
       expect(postComment).toHaveBeenCalledWith(
@@ -792,7 +792,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("# Plan");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       // Should NOT have been rejected
       expect(core.setFailed).not.toHaveBeenCalled();
@@ -857,7 +857,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("# Plan");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       // Should NOT have been rejected despite NONE association
       expect(core.setFailed).not.toHaveBeenCalled();
@@ -914,7 +914,7 @@ describe("main", () => {
       vi.mocked(findPlanComment).mockResolvedValue("# Plan");
       vi.mocked(postComment).mockResolvedValue();
 
-      await import("./main");
+      await run();
 
       // CONTRIBUTOR should be allowed with custom config
       expect(core.setFailed).not.toHaveBeenCalled();
