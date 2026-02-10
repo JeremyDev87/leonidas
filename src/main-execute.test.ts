@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
+import { run } from "./main";
 import {
   mockInputs,
   mockGitHubEvent,
@@ -22,7 +23,6 @@ vi.mock("./github");
 describe("run() - execute mode edge cases", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     setupTestEnvironment();
     vi.mocked(os.tmpdir).mockReturnValue("/tmp");
     vi.mocked(fs.writeFileSync).mockImplementation(() => {});
@@ -58,7 +58,7 @@ describe("run() - execute mode edge cases", () => {
     vi.mocked(isDecomposedPlan).mockReturnValue(true);
     vi.mocked(postComment).mockResolvedValue();
 
-    await import("./main");
+    await run();
 
     expect(postComment).toHaveBeenCalledWith(
       "test-github-token",
@@ -103,7 +103,7 @@ describe("run() - execute mode edge cases", () => {
     vi.mocked(isIssueClosed).mockResolvedValue(false);
     vi.mocked(postComment).mockResolvedValue();
 
-    await import("./main");
+    await run();
 
     expect(isIssueClosed).toHaveBeenCalledWith("test-github-token", "owner", "repo", 101);
     expect(postComment).toHaveBeenCalledWith(
@@ -151,7 +151,7 @@ describe("run() - execute mode edge cases", () => {
     vi.mocked(isIssueClosed).mockResolvedValue(true);
     vi.mocked(postComment).mockResolvedValue();
 
-    await import("./main");
+    await run();
 
     expect(isIssueClosed).toHaveBeenCalledWith("test-github-token", "owner", "repo", 101);
     expect(core.setFailed).not.toHaveBeenCalled();
@@ -198,7 +198,7 @@ describe("run() - execute mode edge cases", () => {
     vi.mocked(isDecomposedPlan).mockReturnValue(false);
     vi.mocked(postComment).mockResolvedValue();
 
-    await import("./main");
+    await run();
 
     expect(core.setFailed).not.toHaveBeenCalled();
     expect(postComment).toHaveBeenCalledWith(
