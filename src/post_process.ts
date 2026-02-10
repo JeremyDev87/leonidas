@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { resolveLanguage } from "./i18n";
+import { resolveLanguage, SupportedLanguage } from "./i18n";
 import {
   buildCompletionComment,
   buildFailureComment,
@@ -32,6 +32,16 @@ type Command =
   | "post-process-pr"
   | "trigger-ci";
 
+export interface PostProcessContext {
+  token: string;
+  owner: string;
+  repo: string;
+  issueNumber: number;
+  language: SupportedLanguage;
+  branchPrefix: string;
+  runUrl: string;
+}
+
 export function getEnvRequired(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -47,6 +57,25 @@ export function getEnvOptional(name: string): string | undefined {
 export function parseRepo(repo: string): { owner: string; repo: string } {
   const [owner, name] = repo.split("/");
   return { owner, repo: name };
+}
+
+export function readBaseContext(): PostProcessContext {
+  const token = getEnvRequired("GH_TOKEN");
+  const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
+  const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
+  const language = resolveLanguage(getEnvOptional("LANGUAGE"));
+  const branchPrefix = getEnvRequired("BRANCH_PREFIX");
+  const runUrl = getEnvRequired("RUN_URL");
+
+  return {
+    token,
+    owner,
+    repo,
+    issueNumber,
+    language,
+    branchPrefix,
+    runUrl,
+  };
 }
 
 async function runLinkSubIssues(): Promise<void> {
