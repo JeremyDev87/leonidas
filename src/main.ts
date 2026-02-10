@@ -257,138 +257,15 @@ async function run(): Promise<void> {
     const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language, rules);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
 
-    let prompt: string;
-    let allowedTools: string;
-    let maxTurns: number;
+    // Route to appropriate mode handler
+    const result =
+      inputs.mode === "plan"
+        ? await handlePlanMode(inputs, config, context, systemPrompt, subIssueMetadata, repoFullName)
+        : await handleExecuteMode(inputs, config, context, systemPrompt, subIssueMetadata, rules);
 
-    if (inputs.mode === "plan") {
-      // Plan mode turn limits:
-      // - Sub-issue plans: capped at 10 (scope is narrow, no decomposition)
-      // - Regular plans with decomposition: capped at 20 (needs turns for analysis + gh issue create)
-      // These caps exist because plan mode is read-only analysis; config.max_turns is for execute mode.
-      const SUB_ISSUE_PLAN_MAX_TURNS = 10;
-      const REGULAR_PLAN_MAX_TURNS = 20;
+    if (!result) return; // Early exit for execute mode failures
 
-      if (subIssueMetadata) {
-        prompt = buildSubIssuePlanPrompt(
-          context.issue_title,
-          context.issue_body,
-          context.issue_number,
-          repoFullName,
-          systemPrompt,
-          subIssueMetadata,
-          config.language,
-        );
-        allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
-        maxTurns = SUB_ISSUE_PLAN_MAX_TURNS;
-      } else {
-        prompt = buildPlanPrompt(
-          context.issue_title,
-          context.issue_body,
-          context.issue_number,
-          repoFullName,
-          systemPrompt,
-          config.label,
-          config.language,
-        );
-        allowedTools =
-          "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
-        maxTurns = REGULAR_PLAN_MAX_TURNS;
-      }
-    } else {
-      // execute mode — authorization check (defense-in-depth)
-      if (
-        config.authorized_approvers.length > 0 &&
-        !config.authorized_approvers.includes(context.comment_author_association)
-      ) {
-        await postComment(
-          inputs.github_token,
-          context.owner,
-          context.repo,
-          context.issue_number,
-          `⛔ **Leonidas**: Unauthorized approver. Only users with roles [${config.authorized_approvers.join(", ")}] can approve execution. Your role: \`${context.comment_author_association || "NONE"}\`.`,
-        );
-        core.setFailed(
-          `Unauthorized: comment author_association "${context.comment_author_association}" is not in authorized_approvers [${config.authorized_approvers.join(", ")}].`,
-        );
-        return;
-      }
-
-      const planComment = await findPlanComment(
-        inputs.github_token,
-        context.owner,
-        context.repo,
-        context.issue_number,
-      );
-
-      if (!planComment) {
-        core.setFailed(
-          `No plan comment found on issue #${context.issue_number}. Run plan mode first.`,
-        );
-        return;
-      }
-
-      // Block execution on decomposed parent issues
-      if (isDecomposedPlan(planComment)) {
-        await postComment(
-          inputs.github_token,
-          context.owner,
-          context.repo,
-          context.issue_number,
-          "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
-        );
-        core.setFailed(
-          "Cannot execute a decomposed parent issue. Execute sub-issues individually.",
-        );
-        return;
-      }
-
-      // Check dependency for sub-issues
-      if (subIssueMetadata?.depends_on) {
-        const depClosed = await isIssueClosed(
-          inputs.github_token,
-          context.owner,
-          context.repo,
-          subIssueMetadata.depends_on,
-        );
-        if (!depClosed) {
-          await postComment(
-            inputs.github_token,
-            context.owner,
-            context.repo,
-            context.issue_number,
-            `⏳ **Leonidas**: This sub-issue depends on #${subIssueMetadata.depends_on} which is not yet closed. Please complete #${subIssueMetadata.depends_on} first.`,
-          );
-          core.setFailed(`Dependency #${subIssueMetadata.depends_on} is not yet closed.`);
-          return;
-        }
-      }
-
-      await postComment(
-        inputs.github_token,
-        context.owner,
-        context.repo,
-        context.issue_number,
-        `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
-      );
-
-      prompt = buildExecutePrompt({
-        issueTitle: context.issue_title,
-        issueBody: context.issue_body,
-        planComment,
-        issueNumber: context.issue_number,
-        branchPrefix: config.branch_prefix,
-        baseBranch: config.base_branch,
-        systemPrompt,
-        maxTurns: config.max_turns,
-        issueLabels: context.issue_labels,
-        issueAuthor: context.issue_author,
-        subIssueMetadata,
-        hasRules: Object.keys(rules).length > 0,
-      });
-      allowedTools = config.allowed_tools.join(",");
-      maxTurns = config.max_turns;
-    }
+    const { prompt, allowedTools, maxTurns } = result;
 
     // Write prompt to temp file to avoid shell escaping issues
     // Prefer RUNNER_TEMP (cleaned per-job by GitHub Actions) over os.tmpdir()
