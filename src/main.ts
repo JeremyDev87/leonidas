@@ -142,6 +142,110 @@ export async function handlePlanMode(
   return { prompt, allowedTools, maxTurns };
 }
 
+export async function handleExecuteMode(
+  inputs: ActionInputs,
+  config: ReturnType<typeof resolveConfig>,
+  context: GitHubContext,
+  systemPrompt: string,
+  subIssueMetadata: ReturnType<typeof parseSubIssueMetadata>,
+  rules: Record<string, string>,
+): Promise<ModeResult | null> {
+  // execute mode — authorization check (defense-in-depth)
+  if (
+    config.authorized_approvers.length > 0 &&
+    !config.authorized_approvers.includes(context.comment_author_association)
+  ) {
+    await postComment(
+      inputs.github_token,
+      context.owner,
+      context.repo,
+      context.issue_number,
+      `⛔ **Leonidas**: Unauthorized approver. Only users with roles [${config.authorized_approvers.join(", ")}] can approve execution. Your role: \`${context.comment_author_association || "NONE"}\`.`,
+    );
+    core.setFailed(
+      `Unauthorized: comment author_association "${context.comment_author_association}" is not in authorized_approvers [${config.authorized_approvers.join(", ")}].`,
+    );
+    return null;
+  }
+
+  const planComment = await findPlanComment(
+    inputs.github_token,
+    context.owner,
+    context.repo,
+    context.issue_number,
+  );
+
+  if (!planComment) {
+    core.setFailed(
+      `No plan comment found on issue #${context.issue_number}. Run plan mode first.`,
+    );
+    return null;
+  }
+
+  // Block execution on decomposed parent issues
+  if (isDecomposedPlan(planComment)) {
+    await postComment(
+      inputs.github_token,
+      context.owner,
+      context.repo,
+      context.issue_number,
+      "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
+    );
+    core.setFailed(
+      "Cannot execute a decomposed parent issue. Execute sub-issues individually.",
+    );
+    return null;
+  }
+
+  // Check dependency for sub-issues
+  if (subIssueMetadata?.depends_on) {
+    const depClosed = await isIssueClosed(
+      inputs.github_token,
+      context.owner,
+      context.repo,
+      subIssueMetadata.depends_on,
+    );
+    if (!depClosed) {
+      await postComment(
+        inputs.github_token,
+        context.owner,
+        context.repo,
+        context.issue_number,
+        `⏳ **Leonidas**: This sub-issue depends on #${subIssueMetadata.depends_on} which is not yet closed. Please complete #${subIssueMetadata.depends_on} first.`,
+      );
+      core.setFailed(`Dependency #${subIssueMetadata.depends_on} is not yet closed.`);
+      return null;
+    }
+  }
+
+  await postComment(
+    inputs.github_token,
+    context.owner,
+    context.repo,
+    context.issue_number,
+    `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
+  );
+
+  const prompt = buildExecutePrompt({
+    issueTitle: context.issue_title,
+    issueBody: context.issue_body,
+    planComment,
+    issueNumber: context.issue_number,
+    branchPrefix: config.branch_prefix,
+    baseBranch: config.base_branch,
+    systemPrompt,
+    maxTurns: config.max_turns,
+    issueLabels: context.issue_labels,
+    issueAuthor: context.issue_author,
+    subIssueMetadata,
+    hasRules: Object.keys(rules).length > 0,
+  });
+  const allowedTools = config.allowed_tools.join(",");
+  const maxTurns = config.max_turns;
+
+  return { prompt, allowedTools, maxTurns };
+}
+
 async function run(): Promise<void> {
   try {
     const inputs = readInputs();
