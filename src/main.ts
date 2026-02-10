@@ -2,18 +2,12 @@ import * as core from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { ActionInputs, GitHubContext, LeonidasMode } from "./types";
+import { ActionInputs, GitHubContext, GitHubRepo, LeonidasMode } from "./types";
 import { resolveConfig, loadRules } from "./config";
 import { buildSystemPrompt } from "./prompts/system";
 import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
-import {
-  findPlanComment,
-  postComment,
-  parseSubIssueMetadata,
-  isDecomposedPlan,
-  isIssueClosed,
-} from "./github";
+import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./github";
 
 export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
@@ -94,6 +88,13 @@ async function run(): Promise<void> {
     const context = readGitHubContext();
     const repoFullName = `${context.owner}/${context.repo}`;
 
+    const repoContext: GitHubRepo = {
+      token: inputs.github_token,
+      owner: context.owner,
+      repo: context.repo,
+    };
+    const githubClient = createGitHubClient(repoContext);
+
     const rules = loadRules(config.rules_path);
     const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language, rules);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
@@ -142,10 +143,7 @@ async function run(): Promise<void> {
         config.authorized_approvers.length > 0 &&
         !config.authorized_approvers.includes(context.comment_author_association)
       ) {
-        await postComment(
-          inputs.github_token,
-          context.owner,
-          context.repo,
+        await githubClient.postComment(
           context.issue_number,
           `⛔ **Leonidas**: Unauthorized approver. Only users with roles [${config.authorized_approvers.join(", ")}] can approve execution. Your role: \`${context.comment_author_association || "NONE"}\`.`,
         );
@@ -155,12 +153,7 @@ async function run(): Promise<void> {
         return;
       }
 
-      const planComment = await findPlanComment(
-        inputs.github_token,
-        context.owner,
-        context.repo,
-        context.issue_number,
-      );
+      const planComment = await githubClient.findPlanComment(context.issue_number);
 
       if (!planComment) {
         core.setFailed(
@@ -171,10 +164,7 @@ async function run(): Promise<void> {
 
       // Block execution on decomposed parent issues
       if (isDecomposedPlan(planComment)) {
-        await postComment(
-          inputs.github_token,
-          context.owner,
-          context.repo,
+        await githubClient.postComment(
           context.issue_number,
           "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
         );
@@ -186,17 +176,9 @@ async function run(): Promise<void> {
 
       // Check dependency for sub-issues
       if (subIssueMetadata?.depends_on) {
-        const depClosed = await isIssueClosed(
-          inputs.github_token,
-          context.owner,
-          context.repo,
-          subIssueMetadata.depends_on,
-        );
+        const depClosed = await githubClient.isIssueClosed(subIssueMetadata.depends_on);
         if (!depClosed) {
-          await postComment(
-            inputs.github_token,
-            context.owner,
-            context.repo,
+          await githubClient.postComment(
             context.issue_number,
             `⏳ **Leonidas**: This sub-issue depends on #${subIssueMetadata.depends_on} which is not yet closed. Please complete #${subIssueMetadata.depends_on} first.`,
           );
@@ -205,10 +187,7 @@ async function run(): Promise<void> {
         }
       }
 
-      await postComment(
-        inputs.github_token,
-        context.owner,
-        context.repo,
+      await githubClient.postComment(
         context.issue_number,
         `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
       );
