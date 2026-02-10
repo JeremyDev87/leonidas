@@ -163,19 +163,6 @@ describe("post_process", () => {
   });
 
   describe("run — post-completion command", () => {
-    let mockOctokit: any;
-
-    beforeEach(() => {
-      mockOctokit = {
-        rest: {
-          pulls: {
-            list: vi.fn(),
-          },
-        },
-      };
-      vi.mocked(github.getOctokit).mockReturnValue(mockOctokit);
-    });
-
     it("posts completion comment with PR number when PR exists", async () => {
       process.argv = ["node", "post_process.js", "post-completion"];
       process.env.GH_TOKEN = "ghp_test";
@@ -185,19 +172,17 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockOctokit.rest.pulls.list.mockResolvedValue({
-        data: [{ number: 99 }],
-      });
+      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(99);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("completion msg");
 
       await run();
 
-      expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
-        owner: "owner",
-        repo: "repo",
-        head: "owner:leonidas/issue-42",
-        state: "open",
-      });
+      expect(githubModule.getPRForBranch).toHaveBeenCalledWith(
+        "ghp_test",
+        "owner",
+        "repo",
+        "leonidas/issue-42",
+      );
       expect(postProcessingModule.buildCompletionComment).toHaveBeenCalledWith({
         issueNumber: 42,
         prNumber: "99",
@@ -222,7 +207,7 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(undefined);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("no PR msg");
 
       await run();

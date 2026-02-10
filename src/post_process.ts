@@ -106,26 +106,14 @@ async function runLinkSubIssues(): Promise<void> {
 }
 
 async function runPostCompletion(): Promise<void> {
-  const token = getEnvRequired("GH_TOKEN");
-  const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
-  const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
-  const language = resolveLanguage(getEnvOptional("LANGUAGE"));
-  const branchPrefix = getEnvRequired("BRANCH_PREFIX");
-  const runUrl = getEnvRequired("RUN_URL");
+  const { token, owner, repo, issueNumber, language, branchPrefix, runUrl } = readBaseContext();
 
   const branchName = `${branchPrefix}${issueNumber}`;
-  const octokit = github.getOctokit(token);
-  const { data: prs } = await octokit.rest.pulls.list({
-    owner,
-    repo,
-    head: `${owner}:${branchName}`,
-    state: "open",
-  });
-  const prNumber = prs.length > 0 ? String(prs[0].number) : undefined;
+  const prNumber = await getPRForBranch(token, owner, repo, branchName);
 
   const comment = buildCompletionComment({
     issueNumber,
-    prNumber,
+    prNumber: prNumber ? String(prNumber) : undefined,
     language,
     runUrl,
   });
