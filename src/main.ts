@@ -87,6 +87,61 @@ export function readGitHubContext(): GitHubContext {
   };
 }
 
+interface ModeResult {
+  prompt: string;
+  allowedTools: string;
+  maxTurns: number;
+}
+
+export async function handlePlanMode(
+  inputs: ActionInputs,
+  config: ReturnType<typeof resolveConfig>,
+  context: GitHubContext,
+  systemPrompt: string,
+  subIssueMetadata: ReturnType<typeof parseSubIssueMetadata>,
+  repoFullName: string,
+): Promise<ModeResult> {
+  // Plan mode turn limits:
+  // - Sub-issue plans: capped at 10 (scope is narrow, no decomposition)
+  // - Regular plans with decomposition: capped at 20 (needs turns for analysis + gh issue create)
+  // These caps exist because plan mode is read-only analysis; config.max_turns is for execute mode.
+  const SUB_ISSUE_PLAN_MAX_TURNS = 10;
+  const REGULAR_PLAN_MAX_TURNS = 20;
+
+  let prompt: string;
+  let allowedTools: string;
+  let maxTurns: number;
+
+  if (subIssueMetadata) {
+    prompt = buildSubIssuePlanPrompt(
+      context.issue_title,
+      context.issue_body,
+      context.issue_number,
+      repoFullName,
+      systemPrompt,
+      subIssueMetadata,
+      config.language,
+    );
+    allowedTools = "Read,Bash(gh issue comment:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+    maxTurns = SUB_ISSUE_PLAN_MAX_TURNS;
+  } else {
+    prompt = buildPlanPrompt(
+      context.issue_title,
+      context.issue_body,
+      context.issue_number,
+      repoFullName,
+      systemPrompt,
+      config.label,
+      config.language,
+    );
+    allowedTools =
+      "Read,Bash(gh issue comment:*),Bash(gh issue create:*),Bash(gh api:*),Bash(find:*),Bash(ls:*),Bash(cat:*)";
+    maxTurns = REGULAR_PLAN_MAX_TURNS;
+  }
+
+  return { prompt, allowedTools, maxTurns };
+}
+
 async function run(): Promise<void> {
   try {
     const inputs = readInputs();
