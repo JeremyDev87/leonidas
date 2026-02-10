@@ -11,18 +11,8 @@ import {
   extractSubIssueNumbers,
   extractParentIssueNumber,
 } from "./post_processing";
-import {
-  findPlanComment,
-  postComment,
-  linkSubIssues,
-  isDecomposedPlan,
-  getPRForBranch,
-  branchExistsOnRemote,
-  createDraftPR,
-  postProcessPR,
-  triggerCI,
-} from "./github";
-import { LeonidasMode } from "./types";
+import { createGitHubClient, isDecomposedPlan } from "./github";
+import { LeonidasMode, GitHubRepo } from "./types";
 
 type Command =
   | "link-subissues"
@@ -54,7 +44,10 @@ async function runLinkSubIssues(): Promise<void> {
   const { owner, repo } = parseRepo(getEnvRequired("REPO"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
 
-  const planComment = await findPlanComment(token, owner, repo, issueNumber);
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
+
+  const planComment = await githubClient.findPlanComment(issueNumber);
   if (!planComment || !isDecomposedPlan(planComment)) {
     core.info("No decomposed plan found, skipping sub-issue linking.");
     return;
@@ -68,7 +61,7 @@ async function runLinkSubIssues(): Promise<void> {
     return;
   }
 
-  const result = await linkSubIssues(token, owner, repo, issueNumber, subIssueNumbers);
+  const result = await githubClient.linkSubIssues(issueNumber, subIssueNumbers);
   core.info(
     `Sub-issue linking complete: ${result.linked} linked, ${result.failed} skipped/failed.`,
   );
@@ -81,6 +74,9 @@ async function runPostCompletion(): Promise<void> {
   const language = resolveLanguage(getEnvOptional("LANGUAGE"));
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
   const runUrl = getEnvRequired("RUN_URL");
+
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
 
   const branchName = `${branchPrefix}${issueNumber}`;
   const octokit = github.getOctokit(token);
@@ -99,7 +95,7 @@ async function runPostCompletion(): Promise<void> {
     runUrl,
   });
 
-  await postComment(token, owner, repo, issueNumber, comment);
+  await githubClient.postComment(issueNumber, comment);
 }
 
 async function runPostFailure(): Promise<void> {
@@ -110,6 +106,9 @@ async function runPostFailure(): Promise<void> {
   const runUrl = getEnvRequired("RUN_URL");
   const mode = getEnvRequired("MODE") as LeonidasMode;
 
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
+
   const comment = buildFailureComment({
     issueNumber,
     mode,
@@ -117,7 +116,7 @@ async function runPostFailure(): Promise<void> {
     runUrl,
   });
 
-  await postComment(token, owner, repo, issueNumber, comment);
+  await githubClient.postComment(issueNumber, comment);
 }
 
 async function runRescue(): Promise<void> {
@@ -130,8 +129,11 @@ async function runRescue(): Promise<void> {
   const runUrl = getEnvRequired("RUN_URL");
   const githubOutput = process.env.GITHUB_OUTPUT;
 
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
+
   const branchName = `${branchPrefix}${issueNumber}`;
-  const exists = await branchExistsOnRemote(token, owner, repo, branchName);
+  const exists = await githubClient.branchExistsOnRemote(branchName);
 
   if (githubOutput) {
     fs.appendFileSync(githubOutput, `branch_exists=${exists ? "true" : "false"}\n`);
@@ -142,7 +144,7 @@ async function runRescue(): Promise<void> {
     return;
   }
 
-  const prNumber = await getPRForBranch(token, owner, repo, branchName);
+  const prNumber = await githubClient.getPRForBranch(branchName);
 
   if (prNumber) {
     if (githubOutput) {
@@ -156,7 +158,7 @@ async function runRescue(): Promise<void> {
       language,
       runUrl,
     });
-    await postComment(token, owner, repo, issueNumber, comment);
+    await githubClient.postComment(issueNumber, comment);
   } else {
     const octokit = github.getOctokit(token);
     const { data: issue } = await octokit.rest.issues.get({
@@ -181,7 +183,7 @@ async function runRescue(): Promise<void> {
       runUrl,
     });
 
-    const prUrl = await createDraftPR(token, owner, repo, branchName, baseBranch, title, body);
+    const prUrl = await githubClient.createDraftPR(branchName, baseBranch, title, body);
 
     if (prUrl) {
       if (githubOutput) {
@@ -194,7 +196,7 @@ async function runRescue(): Promise<void> {
         language,
         runUrl,
       });
-      await postComment(token, owner, repo, issueNumber, comment);
+      await githubClient.postComment(issueNumber, comment);
     }
   }
 }
@@ -205,7 +207,10 @@ async function runPostProcessPR(): Promise<void> {
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
 
-  await postProcessPR(token, owner, repo, issueNumber, branchPrefix);
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
+
+  await githubClient.postProcessPR(issueNumber, branchPrefix);
 }
 
 async function runTriggerCI(): Promise<void> {
@@ -214,8 +219,11 @@ async function runTriggerCI(): Promise<void> {
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
 
+  const repoContext: GitHubRepo = { token, owner, repo };
+  const githubClient = createGitHubClient(repoContext);
+
   const branchName = `${branchPrefix}${issueNumber}`;
-  await triggerCI(token, owner, repo, branchName);
+  await githubClient.triggerCI(branchName);
 }
 
 export async function run(): Promise<void> {
