@@ -143,8 +143,8 @@ src/
   github.ts               # GitHub API helpers
   types.ts                # Type definitions
   i18n.ts                 # Internationalization module
-  post_process.ts         # Post-processing CLI entry point
-  post_processing.ts      # Post-processing logic
+  post_process_cli.ts     # CLI entry point / command dispatcher
+  comment_builder.ts      # Pure functions for building GitHub comment messages
   prompts/
     system.ts             # System prompt builder
     plan.ts               # Plan prompt builder

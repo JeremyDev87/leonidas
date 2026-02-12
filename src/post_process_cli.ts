@@ -9,7 +9,7 @@ import {
   buildRescuePRBody,
   extractSubIssueNumbers,
   extractParentIssueNumber,
-} from "./post_processing";
+} from "./comment_builder";
 import { createGitHubClient, isDecomposedPlan } from "./github";
 import { LeonidasMode } from "./types";
 

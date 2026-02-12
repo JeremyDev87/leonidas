@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as core from "@actions/core";
-import { getEnvRequired, getEnvOptional, parseRepo, run } from "./post_process";
+import { getEnvRequired, getEnvOptional, parseRepo, run } from "./post_process_cli";
 import * as githubModule from "./github";
-import * as postProcessingModule from "./post_processing";
+import * as postProcessingModule from "./comment_builder";
 
 vi.mock("fs");
 vi.mock("@actions/core");
 vi.mock("./github");
-vi.mock("./post_processing");
+vi.mock("./comment_builder");
 
 function createMockClient(overrides: Record<string, any> = {}) {
   return {

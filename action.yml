@@ -125,7 +125,7 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         REPO: ${{ github.repository }}
-      run: node dist/post_process/index.js link-subissues
+      run: node dist/post_process_cli/index.js link-subissues
 
     - name: Post completion comment
       if: inputs.mode == 'execute' && !failure()
@@ -137,7 +137,7 @@ runs:
         LANGUAGE: ${{ steps.prepare.outputs.language }}
         BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      run: node dist/post_process/index.js post-completion
+      run: node dist/post_process_cli/index.js post-completion
 
     - name: Rescue partial progress
       id: rescue
@@ -151,7 +151,7 @@ runs:
         BASE_BRANCH: ${{ steps.prepare.outputs.base_branch }}
         LANGUAGE: ${{ steps.prepare.outputs.language }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      run: node dist/post_process/index.js rescue
+      run: node dist/post_process_cli/index.js rescue
 
     - name: Post failure comment
       if: failure() && steps.rescue.outputs.branch_exists != 'true'
@@ -163,7 +163,7 @@ runs:
         LANGUAGE: ${{ steps.prepare.outputs.language }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         MODE: ${{ inputs.mode }}
-      run: node dist/post_process/index.js post-failure
+      run: node dist/post_process_cli/index.js post-failure
 
     - name: Post-process PR
       if: always() && inputs.mode == 'execute'
@@ -173,7 +173,7 @@ runs:
         GITHUB_REPOSITORY: ${{ github.repository }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
-      run: node dist/post_process/index.js post-process-pr
+      run: node dist/post_process_cli/index.js post-process-pr
 
     - name: Trigger CI on PR branch
       if: always() && inputs.mode == 'execute'
@@ -183,4 +183,4 @@ runs:
         GITHUB_REPOSITORY: ${{ github.repository }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         BRANCH_PREFIX: ${{ steps.prepare.outputs.branch_prefix }}
-      run: node dist/post_process/index.js trigger-ci
+      run: node dist/post_process_cli/index.js trigger-ci

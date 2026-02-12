@@ -7,7 +7,7 @@ import {
   buildRescuePRBody,
   extractSubIssueNumbers,
   extractParentIssueNumber,
-} from "./post_processing";
+} from "./comment_builder";
 import { SupportedLanguage } from "./i18n";
 
 const ALL_LANGUAGES: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es"];
