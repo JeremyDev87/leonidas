@@ -1,15 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 import { getEnvRequired, getEnvOptional, parseRepo, run } from "./post_process";
 import * as githubModule from "./github";
 import * as postProcessingModule from "./post_processing";
 
+const mockGitHubClient = {
+  findPlanComment: vi.fn(),
+  postComment: vi.fn(),
+  linkSubIssues: vi.fn(),
+  getPRForBranch: vi.fn(),
+  branchExistsOnRemote: vi.fn(),
+  createDraftPR: vi.fn(),
+  postProcessPR: vi.fn(),
+  triggerCI: vi.fn(),
+  getIssueTitle: vi.fn(),
+  getIssueBody: vi.fn(),
+  isIssueClosed: vi.fn(),
+};
+
 vi.mock("fs");
 vi.mock("@actions/core");
-vi.mock("@actions/github");
-vi.mock("./github");
+vi.mock("./github", () => ({
+  createGitHubClient: vi.fn(() => mockGitHubClient),
+  isDecomposedPlan: vi.fn(),
+}));
 vi.mock("./post_processing");
 
 describe("post_process", () => {
@@ -18,6 +33,11 @@ describe("post_process", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.values(mockGitHubClient).forEach((mockFn) => {
+      if (typeof mockFn === "function" && "mockClear" in mockFn) {
+        mockFn.mockClear();
+      }
+    });
     process.env = { ...originalEnv };
     process.argv = [...originalArgv];
   });
@@ -90,23 +110,17 @@ describe("post_process", () => {
       process.env.ISSUE_NUMBER = "42";
 
       const planBody = "<!-- leonidas-decomposed -->\n- [ ] #10 — Task 1\n- [ ] #11 — Task 2";
-      vi.mocked(githubModule.findPlanComment).mockResolvedValue(planBody);
+      mockGitHubClient.findPlanComment.mockResolvedValue(planBody);
       vi.mocked(githubModule.isDecomposedPlan).mockReturnValue(true);
       vi.mocked(postProcessingModule.extractSubIssueNumbers).mockReturnValue([10, 11]);
-      vi.mocked(githubModule.linkSubIssues).mockResolvedValue({ linked: 2, failed: 0 });
+      mockGitHubClient.linkSubIssues.mockResolvedValue({ linked: 2, failed: 0 });
 
       await run();
 
-      expect(githubModule.findPlanComment).toHaveBeenCalledWith("ghp_test", "owner", "repo", 42);
+      expect(mockGitHubClient.findPlanComment).toHaveBeenCalledWith(42);
       expect(githubModule.isDecomposedPlan).toHaveBeenCalledWith(planBody);
       expect(postProcessingModule.extractSubIssueNumbers).toHaveBeenCalledWith(planBody);
-      expect(githubModule.linkSubIssues).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        [10, 11],
-      );
+      expect(mockGitHubClient.linkSubIssues).toHaveBeenCalledWith(42, [10, 11]);
       expect(core.info).toHaveBeenCalledWith(
         "Sub-issue linking complete: 2 linked, 0 skipped/failed.",
       );
@@ -118,14 +132,14 @@ describe("post_process", () => {
       process.env.REPO = "owner/repo";
       process.env.ISSUE_NUMBER = "42";
 
-      vi.mocked(githubModule.findPlanComment).mockResolvedValue(null);
+      mockGitHubClient.findPlanComment.mockResolvedValue(null);
 
       await run();
 
       expect(core.info).toHaveBeenCalledWith(
         "No decomposed plan found, skipping sub-issue linking.",
       );
-      expect(githubModule.linkSubIssues).not.toHaveBeenCalled();
+      expect(mockGitHubClient.linkSubIssues).not.toHaveBeenCalled();
     });
 
     it("skips when plan is not decomposed", async () => {
@@ -134,7 +148,7 @@ describe("post_process", () => {
       process.env.REPO = "owner/repo";
       process.env.ISSUE_NUMBER = "42";
 
-      vi.mocked(githubModule.findPlanComment).mockResolvedValue("regular plan");
+      mockGitHubClient.findPlanComment.mockResolvedValue("regular plan");
       vi.mocked(githubModule.isDecomposedPlan).mockReturnValue(false);
 
       await run();
@@ -142,7 +156,7 @@ describe("post_process", () => {
       expect(core.info).toHaveBeenCalledWith(
         "No decomposed plan found, skipping sub-issue linking.",
       );
-      expect(githubModule.linkSubIssues).not.toHaveBeenCalled();
+      expect(mockGitHubClient.linkSubIssues).not.toHaveBeenCalled();
     });
 
     it("skips when no sub-issue numbers found in checklist", async () => {
@@ -151,31 +165,18 @@ describe("post_process", () => {
       process.env.REPO = "owner/repo";
       process.env.ISSUE_NUMBER = "42";
 
-      vi.mocked(githubModule.findPlanComment).mockResolvedValue("decomposed plan body");
+      mockGitHubClient.findPlanComment.mockResolvedValue("decomposed plan body");
       vi.mocked(githubModule.isDecomposedPlan).mockReturnValue(true);
       vi.mocked(postProcessingModule.extractSubIssueNumbers).mockReturnValue([]);
 
       await run();
 
       expect(core.info).toHaveBeenCalledWith("No sub-issue numbers found in checklist.");
-      expect(githubModule.linkSubIssues).not.toHaveBeenCalled();
+      expect(mockGitHubClient.linkSubIssues).not.toHaveBeenCalled();
     });
   });
 
   describe("run — post-completion command", () => {
-    let mockOctokit: any;
-
-    beforeEach(() => {
-      mockOctokit = {
-        rest: {
-          pulls: {
-            list: vi.fn(),
-          },
-        },
-      };
-      vi.mocked(github.getOctokit).mockReturnValue(mockOctokit);
-    });
-
     it("posts completion comment with PR number when PR exists", async () => {
       process.argv = ["node", "post_process.js", "post-completion"];
       process.env.GH_TOKEN = "ghp_test";
@@ -185,32 +186,19 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockOctokit.rest.pulls.list.mockResolvedValue({
-        data: [{ number: 99 }],
-      });
+      mockGitHubClient.getPRForBranch.mockResolvedValue(99);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("completion msg");
 
       await run();
 
-      expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
-        owner: "owner",
-        repo: "repo",
-        head: "owner:leonidas/issue-42",
-        state: "open",
-      });
+      expect(mockGitHubClient.getPRForBranch).toHaveBeenCalledWith("leonidas/issue-42");
       expect(postProcessingModule.buildCompletionComment).toHaveBeenCalledWith({
         issueNumber: 42,
         prNumber: "99",
         language: "en",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.postComment).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "completion msg",
-      );
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "completion msg");
     });
 
     it("posts completion comment without PR number when no PR exists", async () => {
@@ -222,7 +210,7 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+      mockGitHubClient.getPRForBranch.mockResolvedValue(undefined);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("no PR msg");
 
       await run();
@@ -233,13 +221,7 @@ describe("post_process", () => {
         language: "ko",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.postComment).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "no PR msg",
-      );
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "no PR msg");
     });
   });
 
@@ -263,13 +245,7 @@ describe("post_process", () => {
         language: "en",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.postComment).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "failure msg",
-      );
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "failure msg");
     });
 
     it("posts failure comment for execute mode", async () => {
@@ -291,23 +267,11 @@ describe("post_process", () => {
         language: "ja",
         runUrl: "https://example.com/run",
       });
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "exec failure msg");
     });
   });
 
   describe("run — rescue command", () => {
-    let mockOctokit: any;
-
-    beforeEach(() => {
-      mockOctokit = {
-        rest: {
-          issues: {
-            get: vi.fn(),
-          },
-        },
-      };
-      vi.mocked(github.getOctokit).mockReturnValue(mockOctokit);
-    });
-
     it("sets branch_exists=false and skips when branch does not exist", async () => {
       process.argv = ["node", "post_process.js", "rescue"];
       process.env.GH_TOKEN = "ghp_test";
@@ -319,16 +283,11 @@ describe("post_process", () => {
       process.env.RUN_URL = "https://example.com/run";
       process.env.GITHUB_OUTPUT = "/tmp/test-output";
 
-      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(false);
+      mockGitHubClient.branchExistsOnRemote.mockResolvedValue(false);
 
       await run();
 
-      expect(githubModule.branchExistsOnRemote).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        "leonidas/issue-42",
-      );
+      expect(mockGitHubClient.branchExistsOnRemote).toHaveBeenCalledWith("leonidas/issue-42");
       expect(fs.appendFileSync).toHaveBeenCalledWith("/tmp/test-output", "branch_exists=false\n");
       expect(core.info).toHaveBeenCalledWith(
         "Branch leonidas/issue-42 not found on remote, skipping rescue.",
@@ -346,8 +305,8 @@ describe("post_process", () => {
       process.env.RUN_URL = "https://example.com/run";
       process.env.GITHUB_OUTPUT = "/tmp/test-output";
 
-      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(true);
-      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(99);
+      mockGitHubClient.branchExistsOnRemote.mockResolvedValue(true);
+      mockGitHubClient.getPRForBranch.mockResolvedValue(99);
       vi.mocked(postProcessingModule.buildPartialProgressComment).mockReturnValue("partial msg");
 
       await run();
@@ -361,13 +320,7 @@ describe("post_process", () => {
         language: "en",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.postComment).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "partial msg",
-      );
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "partial msg");
     });
 
     it("creates draft PR when branch exists but no PR exists", async () => {
@@ -381,20 +334,14 @@ describe("post_process", () => {
       process.env.RUN_URL = "https://example.com/run";
       process.env.GITHUB_OUTPUT = "/tmp/test-output";
 
-      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(true);
-      vi.mocked(githubModule.getPRForBranch).mockResolvedValue(undefined);
-      mockOctokit.rest.issues.get.mockResolvedValue({
-        data: {
-          title: "Fix bug",
-          body: "<!-- leonidas-parent: #10 -->\nSome body",
-        },
-      });
+      mockGitHubClient.branchExistsOnRemote.mockResolvedValue(true);
+      mockGitHubClient.getPRForBranch.mockResolvedValue(undefined);
+      mockGitHubClient.getIssueTitle.mockResolvedValue("Fix bug");
+      mockGitHubClient.getIssueBody.mockResolvedValue("<!-- leonidas-parent: #10 -->\nSome body");
       vi.mocked(postProcessingModule.extractParentIssueNumber).mockReturnValue(10);
       vi.mocked(postProcessingModule.buildRescuePRTitle).mockReturnValue("#10 Fix bug [partial]");
       vi.mocked(postProcessingModule.buildRescuePRBody).mockReturnValue("PR body content");
-      vi.mocked(githubModule.createDraftPR).mockResolvedValue(
-        "https://github.com/owner/repo/pull/55",
-      );
+      mockGitHubClient.createDraftPR.mockResolvedValue("https://github.com/owner/repo/pull/55");
       vi.mocked(postProcessingModule.buildPartialProgressComment).mockReturnValue("draft msg");
 
       await run();
@@ -409,10 +356,7 @@ describe("post_process", () => {
         language: "en",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.createDraftPR).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
+      expect(mockGitHubClient.createDraftPR).toHaveBeenCalledWith(
         "leonidas/issue-42",
         "main",
         "#10 Fix bug [partial]",
@@ -425,13 +369,7 @@ describe("post_process", () => {
         language: "en",
         runUrl: "https://example.com/run",
       });
-      expect(githubModule.postComment).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "draft msg",
-      );
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(42, "draft msg");
     });
 
     it("skips GITHUB_OUTPUT writes when GITHUB_OUTPUT is not set", async () => {
@@ -445,7 +383,7 @@ describe("post_process", () => {
       process.env.RUN_URL = "https://example.com/run";
       delete process.env.GITHUB_OUTPUT;
 
-      vi.mocked(githubModule.branchExistsOnRemote).mockResolvedValue(false);
+      mockGitHubClient.branchExistsOnRemote.mockResolvedValue(false);
 
       await run();
 
@@ -461,17 +399,11 @@ describe("post_process", () => {
       process.env.ISSUE_NUMBER = "42";
       process.env.BRANCH_PREFIX = "leonidas/issue-";
 
-      vi.mocked(githubModule.postProcessPR).mockResolvedValue();
+      mockGitHubClient.postProcessPR.mockResolvedValue(undefined);
 
       await run();
 
-      expect(githubModule.postProcessPR).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        42,
-        "leonidas/issue-",
-      );
+      expect(mockGitHubClient.postProcessPR).toHaveBeenCalledWith(42, "leonidas/issue-");
     });
   });
 
@@ -483,16 +415,11 @@ describe("post_process", () => {
       process.env.ISSUE_NUMBER = "42";
       process.env.BRANCH_PREFIX = "leonidas/issue-";
 
-      vi.mocked(githubModule.triggerCI).mockResolvedValue();
+      mockGitHubClient.triggerCI.mockResolvedValue(undefined);
 
       await run();
 
-      expect(githubModule.triggerCI).toHaveBeenCalledWith(
-        "ghp_test",
-        "owner",
-        "repo",
-        "leonidas/issue-42",
-      );
+      expect(mockGitHubClient.triggerCI).toHaveBeenCalledWith("leonidas/issue-42");
     });
   });
 

@@ -10,6 +10,12 @@ import {
   cleanupTestEnvironment,
 } from "./test-helpers/main.helpers";
 
+const mockGitHubClient = {
+  findPlanComment: vi.fn(),
+  postComment: vi.fn(),
+  isIssueClosed: vi.fn(),
+};
+
 vi.mock("@actions/core");
 vi.mock("fs");
 vi.mock("os");
@@ -17,7 +23,11 @@ vi.mock("./config");
 vi.mock("./prompts/system");
 vi.mock("./prompts/plan");
 vi.mock("./prompts/execute");
-vi.mock("./github");
+vi.mock("./github", () => ({
+  createGitHubClient: vi.fn(() => mockGitHubClient),
+  parseSubIssueMetadata: vi.fn(),
+  isDecomposedPlan: vi.fn(),
+}));
 
 describe("run() - execute mode edge cases", () => {
   beforeEach(() => {
@@ -53,17 +63,14 @@ describe("run() - execute mode edge cases", () => {
     const { buildSystemPrompt } = await import("./prompts/system");
     vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan } = await import("./github");
-    vi.mocked(findPlanComment).mockResolvedValue("# Plan\n\n## Sub-Issues\n- #101");
+    const { isDecomposedPlan } = await import("./github");
     vi.mocked(isDecomposedPlan).mockReturnValue(true);
-    vi.mocked(postComment).mockResolvedValue();
+    mockGitHubClient.findPlanComment.mockResolvedValue("# Plan\n\n## Sub-Issues\n- #101");
+    mockGitHubClient.postComment.mockResolvedValue(undefined);
 
     await import("./main");
 
-    expect(postComment).toHaveBeenCalledWith(
-      "test-github-token",
-      "owner",
-      "repo",
+    expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
       100,
       expect.stringContaining("This issue has been decomposed into sub-issues"),
     );
@@ -90,26 +97,22 @@ describe("run() - execute mode edge cases", () => {
     const { buildSystemPrompt } = await import("./prompts/system");
     vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } =
-      await import("./github");
+    const { isDecomposedPlan, parseSubIssueMetadata } = await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: 101,
       order: 2,
       total: 3,
     });
-    vi.mocked(findPlanComment).mockResolvedValue("# Plan\nImplementation plan");
     vi.mocked(isDecomposedPlan).mockReturnValue(false);
-    vi.mocked(isIssueClosed).mockResolvedValue(false);
-    vi.mocked(postComment).mockResolvedValue();
+    mockGitHubClient.findPlanComment.mockResolvedValue("# Plan\nImplementation plan");
+    mockGitHubClient.isIssueClosed.mockResolvedValue(false);
+    mockGitHubClient.postComment.mockResolvedValue(undefined);
 
     await import("./main");
 
-    expect(isIssueClosed).toHaveBeenCalledWith("test-github-token", "owner", "repo", 101);
-    expect(postComment).toHaveBeenCalledWith(
-      "test-github-token",
-      "owner",
-      "repo",
+    expect(mockGitHubClient.isIssueClosed).toHaveBeenCalledWith(101);
+    expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
       102,
       expect.stringContaining("depends on #101 which is not yet closed"),
     );
@@ -138,27 +141,23 @@ describe("run() - execute mode edge cases", () => {
     const { buildExecutePrompt } = await import("./prompts/execute");
     vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, isIssueClosed, parseSubIssueMetadata } =
-      await import("./github");
+    const { isDecomposedPlan, parseSubIssueMetadata } = await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: 101,
       order: 2,
       total: 3,
     });
-    vi.mocked(findPlanComment).mockResolvedValue("# Plan\nImplementation plan");
     vi.mocked(isDecomposedPlan).mockReturnValue(false);
-    vi.mocked(isIssueClosed).mockResolvedValue(true);
-    vi.mocked(postComment).mockResolvedValue();
+    mockGitHubClient.findPlanComment.mockResolvedValue("# Plan\nImplementation plan");
+    mockGitHubClient.isIssueClosed.mockResolvedValue(true);
+    mockGitHubClient.postComment.mockResolvedValue(undefined);
 
     await import("./main");
 
-    expect(isIssueClosed).toHaveBeenCalledWith("test-github-token", "owner", "repo", 101);
+    expect(mockGitHubClient.isIssueClosed).toHaveBeenCalledWith(101);
     expect(core.setFailed).not.toHaveBeenCalled();
-    expect(postComment).toHaveBeenCalledWith(
-      "test-github-token",
-      "owner",
-      "repo",
+    expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
       102,
       expect.stringContaining("starting implementation"),
     );
@@ -186,25 +185,21 @@ describe("run() - execute mode edge cases", () => {
     const { buildExecutePrompt } = await import("./prompts/execute");
     vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-    const { findPlanComment, postComment, isDecomposedPlan, parseSubIssueMetadata } =
-      await import("./github");
+    const { isDecomposedPlan, parseSubIssueMetadata } = await import("./github");
     vi.mocked(parseSubIssueMetadata).mockReturnValue({
       parent_issue_number: 100,
       depends_on: undefined,
       order: 1,
       total: 3,
     });
-    vi.mocked(findPlanComment).mockResolvedValue("# Plan\nImplementation plan");
     vi.mocked(isDecomposedPlan).mockReturnValue(false);
-    vi.mocked(postComment).mockResolvedValue();
+    mockGitHubClient.findPlanComment.mockResolvedValue("# Plan\nImplementation plan");
+    mockGitHubClient.postComment.mockResolvedValue(undefined);
 
     await import("./main");
 
     expect(core.setFailed).not.toHaveBeenCalled();
-    expect(postComment).toHaveBeenCalledWith(
-      "test-github-token",
-      "owner",
-      "repo",
+    expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
       101,
       expect.stringContaining("starting implementation"),
     );

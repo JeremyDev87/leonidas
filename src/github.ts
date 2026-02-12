@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
-import { SubIssueMetadata, GitHubRepo, GitHubClient, LinkSubIssuesResult } from "./types";
+import { SubIssueMetadata, GitHubRepo, GitHubClient } from "./types";
 
 function createOctokit(token: string) {
   return github.getOctokit(token);
@@ -61,15 +61,11 @@ export function createGitHubClient(params: GitHubRepo): GitHubClient {
       );
 
       // First try to find comments with the language-agnostic marker
-      let planComments = trustedComments.filter((comment) =>
-        comment.body?.includes(PLAN_MARKER),
-      );
+      let planComments = trustedComments.filter((comment) => comment.body?.includes(PLAN_MARKER));
 
       // Fallback to English header for backward compatibility
       if (planComments.length === 0) {
-        planComments = trustedComments.filter((comment) =>
-          comment.body?.includes(PLAN_HEADER),
-        );
+        planComments = trustedComments.filter((comment) => comment.body?.includes(PLAN_HEADER));
       }
 
       // If no trusted bot comments found, fall back to any comment (for backward compat
@@ -252,7 +248,7 @@ export function createGitHubClient(params: GitHubRepo): GitHubClient {
       }
     },
 
-    async getIssueTitle(issueNumber) {
+    async getIssueTitle(issueNumber: number) {
       const { data: issue } = await octokit.rest.issues.get({
         owner,
         repo,
@@ -260,102 +256,16 @@ export function createGitHubClient(params: GitHubRepo): GitHubClient {
       });
       return issue.title;
     },
+
+    async getIssueBody(issueNumber: number) {
+      const { data: issue } = await octokit.rest.issues.get({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      });
+      return issue.body ?? "";
+    },
   };
 
   return client;
-}
-
-// ─── Legacy standalone wrappers (backward compatibility) ────────────────────
-// These delegate to createGitHubClient for backward compatibility during migration.
-// They will be removed in a subsequent commit.
-
-export async function findPlanComment(
-  token: string,
-  owner: string,
-  repo: string,
-  issueNumber: number,
-): Promise<string | null> {
-  return createGitHubClient({ token, owner, repo }).findPlanComment(issueNumber);
-}
-
-export async function isIssueClosed(
-  token: string,
-  owner: string,
-  repo: string,
-  issueNumber: number,
-): Promise<boolean> {
-  return createGitHubClient({ token, owner, repo }).isIssueClosed(issueNumber);
-}
-
-export async function postComment(
-  token: string,
-  owner: string,
-  repo: string,
-  issueNumber: number,
-  body: string,
-): Promise<void> {
-  return createGitHubClient({ token, owner, repo }).postComment(issueNumber, body);
-}
-
-export async function linkSubIssues(
-  token: string,
-  owner: string,
-  repo: string,
-  parentIssueNumber: number,
-  subIssueNumbers: number[],
-): Promise<LinkSubIssuesResult> {
-  return createGitHubClient({ token, owner, repo }).linkSubIssues(
-    parentIssueNumber,
-    subIssueNumbers,
-  );
-}
-
-export async function getPRForBranch(
-  token: string,
-  owner: string,
-  repo: string,
-  branchName: string,
-): Promise<number | undefined> {
-  return createGitHubClient({ token, owner, repo }).getPRForBranch(branchName);
-}
-
-export async function branchExistsOnRemote(
-  token: string,
-  owner: string,
-  repo: string,
-  branchName: string,
-): Promise<boolean> {
-  return createGitHubClient({ token, owner, repo }).branchExistsOnRemote(branchName);
-}
-
-export async function createDraftPR(
-  token: string,
-  owner: string,
-  repo: string,
-  head: string,
-  base: string,
-  title: string,
-  body: string,
-): Promise<string | undefined> {
-  return createGitHubClient({ token, owner, repo }).createDraftPR(head, base, title, body);
-}
-
-export async function postProcessPR(
-  token: string,
-  owner: string,
-  repo: string,
-  issueNumber: number,
-  branchPrefix: string,
-): Promise<void> {
-  return createGitHubClient({ token, owner, repo }).postProcessPR(issueNumber, branchPrefix);
-}
-
-export async function triggerCI(
-  token: string,
-  owner: string,
-  repo: string,
-  branchName: string,
-  workflowFile = "ci.yml",
-): Promise<void> {
-  return createGitHubClient({ token, owner, repo }).triggerCI(branchName, workflowFile);
 }

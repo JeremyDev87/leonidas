@@ -3,6 +3,12 @@ import * as core from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
 
+const mockGitHubClient = {
+  findPlanComment: vi.fn(),
+  postComment: vi.fn(),
+  isIssueClosed: vi.fn(),
+};
+
 vi.mock("@actions/core");
 vi.mock("fs");
 vi.mock("os");
@@ -10,12 +16,24 @@ vi.mock("./config");
 vi.mock("./prompts/system");
 vi.mock("./prompts/plan");
 vi.mock("./prompts/execute");
-vi.mock("./github");
+vi.mock("./github", () => ({
+  createGitHubClient: vi.fn(() => mockGitHubClient),
+  parseSubIssueMetadata: vi.fn(),
+  isDecomposedPlan: vi.fn(),
+}));
 
 describe("main", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    mockGitHubClient.findPlanComment.mockReset();
+    mockGitHubClient.postComment.mockReset();
+    mockGitHubClient.isIssueClosed.mockReset();
+
+    // Provide default return values for mockGitHubClient
+    mockGitHubClient.findPlanComment.mockResolvedValue(null);
+    mockGitHubClient.postComment.mockResolvedValue(undefined);
+    mockGitHubClient.isIssueClosed.mockResolvedValue(false);
 
     // Default environment
     process.env.GITHUB_EVENT_PATH = "/tmp/event.json";
@@ -217,17 +235,13 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt content");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan Comment\nDetailed plan");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("# Plan Comment\nDetailed plan");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
-      expect(findPlanComment).toHaveBeenCalledWith("test-github-token", "owner", "repo", 5);
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockGitHubClient.findPlanComment).toHaveBeenCalledWith(5);
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
         5,
         "⚡ **Leonidas** is starting implementation for issue #5...",
       );
@@ -277,9 +291,8 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("Plan content");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("Plan content");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
@@ -349,8 +362,7 @@ describe("main", () => {
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-      const { findPlanComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue(null);
+      mockGitHubClient.findPlanComment.mockResolvedValue(null);
 
       await import("./main");
 
@@ -421,8 +433,7 @@ describe("main", () => {
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-      const { findPlanComment } = await import("./github");
-      vi.mocked(findPlanComment).mockRejectedValue(new Error("GitHub API error"));
+      mockGitHubClient.findPlanComment.mockRejectedValue(new Error("GitHub API error"));
 
       await import("./main");
 
@@ -533,9 +544,8 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("Plan content");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("Plan content");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
@@ -726,16 +736,12 @@ describe("main", () => {
         authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
       });
 
-      const { postComment } = await import("./github");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
       expect(core.setFailed).toHaveBeenCalledWith(expect.stringContaining("Unauthorized"));
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("Unauthorized approver"),
       );
@@ -788,19 +794,15 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("# Plan");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
       // Should NOT have been rejected
       expect(core.setFailed).not.toHaveBeenCalled();
       // Should have proceeded to post the "starting implementation" comment
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("starting implementation"),
       );
@@ -853,9 +855,8 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("# Plan");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
@@ -910,18 +911,14 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      mockGitHubClient.findPlanComment.mockResolvedValue("# Plan");
+      mockGitHubClient.postComment.mockResolvedValue(undefined);
 
       await import("./main");
 
       // CONTRIBUTOR should be allowed with custom config
       expect(core.setFailed).not.toHaveBeenCalled();
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockGitHubClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("starting implementation"),
       );
