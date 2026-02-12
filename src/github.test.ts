@@ -13,6 +13,7 @@ import {
   createDraftPR,
   postProcessPR,
   triggerCI,
+  _clearOctokitCache,
 } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
@@ -58,15 +59,28 @@ describe("github", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    _clearOctokitCache();
+  });
+
+  describe("Octokit caching", () => {
+    it("should reuse Octokit instance for same token", async () => {
+      mockOctokit.paginate.mockResolvedValue([]);
+
+      await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      // Should only create one instance due to caching
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("findPlanComment", () => {
     it("should return the latest plan comment when multiple exist", async () => {
       const comments = [
         { id: 1, body: "Regular comment" },
-        { id: 2, body: `${PLAN_HEADER}\n\nFirst plan` },
+        { id: 2, body: `${PLAN_HEADER}\n\nFirst plan`, user: { login: "github-actions[bot]" } },
         { id: 3, body: "Another regular comment" },
-        { id: 4, body: `${PLAN_HEADER}\n\nLatest plan` },
+        { id: 4, body: `${PLAN_HEADER}\n\nLatest plan`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -107,7 +121,7 @@ describe("github", () => {
     it("should handle comments with undefined body", async () => {
       const comments = [
         { id: 1, body: undefined },
-        { id: 2, body: `${PLAN_HEADER}\n\nPlan with content` },
+        { id: 2, body: `${PLAN_HEADER}\n\nPlan with content`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -126,7 +140,13 @@ describe("github", () => {
     });
 
     it("should find plan comment in the middle of body text", async () => {
-      const comments = [{ id: 1, body: `Some text before\n${PLAN_HEADER}\nSome text after` }];
+      const comments = [
+        {
+          id: 1,
+          body: `Some text before\n${PLAN_HEADER}\nSome text after`,
+          user: { login: "github-actions[bot]" },
+        },
+      ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
@@ -138,7 +158,7 @@ describe("github", () => {
     it("should find plan comment by PLAN_MARKER", async () => {
       const comments = [
         { id: 1, body: "Regular comment" },
-        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nContent here` },
+        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nContent here`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -150,8 +170,8 @@ describe("github", () => {
 
     it("should prefer PLAN_MARKER over PLAN_HEADER when both exist", async () => {
       const comments = [
-        { id: 1, body: `${PLAN_HEADER}\n\nOld style plan` },
-        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nNew style plan` },
+        { id: 1, body: `${PLAN_HEADER}\n\nOld style plan`, user: { login: "github-actions[bot]" } },
+        { id: 2, body: `${PLAN_MARKER}\n## Plan\n\nNew style plan`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -163,9 +183,9 @@ describe("github", () => {
 
     it("should return latest PLAN_MARKER comment when multiple exist", async () => {
       const comments = [
-        { id: 1, body: `${PLAN_MARKER}\n## Plan\n\nFirst plan` },
+        { id: 1, body: `${PLAN_MARKER}\n## Plan\n\nFirst plan`, user: { login: "github-actions[bot]" } },
         { id: 2, body: "Regular comment" },
-        { id: 3, body: `${PLAN_MARKER}\n## Plan\n\nLatest plan` },
+        { id: 3, body: `${PLAN_MARKER}\n## Plan\n\nLatest plan`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -178,7 +198,7 @@ describe("github", () => {
     it("should fallback to PLAN_HEADER when no PLAN_MARKER found", async () => {
       const comments = [
         { id: 1, body: "Regular comment" },
-        { id: 2, body: `${PLAN_HEADER}\n\nPlan without marker` },
+        { id: 2, body: `${PLAN_HEADER}\n\nPlan without marker`, user: { login: "github-actions[bot]" } },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -186,6 +206,33 @@ describe("github", () => {
       const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
 
       expect(result).toBe(`${PLAN_HEADER}\n\nPlan without marker`);
+    });
+
+    it("should ignore plan comments from untrusted authors", async () => {
+      const comments = [
+        { id: 1, body: `${PLAN_MARKER}\n## Spoofed Plan`, user: { login: "attacker" } },
+        { id: 2, body: `${PLAN_HEADER}\n\nAnother spoofed plan`, user: { login: "random-user" } },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBeNull();
+      expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("untrusted authors"));
+    });
+
+    it("should find trusted bot comment even when untrusted ones exist", async () => {
+      const comments = [
+        { id: 1, body: `${PLAN_MARKER}\n## Spoofed Plan`, user: { login: "attacker" } },
+        { id: 2, body: `${PLAN_MARKER}\n## Real Plan`, user: { login: "github-actions[bot]" } },
+      ];
+
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_MARKER}\n## Real Plan`);
     });
   });
 

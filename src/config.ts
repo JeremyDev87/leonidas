@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
+import * as path from "path";
 import * as yaml from "js-yaml";
 import { LeonidasConfig, ActionInputs } from "./types";
 import { resolveLanguage } from "./i18n";
@@ -14,6 +15,12 @@ const DEFAULT_CONFIG: LeonidasConfig = {
   model: "claude-sonnet-4-5-20250929",
   branch_prefix: "claude/issue-",
   base_branch: "main",
+  // SECURITY NOTE: The default allowed_tools include broad permissions:
+  // - Bash(npx:*) allows downloading and executing arbitrary npm packages
+  // - Bash(node:*) allows executing inline JavaScript
+  // These are necessary for most workflows but can be restricted via config
+  // to more specific patterns (e.g., "Bash(npm test:*)", "Bash(npm run:*)")
+  // for security-sensitive environments.
   allowed_tools: [
     "Read",
     "Write",
@@ -150,6 +157,18 @@ export function mergeConfig(
     );
   }
 
+  // Filter out NONE with security warning — NONE allows any unaffiliated user to approve
+  const filteredApprovers = merged.authorized_approvers.filter((approver) => {
+    if (approver === "NONE") {
+      core.warning(
+        'authorized_approvers contains "NONE" which allows any unaffiliated GitHub user to approve execution. This value has been ignored for security. Remove it from your configuration.',
+      );
+      return false;
+    }
+    return true;
+  });
+  merged.authorized_approvers = filteredApprovers;
+
   // Validate authorized_approvers contains valid GitHub author associations
   const validAssociations = [
     "OWNER",
@@ -159,7 +178,6 @@ export function mergeConfig(
     "FIRST_TIME_CONTRIBUTOR",
     "FIRST_TIMER",
     "MANNEQUIN",
-    "NONE",
   ];
   for (const approver of merged.authorized_approvers) {
     if (!validAssociations.includes(approver)) {
@@ -190,7 +208,7 @@ export function loadRules(rulesPath: string): Record<string, string> {
 
     const rules: Record<string, string> = {};
     for (const file of mdFiles) {
-      const filePath = `${rulesPath}/${file}`;
+      const filePath = path.join(rulesPath, file);
       const ruleName = file.replace(/\.md$/, "");
       try {
         const content = fs.readFileSync(filePath, "utf-8");

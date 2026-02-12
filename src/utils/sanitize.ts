@@ -56,6 +56,8 @@ export function escapeForShellArg(value: string): string {
   // and other shell metacharacters that could break out of a quoted string
   return value
     .replace(/\\/g, "\\\\")
+    .replace(/\n/g, " ")
+    .replace(/\r/g, "")
     .replace(/"/g, '\\"')
     .replace(/`/g, "\\`")
     .replace(/\$/g, "\\$")

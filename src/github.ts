@@ -3,8 +3,17 @@ import * as github from "@actions/github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 import { SubIssueMetadata } from "./types";
 
+// Cache Octokit instances per token to avoid redundant instantiations
+const octokitCache = new Map<string, ReturnType<typeof github.getOctokit>>();
+
 function createOctokit(token: string) {
-  return github.getOctokit(token);
+  const cached = octokitCache.get(token);
+  if (cached) {
+    return cached;
+  }
+  const instance = github.getOctokit(token);
+  octokitCache.set(token, instance);
+  return instance;
 }
 
 // Trusted bot authors that can create plan comments
@@ -39,16 +48,15 @@ export async function findPlanComment(
     planComments = trustedComments.filter((comment) => comment.body?.includes(PLAN_HEADER));
   }
 
-  // If no trusted bot comments found, fall back to any comment (for backward compat
-  // with repos where the bot identity differs, e.g., custom GitHub App installations)
+  // If no trusted plan comments found, check if any untrusted ones exist (for diagnostic)
   if (planComments.length === 0) {
-    planComments = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
-  }
-  if (planComments.length === 0) {
-    planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
-  }
-
-  if (planComments.length === 0) {
+    const untrustedMarker = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
+    const untrustedHeader = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
+    if (untrustedMarker.length > 0 || untrustedHeader.length > 0) {
+      core.warning(
+        `Found plan comment(s) from untrusted authors on issue #${issueNumber}. Only comments from trusted bots (${[...TRUSTED_BOT_AUTHORS].join(", ")}) are accepted. Possible spoofed plan detected.`,
+      );
+    }
     return null;
   }
 
@@ -323,4 +331,9 @@ export async function triggerCI(
       "Note: Could not trigger CI via workflow_dispatch. CI may need to be triggered manually.",
     );
   }
+}
+
+/** @internal Exposed for testing only - clears the Octokit instance cache */
+export function _clearOctokitCache(): void {
+  octokitCache.clear();
 }

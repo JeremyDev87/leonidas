@@ -664,7 +664,6 @@ describe("config", () => {
             "FIRST_TIME_CONTRIBUTOR",
             "FIRST_TIMER",
             "MANNEQUIN",
-            "NONE",
           ],
         };
         const inputs: ActionInputs = {
@@ -685,8 +684,8 @@ describe("config", () => {
           "FIRST_TIME_CONTRIBUTOR",
           "FIRST_TIMER",
           "MANNEQUIN",
-          "NONE",
         ]);
+        expect(core.warning).not.toHaveBeenCalled();
       });
 
       it("should reject invalid authorized_approvers value", () => {
@@ -760,8 +759,24 @@ describe("config", () => {
         };
 
         expect(() => mergeConfig(fileConfig, inputs)).toThrow(
-          "Must be one of: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER, MANNEQUIN, NONE",
+          "Must be one of: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER, MANNEQUIN",
         );
+      });
+
+      it("should warn and filter out NONE from authorized_approvers", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "NONE", "MEMBER"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        const result = mergeConfig(fileConfig, inputs);
+
+        expect(core.warning).toHaveBeenCalledWith(expect.stringContaining("NONE"));
+        expect(result.authorized_approvers).toEqual(["OWNER", "MEMBER"]);
       });
     });
 
