@@ -217,17 +217,25 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt content");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan Comment\nDetailed plan");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("# Plan Comment\nDetailed plan"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
-      expect(findPlanComment).toHaveBeenCalledWith("test-github-token", "owner", "repo", 5);
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockClient.findPlanComment).toHaveBeenCalledWith(5);
+      expect(mockClient.postComment).toHaveBeenCalledWith(
         5,
         "⚡ **Leonidas** is starting implementation for issue #5...",
       );
@@ -277,9 +285,20 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("Plan content");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("Plan content"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
@@ -349,8 +368,20 @@ describe("main", () => {
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-      const { findPlanComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue(null);
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue(null),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
@@ -421,8 +452,20 @@ describe("main", () => {
       const { buildSystemPrompt } = await import("./prompts/system");
       vi.mocked(buildSystemPrompt).mockReturnValue("system prompt");
 
-      const { findPlanComment } = await import("./github");
-      vi.mocked(findPlanComment).mockRejectedValue(new Error("GitHub API error"));
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockRejectedValue(new Error("GitHub API error")),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
@@ -533,9 +576,20 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("Plan content");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("Plan content"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
@@ -726,16 +780,25 @@ describe("main", () => {
         authorized_approvers: ["OWNER", "MEMBER", "COLLABORATOR"],
       });
 
-      const { postComment } = await import("./github");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn(),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
       expect(core.setFailed).toHaveBeenCalledWith(expect.stringContaining("Unauthorized"));
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("Unauthorized approver"),
       );
@@ -788,19 +851,27 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("# Plan"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
       // Should NOT have been rejected
       expect(core.setFailed).not.toHaveBeenCalled();
       // Should have proceeded to post the "starting implementation" comment
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("starting implementation"),
       );
@@ -853,9 +924,20 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("# Plan"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
@@ -910,18 +992,26 @@ describe("main", () => {
       const { buildExecutePrompt } = await import("./prompts/execute");
       vi.mocked(buildExecutePrompt).mockReturnValue("execute prompt");
 
-      const { findPlanComment, postComment } = await import("./github");
-      vi.mocked(findPlanComment).mockResolvedValue("# Plan");
-      vi.mocked(postComment).mockResolvedValue();
+      const { createGitHubClient } = await import("./github");
+      const mockClient = {
+        findPlanComment: vi.fn().mockResolvedValue("# Plan"),
+        postComment: vi.fn().mockResolvedValue(undefined),
+        isIssueClosed: vi.fn(),
+        linkSubIssues: vi.fn(),
+        getPRForBranch: vi.fn(),
+        branchExistsOnRemote: vi.fn(),
+        createDraftPR: vi.fn(),
+        postProcessPR: vi.fn(),
+        triggerCI: vi.fn(),
+        getIssue: vi.fn(),
+      };
+      vi.mocked(createGitHubClient).mockReturnValue(mockClient as any);
 
       await import("./main");
 
       // CONTRIBUTOR should be allowed with custom config
       expect(core.setFailed).not.toHaveBeenCalled();
-      expect(postComment).toHaveBeenCalledWith(
-        "test-github-token",
-        "owner",
-        "repo",
+      expect(mockClient.postComment).toHaveBeenCalledWith(
         1,
         expect.stringContaining("starting implementation"),
       );
