@@ -46,3 +46,9 @@ export interface GitHubContext {
   issue_author: string;
   comment_author_association: string;
 }
+
+export interface GitHubRepo {
+  token: string;
+  owner: string;
+  repo: string;
+}
