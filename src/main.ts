@@ -7,11 +7,7 @@ import { resolveConfig, loadRules } from "./config";
 import { buildSystemPrompt } from "./prompts/system";
 import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
-import {
-  createGitHubClient,
-  parseSubIssueMetadata,
-  isDecomposedPlan,
-} from "./github";
+import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./github";
 import type { GitHubClient } from "./github";
 
 export function readInputs(): ActionInputs {
@@ -242,7 +238,15 @@ export async function run(): Promise<void> {
     const result =
       inputs.mode === "plan"
         ? handlePlanMode(inputs, config, context, systemPrompt, subIssueMetadata, repoFullName)
-        : await handleExecuteMode(client, inputs, config, context, systemPrompt, subIssueMetadata, rules);
+        : await handleExecuteMode(
+            client,
+            inputs,
+            config,
+            context,
+            systemPrompt,
+            subIssueMetadata,
+            rules,
+          );
 
     if (!result) {
       return; // Early exit for execute mode failures
