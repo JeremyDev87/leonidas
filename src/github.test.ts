@@ -952,25 +952,89 @@ Plan content`;
       expect(client.createDraftPR).toBeInstanceOf(Function);
       expect(client.postProcessPR).toBeInstanceOf(Function);
       expect(client.triggerCI).toBeInstanceOf(Function);
-      expect(client.getIssueTitle).toBeInstanceOf(Function);
+      expect(client.getIssue).toBeInstanceOf(Function);
+      expect(client.getOpenPRForBranch).toBeInstanceOf(Function);
     });
   });
 
-  describe("getIssueTitle", () => {
-    it("should return the issue title", async () => {
+  describe("getIssue", () => {
+    it("should return issue data", async () => {
       mockOctokit.rest.issues.get.mockResolvedValue({
-        data: { title: "Test Title" },
+        data: {
+          title: "Test Title",
+          body: "Test body",
+          user: { login: "test-user" },
+          labels: [{ name: "bug" }],
+          state: "open",
+        },
       });
 
       const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
-      const result = await client.getIssueTitle(mockIssueNumber);
+      const result = await client.getIssue(mockIssueNumber);
 
       expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
         owner: mockOwner,
         repo: mockRepo,
         issue_number: mockIssueNumber,
       });
-      expect(result).toBe("Test Title");
+      expect(result).toEqual({
+        title: "Test Title",
+        body: "Test body",
+        user: { login: "test-user" },
+        labels: [{ name: "bug" }],
+        state: "open",
+      });
+    });
+
+    it("should handle null body and user", async () => {
+      mockOctokit.rest.issues.get.mockResolvedValue({
+        data: {
+          title: "No Body Issue",
+          body: null,
+          user: null,
+          labels: [],
+          state: "open",
+        },
+      });
+
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getIssue(mockIssueNumber);
+
+      expect(result).toEqual({
+        title: "No Body Issue",
+        body: null,
+        user: null,
+        labels: [],
+        state: "open",
+      });
+    });
+  });
+
+  describe("getOpenPRForBranch", () => {
+    it("returns PR number when open PR exists", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 88 }],
+      });
+
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getOpenPRForBranch("feature/branch");
+
+      expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        head: `${mockOwner}:feature/branch`,
+        state: "open",
+      });
+      expect(result).toBe(88);
+    });
+
+    it("returns undefined when no open PR exists", async () => {
+      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getOpenPRForBranch("feature/branch");
+
+      expect(result).toBeUndefined();
     });
   });
 });

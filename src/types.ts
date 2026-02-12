@@ -53,6 +53,14 @@ export interface GitHubRepo {
   repo: string;
 }
 
+export interface IssueData {
+  title: string;
+  body: string | null;
+  user: { login: string } | null;
+  labels: ({ name?: string } | string)[];
+  state: string;
+}
+
 export interface GitHubClient {
   findPlanComment(issueNumber: number): Promise<string | null>;
   isIssueClosed(issueNumber: number): Promise<boolean>;
@@ -68,8 +76,8 @@ export interface GitHubClient {
   ): Promise<string | undefined>;
   postProcessPR(issueNumber: number, branchPrefix: string): Promise<void>;
   triggerCI(branchName: string, workflowFile?: string): Promise<void>;
-  getIssueTitle(issueNumber: number): Promise<string>;
-  getIssueBody(issueNumber: number): Promise<string>;
+  getIssue(issueNumber: number): Promise<IssueData>;
+  getOpenPRForBranch(branchName: string): Promise<number | undefined>;
 }
 
 export interface LinkSubIssuesResult {

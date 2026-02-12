@@ -14,8 +14,8 @@ const mockGitHubClient = {
   createDraftPR: vi.fn(),
   postProcessPR: vi.fn(),
   triggerCI: vi.fn(),
-  getIssueTitle: vi.fn(),
-  getIssueBody: vi.fn(),
+  getIssue: vi.fn(),
+  getOpenPRForBranch: vi.fn(),
   isIssueClosed: vi.fn(),
 };
 
@@ -186,12 +186,12 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockGitHubClient.getPRForBranch.mockResolvedValue(99);
+      mockGitHubClient.getOpenPRForBranch.mockResolvedValue(99);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("completion msg");
 
       await run();
 
-      expect(mockGitHubClient.getPRForBranch).toHaveBeenCalledWith("leonidas/issue-42");
+      expect(mockGitHubClient.getOpenPRForBranch).toHaveBeenCalledWith("leonidas/issue-42");
       expect(postProcessingModule.buildCompletionComment).toHaveBeenCalledWith({
         issueNumber: 42,
         prNumber: "99",
@@ -210,7 +210,7 @@ describe("post_process", () => {
       process.env.BRANCH_PREFIX = "leonidas/issue-";
       process.env.RUN_URL = "https://example.com/run";
 
-      mockGitHubClient.getPRForBranch.mockResolvedValue(undefined);
+      mockGitHubClient.getOpenPRForBranch.mockResolvedValue(undefined);
       vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("no PR msg");
 
       await run();
@@ -336,8 +336,13 @@ describe("post_process", () => {
 
       mockGitHubClient.branchExistsOnRemote.mockResolvedValue(true);
       mockGitHubClient.getPRForBranch.mockResolvedValue(undefined);
-      mockGitHubClient.getIssueTitle.mockResolvedValue("Fix bug");
-      mockGitHubClient.getIssueBody.mockResolvedValue("<!-- leonidas-parent: #10 -->\nSome body");
+      mockGitHubClient.getIssue.mockResolvedValue({
+        title: "Fix bug",
+        body: "<!-- leonidas-parent: #10 -->\nSome body",
+        user: { login: "test-user" },
+        labels: [],
+        state: "open",
+      });
       vi.mocked(postProcessingModule.extractParentIssueNumber).mockReturnValue(10);
       vi.mocked(postProcessingModule.buildRescuePRTitle).mockReturnValue("#10 Fix bug [partial]");
       vi.mocked(postProcessingModule.buildRescuePRBody).mockReturnValue("PR body content");

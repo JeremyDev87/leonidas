@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
-import { SubIssueMetadata, GitHubRepo, GitHubClient } from "./types";
+import { SubIssueMetadata, GitHubRepo, GitHubClient, IssueData } from "./types";
 
 function createOctokit(token: string) {
   return github.getOctokit(token);
@@ -248,22 +248,29 @@ export function createGitHubClient(params: GitHubRepo): GitHubClient {
       }
     },
 
-    async getIssueTitle(issueNumber: number) {
+    async getIssue(issueNumber: number): Promise<IssueData> {
       const { data: issue } = await octokit.rest.issues.get({
         owner,
         repo,
         issue_number: issueNumber,
       });
-      return issue.title;
+      return {
+        title: issue.title,
+        body: issue.body ?? null,
+        user: issue.user ? { login: issue.user.login } : null,
+        labels: issue.labels ?? [],
+        state: issue.state,
+      };
     },
 
-    async getIssueBody(issueNumber: number) {
-      const { data: issue } = await octokit.rest.issues.get({
+    async getOpenPRForBranch(branchName: string): Promise<number | undefined> {
+      const { data: prs } = await octokit.rest.pulls.list({
         owner,
         repo,
-        issue_number: issueNumber,
+        head: `${owner}:${branchName}`,
+        state: "open",
       });
-      return issue.body ?? "";
+      return prs.length > 0 ? prs[0].number : undefined;
     },
   };
 

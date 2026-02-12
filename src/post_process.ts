@@ -76,7 +76,7 @@ async function runPostCompletion(): Promise<void> {
   const githubClient = createGitHubClient({ token, owner, repo });
 
   const branchName = `${branchPrefix}${issueNumber}`;
-  const prNumber = await githubClient.getPRForBranch(branchName);
+  const prNumber = await githubClient.getOpenPRForBranch(branchName);
 
   const comment = buildCompletionComment({
     issueNumber,
@@ -148,20 +148,19 @@ async function runRescue(): Promise<void> {
     });
     await githubClient.postComment(issueNumber, comment);
   } else {
-    const issueTitle = await githubClient.getIssueTitle(issueNumber);
-    const issueBody = await githubClient.getIssueBody(issueNumber);
+    const issue = await githubClient.getIssue(issueNumber);
 
-    const parentNumber = extractParentIssueNumber(issueBody ?? "");
+    const parentNumber = extractParentIssueNumber(issue.body ?? "");
     const title = buildRescuePRTitle({
       issueNumber,
-      issueTitle,
+      issueTitle: issue.title,
       parentNumber,
       language,
       runUrl,
     });
     const body = buildRescuePRBody({
       issueNumber,
-      issueTitle,
+      issueTitle: issue.title,
       parentNumber,
       language,
       runUrl,
