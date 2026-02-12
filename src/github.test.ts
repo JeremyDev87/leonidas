@@ -1,19 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
-import {
-  findPlanComment,
-  postComment,
-  parseSubIssueMetadata,
-  isDecomposedPlan,
-  isIssueClosed,
-  linkSubIssues,
-  getPRForBranch,
-  branchExistsOnRemote,
-  createDraftPR,
-  postProcessPR,
-  triggerCI,
-} from "./github";
+import { parseSubIssueMetadata, isDecomposedPlan, createGitHubClient } from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/core");
@@ -71,9 +59,9 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
       expect(mockOctokit.paginate).toHaveBeenCalledWith(mockOctokit.rest.issues.listComments, {
         owner: mockOwner,
         repo: mockRepo,
@@ -91,7 +79,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBeNull();
     });
@@ -99,7 +88,8 @@ describe("github", () => {
     it("should return null when comment list is empty", async () => {
       mockOctokit.paginate.mockResolvedValue([]);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBeNull();
     });
@@ -112,7 +102,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`${PLAN_HEADER}\n\nPlan with content`);
     });
@@ -120,7 +111,8 @@ describe("github", () => {
     it("should return null when plan comment has undefined body", async () => {
       mockOctokit.paginate.mockResolvedValue([{ id: 3, body: undefined }]);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBeNull();
     });
@@ -130,7 +122,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`Some text before\n${PLAN_HEADER}\nSome text after`);
     });
@@ -143,7 +136,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nContent here`);
     });
@@ -156,7 +150,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nNew style plan`);
     });
@@ -170,7 +165,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`${PLAN_MARKER}\n## Plan\n\nLatest plan`);
     });
@@ -183,7 +179,8 @@ describe("github", () => {
 
       mockOctokit.paginate.mockResolvedValue(comments);
 
-      const result = await findPlanComment(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.findPlanComment(mockIssueNumber);
 
       expect(result).toBe(`${PLAN_HEADER}\n\nPlan without marker`);
     });
@@ -197,9 +194,9 @@ describe("github", () => {
         data: { id: 123, body: commentBody },
       });
 
-      await postComment(mockToken, mockOwner, mockRepo, mockIssueNumber, commentBody);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postComment(mockIssueNumber, commentBody);
 
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
       expect(mockOctokit.rest.issues.createComment).toHaveBeenCalledWith({
         owner: mockOwner,
         repo: mockRepo,
@@ -215,7 +212,8 @@ describe("github", () => {
         data: { id: 124, body: commentBody },
       });
 
-      await postComment(mockToken, mockOwner, mockRepo, mockIssueNumber, commentBody);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postComment(mockIssueNumber, commentBody);
 
       expect(mockOctokit.rest.issues.createComment).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -232,7 +230,8 @@ describe("github", () => {
         data: { id: 125, body: commentBody },
       });
 
-      await postComment(mockToken, mockOwner, mockRepo, mockIssueNumber, commentBody);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postComment(mockIssueNumber, commentBody);
 
       expect(mockOctokit.rest.issues.createComment).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -506,9 +505,9 @@ Plan content`;
         data: { state: "closed", number: mockIssueNumber },
       });
 
-      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.isIssueClosed(mockIssueNumber);
 
-      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
       expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
         owner: mockOwner,
         repo: mockRepo,
@@ -522,7 +521,8 @@ Plan content`;
         data: { state: "open", number: mockIssueNumber },
       });
 
-      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.isIssueClosed(mockIssueNumber);
 
       expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -536,7 +536,8 @@ Plan content`;
       const error = { status: 404, message: "Not Found" };
       mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
 
-      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await expect(client.isIssueClosed(mockIssueNumber)).rejects.toThrow(
         `Dependency issue #${mockIssueNumber} not found in ${mockOwner}/${mockRepo}.`,
       );
 
@@ -551,7 +552,8 @@ Plan content`;
       const error = new Error("API rate limit exceeded");
       mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
 
-      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await expect(client.isIssueClosed(mockIssueNumber)).rejects.toThrow(
         `Failed to check issue #${mockIssueNumber} status: API rate limit exceeded`,
       );
 
@@ -566,7 +568,8 @@ Plan content`;
       const error = { someField: "not a standard error" };
       mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
 
-      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await expect(client.isIssueClosed(mockIssueNumber)).rejects.toThrow(
         `Failed to check issue #${mockIssueNumber} status: unknown error`,
       );
     });
@@ -575,7 +578,8 @@ Plan content`;
       const error = { status: 403, message: "Forbidden" };
       mockOctokit.rest.issues.get = vi.fn().mockRejectedValue(error);
 
-      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await expect(client.isIssueClosed(mockIssueNumber)).rejects.toThrow(
         `Failed to check issue #${mockIssueNumber} status:`,
       );
     });
@@ -583,7 +587,8 @@ Plan content`;
     it("should handle string error message", async () => {
       mockOctokit.rest.issues.get = vi.fn().mockRejectedValue("Network connection failed");
 
-      await expect(isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber)).rejects.toThrow(
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await expect(client.isIssueClosed(mockIssueNumber)).rejects.toThrow(
         `Failed to check issue #${mockIssueNumber} status: unknown error`,
       );
     });
@@ -597,7 +602,8 @@ Plan content`;
         },
       });
 
-      const result = await isIssueClosed(mockToken, mockOwner, mockRepo, mockIssueNumber);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.isIssueClosed(mockIssueNumber);
 
       expect(result).toBe(true);
     });
@@ -611,7 +617,8 @@ Plan content`;
         .mockResolvedValueOnce({ data: { id: 1002 } });
       mockOctokit.request = vi.fn().mockResolvedValue({});
 
-      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36, 37]);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.linkSubIssues(10, [36, 37]);
 
       expect(result).toEqual({ linked: 2, failed: 0 });
       expect(mockOctokit.rest.issues.get).toHaveBeenCalledTimes(2);
@@ -634,7 +641,8 @@ Plan content`;
         .mockRejectedValueOnce(new Error("Not found"));
       mockOctokit.request = vi.fn().mockResolvedValue({});
 
-      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36, 37]);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.linkSubIssues(10, [36, 37]);
 
       expect(result).toEqual({ linked: 1, failed: 1 });
     });
@@ -643,13 +651,15 @@ Plan content`;
       mockOctokit.rest.issues.get = vi.fn().mockResolvedValueOnce({ data: { id: 1001 } });
       mockOctokit.request = vi.fn().mockRejectedValueOnce(new Error("Already linked"));
 
-      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, [36]);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.linkSubIssues(10, [36]);
 
       expect(result).toEqual({ linked: 0, failed: 1 });
     });
 
     it("returns zero counts for empty array", async () => {
-      const result = await linkSubIssues(mockToken, mockOwner, mockRepo, 10, []);
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.linkSubIssues(10, []);
 
       expect(result).toEqual({ linked: 0, failed: 0 });
     });
@@ -661,7 +671,8 @@ Plan content`;
         data: [{ number: 99 }],
       });
 
-      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getPRForBranch("feature/branch");
 
       expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -675,7 +686,8 @@ Plan content`;
     it("returns undefined when no PR exists", async () => {
       mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
 
-      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getPRForBranch("feature/branch");
 
       expect(result).toBeUndefined();
     });
@@ -685,7 +697,8 @@ Plan content`;
         data: [{ number: 50 }, { number: 51 }],
       });
 
-      const result = await getPRForBranch(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.getPRForBranch("feature/branch");
 
       expect(result).toBe(50);
     });
@@ -697,7 +710,8 @@ Plan content`;
         data: { name: "feature/branch" },
       });
 
-      const result = await branchExistsOnRemote(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.branchExistsOnRemote("feature/branch");
 
       expect(mockOctokit.rest.repos.getBranch).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -710,12 +724,8 @@ Plan content`;
     it("returns false when branch does not exist", async () => {
       mockOctokit.rest.repos.getBranch.mockRejectedValue(new Error("Not found"));
 
-      const result = await branchExistsOnRemote(
-        mockToken,
-        mockOwner,
-        mockRepo,
-        "feature/nonexistent",
-      );
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.branchExistsOnRemote("feature/nonexistent");
 
       expect(result).toBe(false);
     });
@@ -727,15 +737,8 @@ Plan content`;
         data: { html_url: "https://github.com/owner/repo/pull/10" },
       });
 
-      const result = await createDraftPR(
-        mockToken,
-        mockOwner,
-        mockRepo,
-        "feature/branch",
-        "main",
-        "PR Title",
-        "PR Body",
-      );
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.createDraftPR("feature/branch", "main", "PR Title", "PR Body");
 
       expect(mockOctokit.rest.pulls.create).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -752,15 +755,8 @@ Plan content`;
     it("returns undefined on failure", async () => {
       mockOctokit.rest.pulls.create.mockRejectedValue(new Error("Conflict"));
 
-      const result = await createDraftPR(
-        mockToken,
-        mockOwner,
-        mockRepo,
-        "feature/branch",
-        "main",
-        "PR Title",
-        "PR Body",
-      );
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const result = await client.createDraftPR("feature/branch", "main", "PR Title", "PR Body");
 
       expect(result).toBeUndefined();
     });
@@ -780,7 +776,8 @@ Plan content`;
       mockOctokit.rest.issues.addLabels.mockResolvedValue({});
       mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
 
-      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postProcessPR(42, "leonidas/issue-");
 
       expect(mockOctokit.rest.issues.addLabels).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -799,7 +796,8 @@ Plan content`;
     it("skips when no PR found for branch", async () => {
       mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
 
-      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postProcessPR(42, "leonidas/issue-");
 
       expect(core.info).toHaveBeenCalledWith(
         "No PR found for branch leonidas/issue-42, skipping post-processing.",
@@ -820,7 +818,8 @@ Plan content`;
       mockOctokit.rest.issues.addLabels.mockRejectedValue(new Error("Forbidden"));
       mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
 
-      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postProcessPR(42, "leonidas/issue-");
 
       expect(core.warning).toHaveBeenCalledWith("Failed to add labels to PR #77");
       expect(mockOctokit.rest.issues.addAssignees).toHaveBeenCalled();
@@ -838,7 +837,8 @@ Plan content`;
       });
       mockOctokit.rest.issues.addAssignees.mockRejectedValue(new Error("Forbidden"));
 
-      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postProcessPR(42, "leonidas/issue-");
 
       expect(core.warning).toHaveBeenCalledWith("Failed to add assignee to PR #77");
     });
@@ -855,7 +855,8 @@ Plan content`;
       });
       mockOctokit.rest.issues.addAssignees.mockResolvedValue({});
 
-      await postProcessPR(mockToken, mockOwner, mockRepo, 42, "leonidas/issue-");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.postProcessPR(42, "leonidas/issue-");
 
       expect(mockOctokit.rest.issues.addLabels).not.toHaveBeenCalled();
     });
@@ -868,7 +869,8 @@ Plan content`;
       });
       mockOctokit.rest.actions.createWorkflowDispatch.mockResolvedValue({});
 
-      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.triggerCI("feature/branch");
 
       expect(mockOctokit.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -881,7 +883,8 @@ Plan content`;
     it("skips when branch does not exist", async () => {
       mockOctokit.rest.repos.getBranch.mockRejectedValue(new Error("Not found"));
 
-      await triggerCI(mockToken, mockOwner, mockRepo, "feature/nonexistent");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.triggerCI("feature/nonexistent");
 
       expect(core.info).toHaveBeenCalledWith(
         "Branch feature/nonexistent not found on remote, skipping CI trigger.",
@@ -897,7 +900,8 @@ Plan content`;
         new Error("Workflow not found"),
       );
 
-      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.triggerCI("feature/branch");
 
       expect(core.info).toHaveBeenCalledWith(
         "Note: Could not trigger CI via workflow_dispatch. CI may need to be triggered manually.",
@@ -910,7 +914,8 @@ Plan content`;
       });
       mockOctokit.rest.actions.createWorkflowDispatch.mockResolvedValue({});
 
-      await triggerCI(mockToken, mockOwner, mockRepo, "feature/branch", "test.yml");
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      await client.triggerCI("feature/branch", "test.yml");
 
       expect(mockOctokit.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -918,6 +923,121 @@ Plan content`;
         workflow_id: "test.yml",
         ref: "feature/branch",
       });
+    });
+  });
+
+  describe("createGitHubClient", () => {
+    it("should create a client that shares a single Octokit instance", () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
+      expect(client).toHaveProperty("findPlanComment");
+      expect(client).toHaveProperty("postComment");
+      expect(client).toHaveProperty("isIssueClosed");
+      expect(client).toHaveProperty("linkSubIssues");
+      expect(client).toHaveProperty("getPRForBranch");
+      expect(client).toHaveProperty("branchExistsOnRemote");
+      expect(client).toHaveProperty("createDraftPR");
+      expect(client).toHaveProperty("postProcessPR");
+      expect(client).toHaveProperty("triggerCI");
+      expect(client).toHaveProperty("getIssue");
+    });
+
+    it("findPlanComment should use shared Octokit", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      const comments = [
+        { id: 1, body: "Regular comment" },
+        { id: 2, body: `${PLAN_HEADER}\n\nPlan content` },
+      ];
+      mockOctokit.paginate.mockResolvedValue(comments);
+
+      const result = await client.findPlanComment(mockIssueNumber);
+
+      expect(result).toBe(`${PLAN_HEADER}\n\nPlan content`);
+      // getOctokit should only have been called once (during createGitHubClient)
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
+    });
+
+    it("postComment should use shared Octokit", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      mockOctokit.rest.issues.createComment.mockResolvedValue({
+        data: { id: 123, body: "test" },
+      });
+
+      await client.postComment(mockIssueNumber, "test body");
+
+      expect(mockOctokit.rest.issues.createComment).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+        body: "test body",
+      });
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
+    });
+
+    it("getPRForBranch should use shared Octokit", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      mockOctokit.rest.pulls.list.mockResolvedValue({
+        data: [{ number: 42 }],
+      });
+
+      const result = await client.getPRForBranch("feature/test");
+
+      expect(result).toBe(42);
+      expect(mockOctokit.rest.pulls.list).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        head: `${mockOwner}:feature/test`,
+        state: "all",
+      });
+    });
+
+    it("isIssueClosed should use shared Octokit", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+        data: { state: "closed" },
+      });
+
+      const result = await client.isIssueClosed(mockIssueNumber);
+
+      expect(result).toBe(true);
+    });
+
+    it("getIssue should return issue data", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+        data: { title: "Test Issue", body: "body", user: { login: "user" } },
+      });
+
+      const issue = await client.getIssue(mockIssueNumber);
+
+      expect(issue.title).toBe("Test Issue");
+      expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
+        owner: mockOwner,
+        repo: mockRepo,
+        issue_number: mockIssueNumber,
+      });
+    });
+
+    it("multiple method calls should reuse same Octokit", async () => {
+      const client = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      mockOctokit.paginate.mockResolvedValue([]);
+      mockOctokit.rest.issues.createComment.mockResolvedValue({ data: {} });
+      mockOctokit.rest.pulls.list.mockResolvedValue({ data: [] });
+
+      await client.findPlanComment(1);
+      await client.postComment(1, "test");
+      await client.getPRForBranch("branch");
+
+      // Only 1 getOctokit call total
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
     });
   });
 });
