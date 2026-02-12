@@ -354,9 +354,7 @@ describe("post_process", () => {
         title: "Fix bug",
         body: "<!-- leonidas-parent: #10 -->\nSome body",
       });
-      mockClient.createDraftPR.mockResolvedValue(
-        "https://github.com/owner/repo/pull/55",
-      );
+      mockClient.createDraftPR.mockResolvedValue("https://github.com/owner/repo/pull/55");
       vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
       vi.mocked(postProcessingModule.extractParentIssueNumber).mockReturnValue(10);
       vi.mocked(postProcessingModule.buildRescuePRTitle).mockReturnValue("#10 Fix bug [partial]");
