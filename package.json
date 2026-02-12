@@ -22,7 +22,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts -o dist --source-map --license licenses.txt -t && ncc build src/post_process.ts -o dist/post_process --source-map -t",
+    "build": "ncc build src/main.ts -o dist --source-map --license licenses.txt -t && ncc build src/post_process_cli.ts -o dist/post_process_cli --source-map -t",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "test": "vitest run",
