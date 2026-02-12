@@ -8,12 +8,11 @@ import { buildSystemPrompt } from "./prompts/system";
 import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
 import {
-  findPlanComment,
-  postComment,
+  createGitHubClient,
   parseSubIssueMetadata,
   isDecomposedPlan,
-  isIssueClosed,
 } from "./github";
+import type { GitHubClient } from "./github";
 
 export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
@@ -143,6 +142,7 @@ export function handlePlanMode(
 }
 
 export async function handleExecuteMode(
+  client: GitHubClient,
   inputs: ActionInputs,
   config: ReturnType<typeof resolveConfig>,
   context: GitHubContext,
@@ -155,10 +155,7 @@ export async function handleExecuteMode(
     config.authorized_approvers.length > 0 &&
     !config.authorized_approvers.includes(context.comment_author_association)
   ) {
-    await postComment(
-      inputs.github_token,
-      context.owner,
-      context.repo,
+    await client.postComment(
       context.issue_number,
       `⛔ **Leonidas**: Unauthorized approver. Only users with roles [${config.authorized_approvers.join(", ")}] can approve execution. Your role: \`${context.comment_author_association || "NONE"}\`.`,
     );
@@ -168,12 +165,7 @@ export async function handleExecuteMode(
     return null;
   }
 
-  const planComment = await findPlanComment(
-    inputs.github_token,
-    context.owner,
-    context.repo,
-    context.issue_number,
-  );
+  const planComment = await client.findPlanComment(context.issue_number);
 
   if (!planComment) {
     core.setFailed(`No plan comment found on issue #${context.issue_number}. Run plan mode first.`);
@@ -182,10 +174,7 @@ export async function handleExecuteMode(
 
   // Block execution on decomposed parent issues
   if (isDecomposedPlan(planComment)) {
-    await postComment(
-      inputs.github_token,
-      context.owner,
-      context.repo,
+    await client.postComment(
       context.issue_number,
       "⚠️ **Leonidas**: This issue has been decomposed into sub-issues. Please approve and execute each sub-issue individually instead of this parent issue.",
     );
@@ -195,17 +184,9 @@ export async function handleExecuteMode(
 
   // Check dependency for sub-issues
   if (subIssueMetadata?.depends_on) {
-    const depClosed = await isIssueClosed(
-      inputs.github_token,
-      context.owner,
-      context.repo,
-      subIssueMetadata.depends_on,
-    );
+    const depClosed = await client.isIssueClosed(subIssueMetadata.depends_on);
     if (!depClosed) {
-      await postComment(
-        inputs.github_token,
-        context.owner,
-        context.repo,
+      await client.postComment(
         context.issue_number,
         `⏳ **Leonidas**: This sub-issue depends on #${subIssueMetadata.depends_on} which is not yet closed. Please complete #${subIssueMetadata.depends_on} first.`,
       );
@@ -214,10 +195,7 @@ export async function handleExecuteMode(
     }
   }
 
-  await postComment(
-    inputs.github_token,
-    context.owner,
-    context.repo,
+  await client.postComment(
     context.issue_number,
     `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
   );
@@ -253,11 +231,18 @@ export async function run(): Promise<void> {
     const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language, rules);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
 
+    // Create GitHub client for execute mode
+    const client = createGitHubClient({
+      token: inputs.github_token,
+      owner: context.owner,
+      repo: context.repo,
+    });
+
     // Route to appropriate mode handler
     const result =
       inputs.mode === "plan"
         ? handlePlanMode(inputs, config, context, systemPrompt, subIssueMetadata, repoFullName)
-        : await handleExecuteMode(inputs, config, context, systemPrompt, subIssueMetadata, rules);
+        : await handleExecuteMode(client, inputs, config, context, systemPrompt, subIssueMetadata, rules);
 
     if (!result) {
       return; // Early exit for execute mode failures
