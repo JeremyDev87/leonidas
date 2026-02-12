@@ -24,14 +24,6 @@ import {
 } from "./github";
 import { LeonidasMode } from "./types";
 
-type Command =
-  | "link-subissues"
-  | "post-completion"
-  | "post-failure"
-  | "rescue"
-  | "post-process-pr"
-  | "trigger-ci";
-
 export interface PostProcessContext {
   token: string;
   owner: string;
@@ -56,6 +48,11 @@ export function getEnvOptional(name: string): string | undefined {
 
 export function parseRepo(repo: string): { owner: string; repo: string } {
   const [owner, name] = repo.split("/");
+  if (!owner || !name) {
+    throw new Error(
+      `Invalid repository format: "${repo}". Expected "owner/repo".`,
+    );
+  }
   return { owner, repo: name };
 }
 
@@ -127,7 +124,11 @@ async function runPostFailure(): Promise<void> {
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const language = resolveLanguage(getEnvOptional("LANGUAGE"));
   const runUrl = getEnvRequired("RUN_URL");
-  const mode = getEnvRequired("MODE") as LeonidasMode;
+  const modeRaw = getEnvRequired("MODE");
+  if (modeRaw !== "plan" && modeRaw !== "execute") {
+    throw new Error(`Invalid MODE: "${modeRaw}". Must be "plan" or "execute".`);
+  }
+  const mode: LeonidasMode = modeRaw;
 
   const comment = buildFailureComment({
     issueNumber,
@@ -238,7 +239,7 @@ async function runTriggerCI(): Promise<void> {
 }
 
 export async function run(): Promise<void> {
-  const command = process.argv[2] as Command;
+  const command = process.argv[2];
   switch (command) {
     case "link-subissues":
       return runLinkSubIssues();

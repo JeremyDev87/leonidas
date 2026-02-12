@@ -80,6 +80,18 @@ describe("post_process", () => {
         repo: "my-awesome-repo",
       });
     });
+
+    it("throws for empty string", () => {
+      expect(() => parseRepo("")).toThrow('Invalid repository format: ""');
+    });
+
+    it("throws for missing repo name", () => {
+      expect(() => parseRepo("owner-only")).toThrow('Invalid repository format: "owner-only"');
+    });
+
+    it("throws for trailing slash without repo name", () => {
+      expect(() => parseRepo("owner/")).toThrow('Invalid repository format: "owner/"');
+    });
   });
 
   describe("run — link-subissues command", () => {
@@ -229,6 +241,18 @@ describe("post_process", () => {
   });
 
   describe("run — post-failure command", () => {
+    it("throws error for invalid MODE value", async () => {
+      process.argv = ["node", "post_process.js", "post-failure"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.MODE = "invalid-mode";
+
+      await expect(run()).rejects.toThrow('Invalid MODE: "invalid-mode"');
+    });
+
     it("posts failure comment for plan mode", async () => {
       process.argv = ["node", "post_process.js", "post-failure"];
       process.env.GH_TOKEN = "ghp_test";
