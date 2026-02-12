@@ -10,7 +10,7 @@ import {
 } from "./post_processing";
 import { SupportedLanguage } from "./i18n";
 
-const ALL_LANGUAGES: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es"];
+const ALL_LANGUAGES: SupportedLanguage[] = ["en", "ko", "ja", "zh", "es", "de", "fr", "pt"];
 
 describe("buildCompletionComment", () => {
   it("returns PR link message when prNumber provided", () => {
