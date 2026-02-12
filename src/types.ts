@@ -46,3 +46,35 @@ export interface GitHubContext {
   issue_author: string;
   comment_author_association: string;
 }
+
+export interface GitHubRepo {
+  token: string;
+  owner: string;
+  repo: string;
+}
+
+export interface GitHubClient {
+  findPlanComment(issueNumber: number): Promise<string | null>;
+  isIssueClosed(issueNumber: number): Promise<boolean>;
+  postComment(issueNumber: number, body: string): Promise<void>;
+  linkSubIssues(
+    parentIssueNumber: number,
+    subIssueNumbers: number[],
+  ): Promise<LinkSubIssuesResult>;
+  getPRForBranch(branchName: string): Promise<number | undefined>;
+  branchExistsOnRemote(branchName: string): Promise<boolean>;
+  createDraftPR(
+    head: string,
+    base: string,
+    title: string,
+    body: string,
+  ): Promise<string | undefined>;
+  postProcessPR(issueNumber: number, branchPrefix: string): Promise<void>;
+  triggerCI(branchName: string, workflowFile?: string): Promise<void>;
+  getIssueTitle(issueNumber: number): Promise<string>;
+}
+
+export interface LinkSubIssuesResult {
+  linked: number;
+  failed: number;
+}
