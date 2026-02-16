@@ -211,6 +211,7 @@ describe("post-processing translation keys", () => {
     "failure_header",
     "failure_plan_body",
     "failure_execute_body",
+    "starting_implementation",
   ];
 
   it("should have translations for all post-processing keys in all languages", () => {
@@ -265,5 +266,11 @@ describe("post-processing translation keys", () => {
   it("should interpolate failure_execute_body correctly", () => {
     const result = t("failure_execute_body", "en", "https://example.com/run");
     expect(result).toContain("https://example.com/run");
+  });
+
+  it("should interpolate starting_implementation correctly", () => {
+    const result = t("starting_implementation", "en", 42);
+    expect(result).toContain("#42");
+    expect(result).toContain("starting implementation");
   });
 });
