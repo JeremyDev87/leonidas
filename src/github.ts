@@ -8,6 +8,14 @@ import { SubIssueMetadata, GitHubRepo } from "./types";
 // Other bot identifiers may be added for GitHub App installations
 const TRUSTED_BOT_AUTHORS = new Set(["github-actions[bot]"]);
 
+// Cache for Octokit instances keyed by token
+const octokitCache = new Map<string, ReturnType<typeof github.getOctokit>>();
+
+// For testing: clear the Octokit cache
+export function clearOctokitCache(): void {
+  octokitCache.clear();
+}
+
 export interface LinkSubIssuesResult {
   linked: number;
   failed: number;
@@ -16,7 +24,11 @@ export interface LinkSubIssuesResult {
 export type GitHubClient = ReturnType<typeof createGitHubClient>;
 
 export function createGitHubClient(repo: GitHubRepo) {
-  const octokit = github.getOctokit(repo.token);
+  let octokit = octokitCache.get(repo.token);
+  if (!octokit) {
+    octokit = github.getOctokit(repo.token);
+    octokitCache.set(repo.token, octokit);
+  }
   const { owner, repo: repoName } = repo;
 
   return {
