@@ -250,6 +250,12 @@ describe("escapeForShellArg", () => {
     expect(escapeForShellArg("Fix bug #42")).toBe("Fix bug #42");
     expect(escapeForShellArg("feat: add login")).toBe("feat: add login");
   });
+
+  it("should escape newlines and carriage returns", () => {
+    expect(escapeForShellArg("line1\nline2")).toBe("line1\\nline2");
+    expect(escapeForShellArg("line1\rline2")).toBe("line1\\rline2");
+    expect(escapeForShellArg("line1\r\nline2")).toBe("line1\\r\\nline2");
+  });
 });
 
 describe("escapeArrayForShellArg", () => {
