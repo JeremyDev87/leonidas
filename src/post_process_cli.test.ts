@@ -305,6 +305,20 @@ describe("post_process", () => {
         runUrl: "https://example.com/run",
       });
     });
+
+    it("throws error when MODE is invalid", async () => {
+      process.argv = ["node", "post_process.js", "post-failure"];
+      process.env.GH_TOKEN = "ghp_test";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.MODE = "invalid";
+
+      await expect(run()).rejects.toThrow(
+        'Invalid MODE: "invalid". Must be "plan" or "execute".',
+      );
+    });
   });
 
   describe("run — rescue command", () => {

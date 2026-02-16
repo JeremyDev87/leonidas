@@ -53,6 +53,7 @@ export function parseRepo(repo: string): { owner: string; repo: string } {
 
 export function readBaseContext(): PostProcessContext {
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const language = resolveLanguage(getEnvOptional("LANGUAGE"));
@@ -122,7 +123,11 @@ async function runPostFailure(): Promise<void> {
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const language = resolveLanguage(getEnvOptional("LANGUAGE"));
   const runUrl = getEnvRequired("RUN_URL");
-  const mode = getEnvRequired("MODE") as LeonidasMode;
+  const modeRaw = getEnvRequired("MODE");
+  if (modeRaw !== "plan" && modeRaw !== "execute") {
+    throw new Error(`Invalid MODE: "${modeRaw}". Must be "plan" or "execute".`);
+  }
+  const mode: LeonidasMode = modeRaw;
 
   const client = createGitHubClient({ token, owner, repo });
 
