@@ -124,7 +124,6 @@ async function runPostFailure(): Promise<void> {
   const client = createGitHubClient({ token, owner, repo });
 
   const comment = buildFailureComment({
-    issueNumber,
     mode,
     language,
     runUrl,

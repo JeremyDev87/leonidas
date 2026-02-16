@@ -31,7 +31,6 @@ export interface PartialProgressCommentParams {
  * Parameters for building a failure comment
  */
 export interface FailureCommentParams {
-  issueNumber: number;
   mode: LeonidasMode;
   language: SupportedLanguage;
   runUrl: string;
