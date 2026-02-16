@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as os from "os";
-import { run } from "./main";
+import { run, readInputs } from "./main";
 
 vi.mock("@actions/core");
 vi.mock("fs");
@@ -388,6 +388,26 @@ describe("main", () => {
       expect(core.setFailed).toHaveBeenCalledWith(
         "No plan comment found on issue #99. Run plan mode first.",
       );
+    });
+  });
+
+  describe("readInputs() - secrets handling", () => {
+    it("should register API key and GitHub token as secrets", () => {
+      vi.mocked(core.getInput).mockImplementation((name: string) => {
+        const inputs: Record<string, string> = {
+          mode: "plan",
+          anthropic_api_key: "test-api-key",
+          github_token: "test-github-token",
+        };
+        return inputs[name] || "";
+      });
+      vi.mocked(core.setSecret).mockImplementation(() => {});
+
+      readInputs();
+
+      expect(core.setSecret).toHaveBeenCalledWith("test-api-key");
+      expect(core.setSecret).toHaveBeenCalledWith("test-github-token");
+      expect(core.setSecret).toHaveBeenCalledTimes(2);
     });
   });
 
