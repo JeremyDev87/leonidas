@@ -52,14 +52,17 @@ export function wrapRepoConfiguration(content: string): string {
  * @returns The shell-safe escaped string
  */
 export function escapeForShellArg(value: string): string {
-  // Replace double quotes, backticks, dollar signs, backslashes, semicolons,
-  // and other shell metacharacters that could break out of a quoted string
+  // Replace double quotes, backticks, dollar signs, backslashes,
+  // newlines, carriage returns, and other shell metacharacters that could
+  // break out of a quoted string
   return value
     .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"')
     .replace(/`/g, "\\`")
     .replace(/\$/g, "\\$")
-    .replace(/!/g, "\\!");
+    .replace(/!/g, "\\!")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
 }
 
 /**
