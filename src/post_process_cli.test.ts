@@ -368,8 +368,6 @@ describe("post_process", () => {
         issueNumber: 42,
         issueTitle: "Fix bug",
         parentNumber: 10,
-        language: "en",
-        runUrl: "https://example.com/run",
       });
       expect(mockClient.createDraftPR).toHaveBeenCalledWith(
         "leonidas/issue-42",

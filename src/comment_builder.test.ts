@@ -156,8 +156,6 @@ describe("buildRescuePRTitle", () => {
       issueNumber: 42,
       issueTitle: "Add auth feature",
       parentNumber: 10,
-      language: "en",
-      runUrl: "https://example.com/run",
     });
     expect(result).toBe("#10 Add auth feature [partial]");
   });
@@ -166,8 +164,6 @@ describe("buildRescuePRTitle", () => {
     const result = buildRescuePRTitle({
       issueNumber: 42,
       issueTitle: "Add auth feature",
-      language: "en",
-      runUrl: "https://example.com/run",
     });
     expect(result).toBe("#42: Add auth feature [partial]");
   });
