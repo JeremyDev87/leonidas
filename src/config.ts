@@ -110,7 +110,7 @@ function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<Leoni
           }
           return true;
         });
-        (validated as Record<string, unknown>)[field] = filtered;
+        setField(validated, field, filtered as string[]);
       }
     }
   }
