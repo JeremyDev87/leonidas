@@ -44,11 +44,11 @@ export function getEnvOptional(name: string): string | undefined {
 }
 
 export function parseRepo(repo: string): { owner: string; repo: string } {
-  const [owner, name] = repo.split("/");
-  if (!owner || !name) {
+  const parts = repo.split("/");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
     throw new Error(`Invalid repository format: "${repo}". Expected "owner/repo".`);
   }
-  return { owner, repo: name };
+  return { owner: parts[0], repo: parts[1] };
 }
 
 export function readBaseContext(): PostProcessContext {
