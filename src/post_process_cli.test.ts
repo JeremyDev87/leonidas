@@ -444,13 +444,17 @@ describe("post_process", () => {
     it("throws error for unknown command", async () => {
       process.argv = ["node", "post_process.js", "unknown-cmd"];
 
-      await expect(run()).rejects.toThrow("Unknown post-process command: unknown-cmd");
+      await expect(run()).rejects.toThrow(
+        "Invalid post-process command: unknown-cmd. Must be one of: link-subissues, post-completion, post-failure, rescue, post-process-pr, trigger-ci",
+      );
     });
 
     it("throws error when no command provided", async () => {
       process.argv = ["node", "post_process.js"];
 
-      await expect(run()).rejects.toThrow("Unknown post-process command: undefined");
+      await expect(run()).rejects.toThrow(
+        "Invalid post-process command: undefined. Must be one of: link-subissues, post-completion, post-failure, rescue, post-process-pr, trigger-ci",
+      );
     });
   });
 });
