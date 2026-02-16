@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What is Leonidas
 
 Leonidas is a GitHub Action that automates issue-to-PR workflows using Claude Code. It operates in two phases:
+
 1. **Plan** (triggered by labeling an issue with `leonidas`) — Claude analyzes the issue and posts an implementation plan as a comment
 2. **Execute** (triggered by `/approve` comment) — Claude follows the approved plan, makes commits, and creates a PR
 
@@ -23,6 +24,7 @@ npm run build           # ncc bundle → dist/index.js + dist/post_process_cli/
 ```
 
 Run a single test file:
+
 ```bash
 npx vitest run src/config.test.ts
 ```
