@@ -75,6 +75,7 @@ async function runLinkSubIssues(): Promise<void> {
   // Note: This command uses REPO instead of GITHUB_REPOSITORY and doesn't need
   // language, branchPrefix, or runUrl, so it reads env vars directly
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("REPO"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
 
@@ -119,6 +120,7 @@ async function runPostCompletion(): Promise<void> {
 
 async function runPostFailure(): Promise<void> {
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const language = resolveLanguage(getEnvOptional("LANGUAGE"));
@@ -142,6 +144,7 @@ async function runPostFailure(): Promise<void> {
 
 async function runRescue(): Promise<void> {
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
@@ -215,6 +218,7 @@ async function runRescue(): Promise<void> {
 
 async function runPostProcessPR(): Promise<void> {
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
@@ -225,6 +229,7 @@ async function runPostProcessPR(): Promise<void> {
 
 async function runTriggerCI(): Promise<void> {
   const token = getEnvRequired("GH_TOKEN");
+  core.setSecret(token);
   const { owner, repo } = parseRepo(getEnvRequired("GITHUB_REPOSITORY"));
   const issueNumber = parseInt(getEnvRequired("ISSUE_NUMBER"), 10);
   const branchPrefix = getEnvRequired("BRANCH_PREFIX");
