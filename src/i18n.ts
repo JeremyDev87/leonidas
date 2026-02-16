@@ -91,8 +91,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "The automated plan encountered an error.\n\n**Workflow run:** [View logs](%s)\n\n**To retry:** Remove the `leonidas` label and re-add it.",
     failure_execute_body:
       "The automated execution encountered an error.\n\n**Workflow run:** [View logs](%s)\n\n**To retry:** Comment `/approve` again on this issue.",
-    starting_implementation:
-      "⚡ **Leonidas** is starting implementation for issue #%d...",
+    starting_implementation: "⚡ **Leonidas** is starting implementation for issue #%d...",
   },
   ko: {
     plan_header: "## 🏛️ 레오니다스 구현 계획",
@@ -117,8 +116,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "자동화된 계획이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기](%s)\n\n**재시도하려면:** `leonidas` 레이블을 제거한 후 다시 추가하세요.",
     failure_execute_body:
       "자동화된 실행이 오류를 발생시켰습니다.\n\n**워크플로 실행:** [로그 보기](%s)\n\n**재시도하려면:** 이 이슈에 `/approve`를 다시 댓글로 다세요.",
-    starting_implementation:
-      "⚡ **레오니다스**가 이슈 #%d에 대한 구현을 시작합니다...",
+    starting_implementation: "⚡ **레오니다스**가 이슈 #%d에 대한 구현을 시작합니다...",
   },
   ja: {
     plan_header: "## 🏛️ レオニダス実装計画",
@@ -143,8 +141,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "自動計画でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示](%s)\n\n**再試行するには:** `leonidas` ラベルを削除してから再度追加してください。",
     failure_execute_body:
       "自動実行でエラーが発生しました。\n\n**ワークフロー実行:** [ログを表示](%s)\n\n**再試行するには:** このイシューに `/approve` を再度コメントしてください。",
-    starting_implementation:
-      "⚡ **Leonidas**がイシュー #%d の実装を開始します...",
+    starting_implementation: "⚡ **Leonidas**がイシュー #%d の実装を開始します...",
   },
   zh: {
     plan_header: "## 🏛️ 列奥尼达实施计划",
@@ -192,8 +189,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "El plan automatizado encontró un error.\n\n**Ejecución del workflow:** [Ver logs](%s)\n\n**Para reintentar:** Elimina la etiqueta `leonidas` y agrégala nuevamente.",
     failure_execute_body:
       "La ejecución automatizada encontró un error.\n\n**Ejecución del workflow:** [Ver logs](%s)\n\n**Para reintentar:** Comenta `/approve` nuevamente en este issue.",
-    starting_implementation:
-      "⚡ **Leonidas** está iniciando la implementación del issue #%d...",
+    starting_implementation: "⚡ **Leonidas** está iniciando la implementación del issue #%d...",
   },
   de: {
     plan_header: "## 🏛️ Leonidas Implementierungsplan",
@@ -218,8 +214,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "Der automatisierte Plan ist auf einen Fehler gestoßen.\n\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Wiederholen:** Entfernen Sie das `leonidas` Label und fügen Sie es erneut hinzu.",
     failure_execute_body:
       "Die automatisierte Ausführung ist auf einen Fehler gestoßen.\n\n**Workflow-Ausführung:** [Logs anzeigen](%s)\n\n**Zum Wiederholen:** Kommentieren Sie erneut `/approve` in diesem Issue.",
-    starting_implementation:
-      "⚡ **Leonidas** beginnt mit der Implementierung für Issue #%d...",
+    starting_implementation: "⚡ **Leonidas** beginnt mit der Implementierung für Issue #%d...",
   },
   fr: {
     plan_header: "## 🏛️ Plan d'Implémentation Leonidas",
@@ -244,8 +239,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "Le plan automatisé a rencontré une erreur.\n\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour réessayer :** Retirez le label `leonidas` puis rajoutez-le.",
     failure_execute_body:
       "L'exécution automatisée a rencontré une erreur.\n\n**Exécution du workflow :** [Voir les logs](%s)\n\n**Pour réessayer :** Commentez à nouveau `/approve` sur ce ticket.",
-    starting_implementation:
-      "⚡ **Leonidas** commence l'implémentation du ticket #%d...",
+    starting_implementation: "⚡ **Leonidas** commence l'implémentation du ticket #%d...",
   },
   pt: {
     plan_header: "## 🏛️ Plano de Implementação Leonidas",
@@ -270,8 +264,7 @@ const translations: Record<SupportedLanguage, Record<TranslationKey, string>> = 
       "O plano automatizado encontrou um erro.\n\n**Execução do workflow:** [Ver logs](%s)\n\n**Para tentar novamente:** Remova o label `leonidas` e adicione-o novamente.",
     failure_execute_body:
       "A execução automatizada encontrou um erro.\n\n**Execução do workflow:** [Ver logs](%s)\n\n**Para tentar novamente:** Comente `/approve` novamente neste issue.",
-    starting_implementation:
-      "⚡ **Leonidas** está iniciando a implementação do issue #%d...",
+    starting_implementation: "⚡ **Leonidas** está iniciando a implementação do issue #%d...",
   },
 };
 
