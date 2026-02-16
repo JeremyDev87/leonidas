@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
-import { parseSubIssueMetadata, isDecomposedPlan, createGitHubClient } from "./github";
+import {
+  parseSubIssueMetadata,
+  isDecomposedPlan,
+  createGitHubClient,
+  clearOctokitCache,
+} from "./github";
 import { PLAN_HEADER, PLAN_MARKER, DECOMPOSED_MARKER } from "./templates/plan_comment";
 
 vi.mock("@actions/core");
@@ -17,6 +22,7 @@ describe("github", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearOctokitCache();
 
     mockOctokit = {
       paginate: vi.fn(),
@@ -176,9 +182,17 @@ describe("github", () => {
 
     it("should return latest PLAN_MARKER comment when multiple exist", async () => {
       const comments = [
-        { id: 1, body: `${PLAN_MARKER}\n## Plan\n\nFirst plan`, user: { login: "github-actions[bot]" } },
+        {
+          id: 1,
+          body: `${PLAN_MARKER}\n## Plan\n\nFirst plan`,
+          user: { login: "github-actions[bot]" },
+        },
         { id: 2, body: "Regular comment", user: { login: "someone" } },
-        { id: 3, body: `${PLAN_MARKER}\n## Plan\n\nLatest plan`, user: { login: "github-actions[bot]" } },
+        {
+          id: 3,
+          body: `${PLAN_MARKER}\n## Plan\n\nLatest plan`,
+          user: { login: "github-actions[bot]" },
+        },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -192,7 +206,11 @@ describe("github", () => {
     it("should fallback to PLAN_HEADER when no PLAN_MARKER found", async () => {
       const comments = [
         { id: 1, body: "Regular comment", user: { login: "someone" } },
-        { id: 2, body: `${PLAN_HEADER}\n\nPlan without marker`, user: { login: "github-actions[bot]" } },
+        {
+          id: 2,
+          body: `${PLAN_HEADER}\n\nPlan without marker`,
+          user: { login: "github-actions[bot]" },
+        },
       ];
 
       mockOctokit.paginate.mockResolvedValue(comments);
@@ -963,6 +981,39 @@ Plan content`;
         workflow_id: "test.yml",
         ref: "feature/branch",
       });
+    });
+  });
+
+  describe("createGitHubClient - caching", () => {
+    it("should cache Octokit instances by token", () => {
+      // This test needs isolated mock state
+      vi.clearAllMocks();
+
+      const client1 = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+      const client2 = createGitHubClient({ token: mockToken, owner: mockOwner, repo: mockRepo });
+
+      // Should only call getOctokit once for the same token
+      expect(github.getOctokit).toHaveBeenCalledWith(mockToken);
+      expect(github.getOctokit).toHaveBeenCalledTimes(1);
+
+      // Both clients should have all expected methods
+      expect(client1).toHaveProperty("findPlanComment");
+      expect(client2).toHaveProperty("findPlanComment");
+    });
+
+    it("should create separate Octokit instances for different tokens", () => {
+      vi.clearAllMocks();
+
+      const token1 = "ghp_token_1";
+      const token2 = "ghp_token_2";
+
+      createGitHubClient({ token: token1, owner: mockOwner, repo: mockRepo });
+      createGitHubClient({ token: token2, owner: mockOwner, repo: mockRepo });
+
+      // Should call getOctokit twice for different tokens
+      expect(github.getOctokit).toHaveBeenCalledWith(token1);
+      expect(github.getOctokit).toHaveBeenCalledWith(token2);
+      expect(github.getOctokit).toHaveBeenCalledTimes(2);
     });
   });
 
