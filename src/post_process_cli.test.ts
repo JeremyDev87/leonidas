@@ -126,6 +126,21 @@ describe("post_process", () => {
   });
 
   describe("run — link-subissues command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "link-subissues"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.REPO = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+
+      const mockClient = createMockClient();
+      mockClient.findPlanComment.mockResolvedValue(null);
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("calls findPlanComment and linkSubIssues when decomposed plan found", async () => {
       process.argv = ["node", "post_process.js", "link-subissues"];
       process.env.GH_TOKEN = "ghp_test";
@@ -208,6 +223,25 @@ describe("post_process", () => {
   });
 
   describe("run — post-completion command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "post-completion"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.LANGUAGE = "en";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.RUN_URL = "https://example.com/run";
+
+      const mockClient = createMockClient();
+      mockClient.getPRForBranch.mockResolvedValue(undefined);
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+      vi.mocked(postProcessingModule.buildCompletionComment).mockReturnValue("completion msg");
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("posts completion comment with PR number when PR exists", async () => {
       process.argv = ["node", "post_process.js", "post-completion"];
       process.env.GH_TOKEN = "ghp_test";
@@ -261,6 +295,24 @@ describe("post_process", () => {
   });
 
   describe("run — post-failure command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "post-failure"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+      process.env.MODE = "plan";
+
+      const mockClient = createMockClient();
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+      vi.mocked(postProcessingModule.buildFailureComment).mockReturnValue("failure msg");
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("posts failure comment for plan mode", async () => {
       process.argv = ["node", "post_process.js", "post-failure"];
       process.env.GH_TOKEN = "ghp_test";
@@ -315,13 +367,30 @@ describe("post_process", () => {
       process.env.RUN_URL = "https://example.com/run";
       process.env.MODE = "invalid";
 
-      await expect(run()).rejects.toThrow(
-        'Invalid MODE: "invalid". Must be "plan" or "execute".',
-      );
+      await expect(run()).rejects.toThrow('Invalid MODE: "invalid". Must be "plan" or "execute".');
     });
   });
 
   describe("run — rescue command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "rescue"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+      process.env.BASE_BRANCH = "main";
+      process.env.LANGUAGE = "en";
+      process.env.RUN_URL = "https://example.com/run";
+
+      const mockClient = createMockClient();
+      mockClient.branchExistsOnRemote.mockResolvedValue(false);
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("sets branch_exists=false and skips when branch does not exist", async () => {
       process.argv = ["node", "post_process.js", "rescue"];
       process.env.GH_TOKEN = "ghp_test";
@@ -450,6 +519,21 @@ describe("post_process", () => {
   });
 
   describe("run — post-process-pr command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "post-process-pr"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+
+      const mockClient = createMockClient();
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("delegates to postProcessPR with correct arguments", async () => {
       process.argv = ["node", "post_process.js", "post-process-pr"];
       process.env.GH_TOKEN = "ghp_test";
@@ -467,6 +551,21 @@ describe("post_process", () => {
   });
 
   describe("run — trigger-ci command", () => {
+    it("registers GH_TOKEN as secret", async () => {
+      process.argv = ["node", "post_process.js", "trigger-ci"];
+      process.env.GH_TOKEN = "ghp_test_secret_token";
+      process.env.GITHUB_REPOSITORY = "owner/repo";
+      process.env.ISSUE_NUMBER = "42";
+      process.env.BRANCH_PREFIX = "leonidas/issue-";
+
+      const mockClient = createMockClient();
+      vi.mocked(githubModule.createGitHubClient).mockReturnValue(mockClient as any);
+
+      await run();
+
+      expect(core.setSecret).toHaveBeenCalledWith("ghp_test_secret_token");
+    });
+
     it("delegates to triggerCI with constructed branch name", async () => {
       process.argv = ["node", "post_process.js", "trigger-ci"];
       process.env.GH_TOKEN = "ghp_test";
