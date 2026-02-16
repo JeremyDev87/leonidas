@@ -37,9 +37,18 @@ export interface FailureCommentParams {
 }
 
 /**
- * Parameters for building a rescue PR title and body
+ * Parameters for building a rescue PR title
  */
-export interface RescuePRParams {
+export interface RescuePRTitleParams {
+  issueNumber: number;
+  issueTitle: string;
+  parentNumber?: number;
+}
+
+/**
+ * Parameters for building a rescue PR body
+ */
+export interface RescuePRBodyParams {
   issueNumber: number;
   issueTitle: string;
   parentNumber?: number;
@@ -94,7 +103,7 @@ export function buildFailureComment(params: FailureCommentParams): string {
 /**
  * Builds a PR title for rescue draft PRs
  */
-export function buildRescuePRTitle(params: RescuePRParams): string {
+export function buildRescuePRTitle(params: RescuePRTitleParams): string {
   const { issueNumber, issueTitle, parentNumber } = params;
   if (parentNumber) {
     return `#${parentNumber} ${issueTitle} [partial]`;
@@ -105,7 +114,7 @@ export function buildRescuePRTitle(params: RescuePRParams): string {
 /**
  * Builds a PR body for rescue draft PRs
  */
-export function buildRescuePRBody(params: RescuePRParams): string {
+export function buildRescuePRBody(params: RescuePRBodyParams): string {
   const { issueNumber, parentNumber, language, runUrl } = params;
   const header = t("partial_pr_body_header", language);
   const content = t("partial_pr_body", language, runUrl, issueNumber);
