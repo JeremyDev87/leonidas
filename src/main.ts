@@ -270,7 +270,7 @@ export async function run(): Promise<void> {
     // Prefer RUNNER_TEMP (cleaned per-job by GitHub Actions) over os.tmpdir()
     const tmpDir = process.env.RUNNER_TEMP ?? os.tmpdir();
     const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
-    fs.writeFileSync(promptFile, prompt, "utf-8");
+    fs.writeFileSync(promptFile, prompt, { encoding: "utf-8", mode: 0o600 });
 
     // Set outputs for composite action
     core.setOutput("prompt_file", promptFile);

@@ -110,7 +110,7 @@ describe("main", () => {
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining("leonidas-prompt-"),
         "plan prompt content",
-        "utf-8",
+        { encoding: "utf-8", mode: 0o600 },
       );
     });
 
@@ -166,7 +166,7 @@ describe("main", () => {
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         expect.stringMatching(/^\/runner\/tmp\/leonidas-prompt-\d+\.md$/),
         "prompt content",
-        "utf-8",
+        { encoding: "utf-8", mode: 0o600 },
       );
 
       delete process.env.RUNNER_TEMP;
