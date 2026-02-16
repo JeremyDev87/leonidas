@@ -48,6 +48,18 @@ export function loadConfigFile(configPath: string): Partial<LeonidasConfig> {
   }
 }
 
+function deleteField(obj: Partial<LeonidasConfig>, field: keyof LeonidasConfig): void {
+  delete (obj as Record<string, unknown>)[field];
+}
+
+function setField<K extends keyof LeonidasConfig>(
+  obj: Partial<LeonidasConfig>,
+  field: K,
+  value: LeonidasConfig[K],
+): void {
+  (obj as Record<string, unknown>)[field] = value;
+}
+
 function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<LeonidasConfig> {
   const validated = { ...fileConfig };
 
