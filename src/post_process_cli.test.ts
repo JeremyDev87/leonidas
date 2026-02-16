@@ -96,9 +96,7 @@ describe("post_process", () => {
     });
 
     it("throws on empty string", () => {
-      expect(() => parseRepo("")).toThrow(
-        'Invalid repository format: "". Expected "owner/repo".',
-      );
+      expect(() => parseRepo("")).toThrow('Invalid repository format: "". Expected "owner/repo".');
     });
 
     it("throws on missing separator", () => {

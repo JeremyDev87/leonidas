@@ -46,9 +46,7 @@ export function getEnvOptional(name: string): string | undefined {
 export function parseRepo(repo: string): { owner: string; repo: string } {
   const [owner, name] = repo.split("/");
   if (!owner || !name) {
-    throw new Error(
-      `Invalid repository format: "${repo}". Expected "owner/repo".`,
-    );
+    throw new Error(`Invalid repository format: "${repo}". Expected "owner/repo".`);
   }
   return { owner, repo: name };
 }
