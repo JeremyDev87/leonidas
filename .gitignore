@@ -9,7 +9,6 @@ dist/
 .mcp.json
 .claude/
 codingbuddy.config.json
-CLAUDE.md
 
 # Planning artifacts
 plan.md
