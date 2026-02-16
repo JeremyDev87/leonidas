@@ -6,7 +6,7 @@
 /**
  * Supported languages for the Leonidas system (single source of truth)
  */
-const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh", "es", "de", "fr", "pt"] as const;
+export const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh", "es", "de", "fr", "pt"] as const;
 
 /**
  * Supported language type derived from the language array

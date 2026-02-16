@@ -3,12 +3,12 @@
  * Supports multiple languages with translation keys and string interpolation
  */
 
-import { translations, SupportedLanguage, TranslationKey } from "./translations";
-
-/**
- * Supported languages for the Leonidas system (single source of truth)
- */
-const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh", "es", "de", "fr", "pt"] as const;
+import {
+  translations,
+  SUPPORTED_LANGUAGES,
+  SupportedLanguage,
+  TranslationKey,
+} from "./translations";
 
 /**
  * Display names for supported languages
