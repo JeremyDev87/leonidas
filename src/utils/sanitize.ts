@@ -61,3 +61,14 @@ export function escapeForShellArg(value: string): string {
     .replace(/\$/g, "\\$")
     .replace(/!/g, "\\!");
 }
+
+/**
+ * Escapes an array of strings for safe interpolation into shell command templates.
+ * Each element is individually escaped and joined with commas.
+ *
+ * @param values - The array of values to escape for shell interpolation
+ * @returns The shell-safe escaped string with comma-separated values
+ */
+export function escapeArrayForShellArg(values: string[]): string {
+  return values.map(escapeForShellArg).join(",");
+}
