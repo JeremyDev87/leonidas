@@ -109,7 +109,6 @@ describe("buildPartialProgressComment", () => {
 describe("buildFailureComment", () => {
   it("returns plan failure message for plan mode", () => {
     const result = buildFailureComment({
-      issueNumber: 42,
       mode: "plan",
       language: "en",
       runUrl: "https://example.com/run",
@@ -122,7 +121,6 @@ describe("buildFailureComment", () => {
 
   it("returns execute failure message for execute mode", () => {
     const result = buildFailureComment({
-      issueNumber: 42,
       mode: "execute",
       language: "en",
       runUrl: "https://example.com/run",
@@ -136,7 +134,6 @@ describe("buildFailureComment", () => {
   it("works for all 5 languages", () => {
     for (const lang of ALL_LANGUAGES) {
       const planResult = buildFailureComment({
-        issueNumber: 10,
         mode: "plan",
         language: lang,
         runUrl: "https://example.com/run",
@@ -144,7 +141,6 @@ describe("buildFailureComment", () => {
       expect(planResult).toContain("https://example.com/run");
 
       const execResult = buildFailureComment({
-        issueNumber: 10,
         mode: "execute",
         language: lang,
         runUrl: "https://example.com/run",

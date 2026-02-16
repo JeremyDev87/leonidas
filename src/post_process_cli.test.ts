@@ -248,7 +248,6 @@ describe("post_process", () => {
       await run();
 
       expect(postProcessingModule.buildFailureComment).toHaveBeenCalledWith({
-        issueNumber: 42,
         mode: "plan",
         language: "en",
         runUrl: "https://example.com/run",
@@ -272,7 +271,6 @@ describe("post_process", () => {
       await run();
 
       expect(postProcessingModule.buildFailureComment).toHaveBeenCalledWith({
-        issueNumber: 42,
         mode: "execute",
         language: "ja",
         runUrl: "https://example.com/run",
