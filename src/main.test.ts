@@ -237,7 +237,7 @@ describe("main", () => {
       expect(mockClient.findPlanComment).toHaveBeenCalledWith(5);
       expect(mockClient.postComment).toHaveBeenCalledWith(
         5,
-        "⚡ **Leonidas** is starting implementation for issue #5...",
+        expect.stringContaining("starting implementation"),
       );
     });
 

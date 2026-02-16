@@ -266,4 +266,18 @@ describe("post-processing translation keys", () => {
     const result = t("failure_execute_body", "en", "https://example.com/run");
     expect(result).toContain("https://example.com/run");
   });
+
+  it("should have starting_implementation translation for all languages", () => {
+    for (const lang of languages) {
+      const result = t("starting_implementation", lang, 42);
+      expect(result).not.toBe("[Missing translation: starting_implementation]");
+      expect(result).toContain("42");
+    }
+  });
+
+  it("should interpolate starting_implementation correctly", () => {
+    const result = t("starting_implementation", "en", 99);
+    expect(result).toContain("#99");
+    expect(result).toContain("Leonidas");
+  });
 });
