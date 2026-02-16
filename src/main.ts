@@ -9,6 +9,7 @@ import { buildPlanPrompt, buildSubIssuePlanPrompt } from "./prompts/plan";
 import { buildExecutePrompt } from "./prompts/execute";
 import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./github";
 import type { GitHubClient } from "./github";
+import { t } from "./i18n";
 
 export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
@@ -193,7 +194,7 @@ export async function handleExecuteMode(
 
   await client.postComment(
     context.issue_number,
-    `⚡ **Leonidas** is starting implementation for issue #${context.issue_number}...`,
+    t("starting_implementation", config.language, context.issue_number),
   );
 
   const prompt = buildExecutePrompt({
