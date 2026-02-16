@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
+import * as path from "path";
 import * as yaml from "js-yaml";
 import { LeonidasConfig, ActionInputs } from "./types";
 import { resolveLanguage } from "./i18n";
@@ -194,7 +195,7 @@ export function loadRules(rulesPath: string): Record<string, string> {
 
     const rules: Record<string, string> = {};
     for (const file of mdFiles) {
-      const filePath = `${rulesPath}/${file}`;
+      const filePath = path.join(rulesPath, file);
       const ruleName = file.replace(/\.md$/, "");
       try {
         const content = fs.readFileSync(filePath, "utf-8");
