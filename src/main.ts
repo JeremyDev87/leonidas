@@ -11,9 +11,13 @@ import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./g
 import type { GitHubClient } from "./github";
 import { t } from "./i18n";
 
+function isValidLeonidasMode(value: string): value is LeonidasMode {
+  return value === "plan" || value === "execute";
+}
+
 export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
-  if (modeRaw !== "plan" && modeRaw !== "execute") {
+  if (!isValidLeonidasMode(modeRaw)) {
     throw new Error(`Invalid mode: ${modeRaw}. Must be "plan" or "execute".`);
   }
   const mode: LeonidasMode = modeRaw;
@@ -27,10 +31,17 @@ export function readInputs(): ActionInputs {
     }
   }
 
+  const anthropicApiKey = core.getInput("anthropic_api_key", { required: true });
+  const githubToken = core.getInput("github_token", { required: true });
+
+  // Register secrets to prevent accidental logging in workflow output
+  core.setSecret(anthropicApiKey);
+  core.setSecret(githubToken);
+
   return {
     mode,
-    anthropic_api_key: core.getInput("anthropic_api_key", { required: true }),
-    github_token: core.getInput("github_token", { required: true }),
+    anthropic_api_key: anthropicApiKey,
+    github_token: githubToken,
     model: core.getInput("model") || undefined,
     max_turns: maxTurns,
     allowed_tools: core.getInput("allowed_tools") || undefined,
