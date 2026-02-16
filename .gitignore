@@ -24,3 +24,6 @@ docs/codingbuddy/
 
 # TypeScript build cache
 *.tsbuildinfo
+
+# Codingbuddy (local workspace)
+docs/codingbuddy/context.md
