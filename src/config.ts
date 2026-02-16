@@ -77,7 +77,7 @@ function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<Leoni
       core.warning(
         `Config "${field}" must be a string, got ${typeof validated[field]}. Using default.`,
       );
-      delete (validated as Record<string, unknown>)[field];
+      deleteField(validated, field);
     }
   }
 
@@ -87,7 +87,7 @@ function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<Leoni
       core.warning(
         `Config "max_turns" must be a number, got ${typeof validated.max_turns}. Using default.`,
       );
-      delete (validated as Record<string, unknown>).max_turns;
+      deleteField(validated, "max_turns");
     }
   }
 
@@ -99,7 +99,7 @@ function validateConfigTypes(fileConfig: Partial<LeonidasConfig>): Partial<Leoni
         core.warning(
           `Config "${field}" must be an array, got ${typeof validated[field]}. Using default.`,
         );
-        delete (validated as Record<string, unknown>)[field];
+        deleteField(validated, field);
       } else {
         const original = validated[field] as unknown[];
         const filtered = original.filter((item) => {
