@@ -21,6 +21,9 @@ coverage/
 docs/codingbuddy/
 .omc/
 
+# Git worktrees
+.worktrees/
+
 # TypeScript build cache
 *.tsbuildinfo
 
