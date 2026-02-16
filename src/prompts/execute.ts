@@ -1,6 +1,9 @@
 import { SubIssueMetadata } from "../types";
 import { wrapUserContent, escapeForShellArg, escapeArrayForShellArg } from "../utils/sanitize";
 
+/** Turns reserved for final push + PR creation workflow */
+const RESERVED_TURNS = 5;
+
 export interface ExecutePromptOptions {
   issueTitle: string;
   issueBody: string;
@@ -32,8 +35,7 @@ export function buildExecutePrompt(options: ExecutePromptOptions): string {
     hasRules = false,
   } = options;
   const branchName = `${branchPrefix}${issueNumber}`;
-  const reservedTurns = 5;
-  const pushDeadline = maxTurns - reservedTurns;
+  const pushDeadline = maxTurns - RESERVED_TURNS;
 
   const prLabels = issueLabels.filter((l) => l !== "leonidas");
   const labelCmd =
@@ -89,7 +91,7 @@ ${safePlan}
 
 ## Turn Budget
 
-You have **${maxTurns} turns** total. Reserve the last ${reservedTurns} turns for push + PR creation.
+You have **${maxTurns} turns** total. Reserve the last ${RESERVED_TURNS} turns for push + PR creation.
 
 - **Push deadline:** By turn ${pushDeadline}, you MUST have pushed your branch.
 - **Strategy:** Push early and create a draft PR after completing 2-3 implementation steps.

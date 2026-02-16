@@ -94,6 +94,37 @@ describe("post_process", () => {
         repo: "my-awesome-repo",
       });
     });
+
+    it("throws on empty string", () => {
+      expect(() => parseRepo("")).toThrow(
+        'Invalid repository format: "". Expected "owner/repo".',
+      );
+    });
+
+    it("throws on missing separator", () => {
+      expect(() => parseRepo("just-a-name")).toThrow(
+        'Invalid repository format: "just-a-name". Expected "owner/repo".',
+      );
+    });
+
+    it("throws on empty owner", () => {
+      expect(() => parseRepo("/repo")).toThrow(
+        'Invalid repository format: "/repo". Expected "owner/repo".',
+      );
+    });
+
+    it("throws on empty repo name", () => {
+      expect(() => parseRepo("owner/")).toThrow(
+        'Invalid repository format: "owner/". Expected "owner/repo".',
+      );
+    });
+
+    it("handles valid octocat/hello-world format", () => {
+      expect(parseRepo("octocat/hello-world")).toEqual({
+        owner: "octocat",
+        repo: "hello-world",
+      });
+    });
   });
 
   describe("run — link-subissues command", () => {
