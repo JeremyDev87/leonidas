@@ -117,6 +117,12 @@ describe("post_process", () => {
       );
     });
 
+    it("throws on extra path segments", () => {
+      expect(() => parseRepo("owner/repo/extra")).toThrow(
+        'Invalid repository format: "owner/repo/extra". Expected "owner/repo".',
+      );
+    });
+
     it("handles valid octocat/hello-world format", () => {
       expect(parseRepo("octocat/hello-world")).toEqual({
         owner: "octocat",
