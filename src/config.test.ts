@@ -664,7 +664,6 @@ describe("config", () => {
             "FIRST_TIME_CONTRIBUTOR",
             "FIRST_TIMER",
             "MANNEQUIN",
-            "NONE",
           ],
         };
         const inputs: ActionInputs = {
@@ -685,7 +684,6 @@ describe("config", () => {
           "FIRST_TIME_CONTRIBUTOR",
           "FIRST_TIMER",
           "MANNEQUIN",
-          "NONE",
         ]);
       });
 
@@ -760,7 +758,22 @@ describe("config", () => {
         };
 
         expect(() => mergeConfig(fileConfig, inputs)).toThrow(
-          "Must be one of: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER, MANNEQUIN, NONE",
+          "Must be one of: OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER, MANNEQUIN",
+        );
+      });
+
+      it("should reject NONE in authorized_approvers", () => {
+        const fileConfig = { authorized_approvers: ["OWNER", "NONE"] };
+        const inputs: ActionInputs = {
+          mode: "plan",
+          anthropic_api_key: "test-key",
+          github_token: "test-token",
+          config_path: ".leonidas.yml",
+          system_prompt_path: ".github/leonidas.md",
+        };
+
+        expect(() => mergeConfig(fileConfig, inputs)).toThrow(
+          'Invalid authorized_approvers value: "NONE" is not allowed',
         );
       });
     });
