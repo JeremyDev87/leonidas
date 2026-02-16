@@ -256,6 +256,16 @@ describe("escapeForShellArg", () => {
     expect(escapeForShellArg("line1\rline2")).toBe("line1\\rline2");
     expect(escapeForShellArg("line1\r\nline2")).toBe("line1\\r\\nline2");
   });
+
+  it("should escape single quotes", () => {
+    expect(escapeForShellArg("it's")).toBe("it\\'s");
+  });
+
+  it("should strip control characters", () => {
+    expect(escapeForShellArg("hello\x00world")).toBe("helloworld");
+    expect(escapeForShellArg("tab\there")).toBe("tabhere");
+    expect(escapeForShellArg("escape\x1bhere")).toBe("escapehere");
+  });
 });
 
 describe("escapeArrayForShellArg", () => {

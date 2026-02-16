@@ -48,21 +48,29 @@ export function wrapRepoConfiguration(content: string): string {
  * This prevents command injection when user-controlled values (like issue titles)
  * are embedded in shell commands that the LLM is instructed to execute.
  *
+ * Escapes double quotes, single quotes, backticks, dollar signs, backslashes,
+ * exclamation marks, newlines, and carriage returns. Also strips control characters.
+ *
  * @param value - The value to escape for shell interpolation
  * @returns The shell-safe escaped string
  */
 export function escapeForShellArg(value: string): string {
-  // Replace double quotes, backticks, dollar signs, backslashes,
+  // Replace double quotes, single quotes, backticks, dollar signs, backslashes,
   // newlines, carriage returns, and other shell metacharacters that could
-  // break out of a quoted string
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/`/g, "\\`")
-    .replace(/\$/g, "\\$")
-    .replace(/!/g, "\\!")
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r");
+  // break out of a quoted string, then strip control characters
+  return (
+    value
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      .replace(/'/g, "\\'")
+      .replace(/`/g, "\\`")
+      .replace(/\$/g, "\\$")
+      .replace(/!/g, "\\!")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/g, "")
+  );
 }
 
 /**
