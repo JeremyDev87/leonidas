@@ -159,9 +159,13 @@ export function mergeConfig(
     "FIRST_TIME_CONTRIBUTOR",
     "FIRST_TIMER",
     "MANNEQUIN",
-    "NONE",
   ];
   for (const approver of merged.authorized_approvers) {
+    if (approver === "NONE") {
+      throw new Error(
+        `Invalid authorized_approvers value: "NONE" is not allowed as it represents unauthenticated users. Use valid associations like OWNER, MEMBER, or COLLABORATOR instead.`,
+      );
+    }
     if (!validAssociations.includes(approver)) {
       throw new Error(
         `Invalid authorized_approvers value: "${approver}". Must be one of: ${validAssociations.join(", ")}`,

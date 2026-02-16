@@ -10,9 +10,13 @@ import { buildExecutePrompt } from "./prompts/execute";
 import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./github";
 import type { GitHubClient } from "./github";
 
+function isValidLeonidasMode(value: string): value is LeonidasMode {
+  return value === "plan" || value === "execute";
+}
+
 export function readInputs(): ActionInputs {
   const modeRaw = core.getInput("mode", { required: true });
-  if (modeRaw !== "plan" && modeRaw !== "execute") {
+  if (!isValidLeonidasMode(modeRaw)) {
     throw new Error(`Invalid mode: ${modeRaw}. Must be "plan" or "execute".`);
   }
   const mode: LeonidasMode = modeRaw;

@@ -1,5 +1,5 @@
 import { SubIssueMetadata } from "../types";
-import { wrapUserContent, escapeForShellArg } from "../utils/sanitize";
+import { wrapUserContent, escapeForShellArg, escapeArrayForShellArg } from "../utils/sanitize";
 
 export interface ExecutePromptOptions {
   issueTitle: string;
@@ -36,12 +36,14 @@ export function buildExecutePrompt(options: ExecutePromptOptions): string {
   const pushDeadline = maxTurns - reservedTurns;
 
   const prLabels = issueLabels.filter((l) => l !== "leonidas");
+  const shellSafeLabels = escapeArrayForShellArg(prLabels);
   const labelCmd =
     prLabels.length > 0
-      ? `\n   - Add labels: \`gh pr edit --add-label "${prLabels.join(",")}"\``
+      ? `\n   - Add labels: \`gh pr edit --add-label "${shellSafeLabels}"\``
       : "";
+  const shellSafeAuthor = escapeForShellArg(issueAuthor);
   const assigneeCmd = issueAuthor
-    ? `\n   - Add assignee: \`gh pr edit --add-assignee "${issueAuthor}"\``
+    ? `\n   - Add assignee: \`gh pr edit --add-assignee "${shellSafeAuthor}"\``
     : "";
 
   // Escape shell metacharacters in issueTitle to prevent command injection

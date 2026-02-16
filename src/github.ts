@@ -39,13 +39,6 @@ export function createGitHubClient(repo: GitHubRepo) {
       }
 
       if (planComments.length === 0) {
-        planComments = comments.filter((comment) => comment.body?.includes(PLAN_MARKER));
-      }
-      if (planComments.length === 0) {
-        planComments = comments.filter((comment) => comment.body?.includes(PLAN_HEADER));
-      }
-
-      if (planComments.length === 0) {
         return null;
       }
 

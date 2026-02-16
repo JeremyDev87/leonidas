@@ -53,11 +53,25 @@ export function wrapRepoConfiguration(content: string): string {
  */
 export function escapeForShellArg(value: string): string {
   // Replace double quotes, backticks, dollar signs, backslashes, semicolons,
-  // and other shell metacharacters that could break out of a quoted string
+  // newlines, carriage returns, and other shell metacharacters that could
+  // break out of a quoted string
   return value
     .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"')
     .replace(/`/g, "\\`")
     .replace(/\$/g, "\\$")
-    .replace(/!/g, "\\!");
+    .replace(/!/g, "\\!")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
+}
+
+/**
+ * Escapes an array of strings for safe interpolation into shell command templates.
+ * Each element is escaped individually and the result is joined with commas.
+ *
+ * @param values - Array of strings to escape
+ * @returns Shell-safe comma-separated string
+ */
+export function escapeArrayForShellArg(values: string[]): string {
+  return values.map(escapeForShellArg).join(",");
 }

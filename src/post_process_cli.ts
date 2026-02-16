@@ -229,8 +229,26 @@ async function runTriggerCI(): Promise<void> {
   await client.triggerCI(branchName);
 }
 
+function isValidCommand(value: string): value is Command {
+  const validCommands: Command[] = [
+    "link-subissues",
+    "post-completion",
+    "post-failure",
+    "rescue",
+    "post-process-pr",
+    "trigger-ci",
+  ];
+  return validCommands.includes(value as Command);
+}
+
 export async function run(): Promise<void> {
-  const command = process.argv[2] as Command;
+  const commandRaw = process.argv[2];
+  if (!commandRaw || !isValidCommand(commandRaw)) {
+    throw new Error(
+      `Invalid post-process command: ${String(commandRaw)}. Must be one of: link-subissues, post-completion, post-failure, rescue, post-process-pr, trigger-ci`,
+    );
+  }
+  const command: Command = commandRaw;
   switch (command) {
     case "link-subissues":
       return runLinkSubIssues();
