@@ -178,8 +178,6 @@ async function runRescue(): Promise<void> {
       issueNumber,
       issueTitle: issue.title,
       parentNumber,
-      language,
-      runUrl,
     });
     const body = buildRescuePRBody({
       issueNumber,
