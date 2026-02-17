@@ -12,6 +12,7 @@ codingbuddy.config.json
 
 # Planning artifacts
 plan.md
+docs/plans/
 
 # Test coverage
 coverage/
