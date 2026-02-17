@@ -164,7 +164,7 @@ describe("main", () => {
       await run();
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/runner\/tmp\/leonidas-prompt-\d+\.md$/),
+        expect.stringMatching(/^\/runner\/tmp\/leonidas-prompt-[0-9a-f-]+\.md$/),
         "prompt content",
         { encoding: "utf-8", mode: 0o600 },
       );

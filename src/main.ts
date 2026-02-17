@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -10,6 +11,7 @@ import { buildExecutePrompt } from "./prompts/execute";
 import { createGitHubClient, parseSubIssueMetadata, isDecomposedPlan } from "./github";
 import type { GitHubClient } from "./github";
 import { t } from "./i18n";
+import { ensureSafePath } from "./utils/sanitize";
 
 function isValidLeonidasMode(value: string): value is LeonidasMode {
   return value === "plan" || value === "execute";
@@ -38,6 +40,17 @@ export function readInputs(): ActionInputs {
   core.setSecret(anthropicApiKey);
   core.setSecret(githubToken);
 
+  const configPath = core.getInput("config_path") || "leonidas.config.yml";
+  const systemPromptPath = core.getInput("system_prompt_path") || ".github/leonidas.md";
+  const rulesPath = core.getInput("rules_path") || undefined;
+
+  // Validate file paths stay within workspace (defense-in-depth against path traversal)
+  ensureSafePath(configPath);
+  ensureSafePath(systemPromptPath);
+  if (rulesPath) {
+    ensureSafePath(rulesPath);
+  }
+
   return {
     mode,
     anthropic_api_key: anthropicApiKey,
@@ -48,9 +61,9 @@ export function readInputs(): ActionInputs {
     branch_prefix: core.getInput("branch_prefix") || undefined,
     base_branch: core.getInput("base_branch") || undefined,
     language: core.getInput("language") || undefined,
-    config_path: core.getInput("config_path") || "leonidas.config.yml",
-    system_prompt_path: core.getInput("system_prompt_path") || ".github/leonidas.md",
-    rules_path: core.getInput("rules_path") || undefined,
+    config_path: configPath,
+    system_prompt_path: systemPromptPath,
+    rules_path: rulesPath,
   };
 }
 
@@ -235,6 +248,8 @@ export async function run(): Promise<void> {
     const context = readGitHubContext();
     const repoFullName = `${context.owner}/${context.repo}`;
 
+    // Validate config-derived rules_path (may come from config file, not just action inputs)
+    ensureSafePath(config.rules_path);
     const rules = loadRules(config.rules_path);
     const systemPrompt = buildSystemPrompt(inputs.system_prompt_path, config.language, rules);
     const subIssueMetadata = parseSubIssueMetadata(context.issue_body);
@@ -269,7 +284,7 @@ export async function run(): Promise<void> {
     // Write prompt to temp file to avoid shell escaping issues
     // Prefer RUNNER_TEMP (cleaned per-job by GitHub Actions) over os.tmpdir()
     const tmpDir = process.env.RUNNER_TEMP ?? os.tmpdir();
-    const promptFile = path.join(tmpDir, `leonidas-prompt-${Date.now()}.md`);
+    const promptFile = path.join(tmpDir, `leonidas-prompt-${crypto.randomUUID()}.md`);
     fs.writeFileSync(promptFile, prompt, { encoding: "utf-8", mode: 0o600 });
 
     // Set outputs for composite action

