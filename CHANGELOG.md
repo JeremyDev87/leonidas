@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-02-09
+## [1.0.0] - 2026-02-17
 
 ### Added
 
@@ -43,3 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Authorization workflow checks:** Validate `author_association` at workflow level to restrict `/approve` command to trusted users (requires manual application via `.github/SECURITY_PATCH.md`)
 - **Runtime authorization validation:** Enforce `authorized_approvers` config at runtime for defense-in-depth protection
 - **Configurable approver roles:** Restrict execution triggers to specific GitHub association roles (OWNER, MEMBER, COLLABORATOR by default)
+
+[unreleased]: https://github.com/JeremyDev87/leonidas/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/JeremyDev87/leonidas/releases/tag/v1.0.0
