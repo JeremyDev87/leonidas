@@ -1,3 +1,27 @@
+import * as path from "path";
+
+/**
+ * Validates that a file path does not escape the workspace directory via traversal.
+ *
+ * Resolves the given path against the base directory and ensures the result
+ * stays within the base. Rejects absolute paths and `..` traversals.
+ *
+ * @param inputPath - The path to validate (typically relative)
+ * @param basedir - The workspace root directory (defaults to process.cwd())
+ * @returns The resolved absolute path
+ * @throws Error if the resolved path escapes the base directory
+ */
+export function ensureSafePath(inputPath: string, basedir?: string): string {
+  const base = basedir ?? process.cwd();
+  const resolved = path.resolve(base, inputPath);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) {
+    throw new Error(
+      `Path "${inputPath}" resolves outside the workspace directory. Path traversal is not allowed.`,
+    );
+  }
+  return resolved;
+}
+
 /**
  * Wraps user-supplied content in delimiters to prevent prompt injection attacks.
  *
@@ -16,9 +40,12 @@
  */
 export function wrapUserContent(content: string): string {
   // Escape delimiter tags — case-insensitive and whitespace-tolerant to prevent bypass
+  // Also escape cross-tag delimiters to prevent user content from breaking out of other contexts
   const escapedContent = content
     .replace(/<\s*user-supplied-content\s*>/gi, "&lt;user-supplied-content&gt;")
-    .replace(/<\s*\/\s*user-supplied-content\s*>/gi, "&lt;/user-supplied-content&gt;");
+    .replace(/<\s*\/\s*user-supplied-content\s*>/gi, "&lt;/user-supplied-content&gt;")
+    .replace(/<\s*repository-configuration\s*>/gi, "&lt;repository-configuration&gt;")
+    .replace(/<\s*\/\s*repository-configuration\s*>/gi, "&lt;/repository-configuration&gt;");
 
   return `<user-supplied-content>\n${escapedContent}\n</user-supplied-content>`;
 }
@@ -34,9 +61,12 @@ export function wrapUserContent(content: string): string {
  * @returns The content wrapped in <repository-configuration> delimiters
  */
 export function wrapRepoConfiguration(content: string): string {
+  // Escape own delimiter tags and cross-tag delimiters to prevent content from breaking out
   const escapedContent = content
     .replace(/<\s*repository-configuration\s*>/gi, "&lt;repository-configuration&gt;")
-    .replace(/<\s*\/\s*repository-configuration\s*>/gi, "&lt;/repository-configuration&gt;");
+    .replace(/<\s*\/\s*repository-configuration\s*>/gi, "&lt;/repository-configuration&gt;")
+    .replace(/<\s*user-supplied-content\s*>/gi, "&lt;user-supplied-content&gt;")
+    .replace(/<\s*\/\s*user-supplied-content\s*>/gi, "&lt;/user-supplied-content&gt;");
 
   return `<repository-configuration>\n${escapedContent}\n</repository-configuration>`;
 }
@@ -49,7 +79,8 @@ export function wrapRepoConfiguration(content: string): string {
  * are embedded in shell commands that the LLM is instructed to execute.
  *
  * Escapes double quotes, single quotes, backticks, dollar signs, backslashes,
- * exclamation marks, newlines, and carriage returns. Also strips control characters.
+ * exclamation marks, semicolons, pipes, ampersands, parentheses, angle brackets,
+ * hash signs, newlines, and carriage returns. Also strips control characters.
  *
  * @param value - The value to escape for shell interpolation
  * @returns The shell-safe escaped string
@@ -66,6 +97,14 @@ export function escapeForShellArg(value: string): string {
       .replace(/`/g, "\\`")
       .replace(/\$/g, "\\$")
       .replace(/!/g, "\\!")
+      .replace(/;/g, "\\;")
+      .replace(/\|/g, "\\|")
+      .replace(/&/g, "\\&")
+      .replace(/\(/g, "\\(")
+      .replace(/\)/g, "\\)")
+      .replace(/</g, "\\<")
+      .replace(/>/g, "\\>")
+      .replace(/#/g, "\\#")
       .replace(/\n/g, "\\n")
       .replace(/\r/g, "\\r")
       // eslint-disable-next-line no-control-regex
